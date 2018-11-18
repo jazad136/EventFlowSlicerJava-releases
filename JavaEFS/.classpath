@@ -6,7 +6,7 @@
 	<classpathentry kind="src" path="tst"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="dependent_libraries/args4j-2.0.11.jar"/>
-	<classpathentry kind="lib" path="dependent_libraries/jemmy-2.2.7.5.jar"/>
 	<classpathentry kind="lib" path="dependent_libraries/log4j-1.2.16.jar"/>
+	<classpathentry kind="lib" path="dependent_libraries/jemmy-2.2.7.5.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
