@@ -4,6 +4,8 @@ import javax.swing.*;
 import edu.umd.cs.guitar.model.data.*;
 import edu.umd.cs.guitar.model.XMLHandler;
 import edu.unl.cse.efs.ApplicationData;
+import edu.unl.cse.efs.tools.HyperList;
+import edu.unl.cse.efs.tools.ReportTranslation;
 import edu.unl.cse.jontools.widget.*;
 import javax.swing.text.PlainDocument;
 
@@ -21,8 +23,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 import static edu.unl.cse.efs.view.ft.InvalidWidgetException.Attribute.*;
+import static edu.unl.cse.efs.tools.TestCaseGeneratorPreparation.*;
 import static edu.unl.cse.efs.view.DecorationsRunner.*;
-import static edu.unl.cse.jontools.widget.TestCaseGeneratorPreparation.*;
 
 /**
  * This class builds a GUI that allows a user to edit constraints xml files,

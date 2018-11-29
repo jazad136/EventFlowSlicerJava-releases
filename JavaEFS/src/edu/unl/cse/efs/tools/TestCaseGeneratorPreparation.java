@@ -1,4 +1,4 @@
-package edu.unl.cse.jontools.widget;
+package edu.unl.cse.efs.tools;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -26,9 +26,9 @@ import edu.umd.cs.guitar.model.data.Required;
 import edu.umd.cs.guitar.model.data.Stop;
 import edu.umd.cs.guitar.model.data.TaskList;
 import edu.umd.cs.guitar.model.data.Widget;
+import edu.unl.cse.efs.tools.PathConformance;
+import edu.unl.cse.efs.tools.WildcardFiles;
 import edu.unl.cse.guitarext.JavaTestInteractions;
-import edu.unl.cse.jontools.paths.PathConformance;
-import edu.unl.cse.jontools.paths.WildcardFiles;
 
 
 /**

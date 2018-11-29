@@ -32,7 +32,7 @@ import edu.umd.cs.guitar.model.data.Repeat;
 import edu.umd.cs.guitar.model.data.RowType;
 import edu.umd.cs.guitar.model.data.TaskList;
 import edu.umd.cs.guitar.model.data.Widget;
-import edu.unl.cse.jontools.string.StringTools;
+import edu.unl.cse.efs.tools.StringTools;
 
 /**
  * Source for the EFG Pacifier class. The EFG pacifier is a class responsible for reducing the EFG graph

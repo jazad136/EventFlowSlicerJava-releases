@@ -367,11 +367,10 @@ public class TestCaseGenerate_Test {
 	}
 	public static FocusOnPack testStopPackJEditLS()
 	{
-		FocusOnPack fp = new FocusOnPack(Arrays.asList(
-			testWidgetComment(),
-			testWidgetShift())
+		FocusOnPack fp = new FocusOnPack(
+				testWidgetComment(),
+				testWidgetShift()
 		);
-		
 		return fp;
 	}
 }

@@ -43,8 +43,8 @@ import edu.unl.cse.efs.generate.EFGPacifier;
 import edu.unl.cse.efs.guitarplugin.EFSEFGConverter;
 import edu.unl.cse.efs.replay.JFCReplayerConfigurationEFS;
 import edu.unl.cse.efs.ripper.JFCRipperConfigurationEFS;
-import edu.unl.cse.jontools.paths.PathConformance;
-import edu.unl.cse.jontools.string.ArrayTools;
+import edu.unl.cse.efs.tools.ArrayTools;
+import edu.unl.cse.efs.tools.PathConformance;
 
 import static edu.unl.cse.efs.view.DecorationsRunner.*;
 import static java.awt.Component.*;

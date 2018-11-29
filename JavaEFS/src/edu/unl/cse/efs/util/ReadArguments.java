@@ -32,8 +32,8 @@ import edu.unl.cse.efs.LauncherData;
 import edu.unl.cse.efs.app.EventFlowSlicer;
 import edu.unl.cse.efs.java.JavaLaunchApplication;
 import edu.unl.cse.efs.ripper.JFCRipperConfigurationEFS;
+import edu.unl.cse.efs.tools.PathConformance;
 import edu.unl.cse.efs.view.EventFlowSlicerView;
-import edu.unl.cse.jontools.paths.PathConformance;
 
 import static edu.unl.cse.efs.util.ReadArguments.ConfigProperty.*;
 import static edu.unl.cse.efs.view.EventFlowSlicerErrors.*;

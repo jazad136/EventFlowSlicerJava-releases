@@ -1,7 +1,7 @@
 package edu.unl.cse.efs.view.ft;
 
+import static edu.unl.cse.efs.tools.TestCaseGeneratorPreparation.readRulesFromConstraintsFile;
 import static edu.unl.cse.efs.view.DecorationsRunner.*;
-import static edu.unl.cse.jontools.widget.TestCaseGeneratorPreparation.readRulesFromConstraintsFile;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -22,9 +22,9 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import edu.umd.cs.guitar.model.data.Widget;
+import edu.unl.cse.efs.tools.HyperList;
+import edu.unl.cse.efs.tools.TestCaseGeneratorPreparation.RuleName;
 import edu.unl.cse.efs.view.ft.FittingTool.DisplayingWidgets;
-import edu.unl.cse.jontools.widget.HyperList;
-import edu.unl.cse.jontools.widget.TestCaseGeneratorPreparation.RuleName;
 
 public class RuleDisplay
 {

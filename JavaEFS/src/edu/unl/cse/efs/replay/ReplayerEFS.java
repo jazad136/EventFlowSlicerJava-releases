@@ -48,10 +48,10 @@ import edu.umd.cs.guitar.replayer.monitor.GTestMonitor;
 import edu.umd.cs.guitar.util.GUITARLog;
 import edu.unl.cse.efs.bkmktools.EFGBookmarking;
 import edu.unl.cse.efs.java.JavaReplayerController;
+import edu.unl.cse.efs.tools.StringTools;
 import edu.unl.cse.guitarext.GUIEventModel;
 import edu.unl.cse.guitarext.HeadTable;
 import edu.unl.cse.guitarext.JavaTestInteractions;
-import edu.unl.cse.jontools.string.StringTools;
 
 public class ReplayerEFS extends Replayer {
 

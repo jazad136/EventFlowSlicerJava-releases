@@ -31,9 +31,9 @@ import edu.umd.cs.guitar.event.JFCEventHandler;
 import edu.umd.cs.guitar.model.GUITARConstants;
 import edu.unl.cse.efs.commun.giveevents.NetCommunication;
 import edu.unl.cse.efs.java.JavaCaptureUtils;
+import edu.unl.cse.efs.tools.ErrorTraceConformance;
 import edu.unl.cse.efs.commun.JavaListener;
 import edu.unl.cse.guitarext.JavaTestInteractions;
-import edu.unl.cse.jontools.string.ErrorTraceConformance;
 
 /**
  * A compilation of all the necessary calls that need to be implemented in order to support

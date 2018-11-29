@@ -28,9 +28,9 @@ import javax.swing.JPopupMenu;
 
 import edu.unl.cse.efs.commun.JavaRMICaptureMonitor;
 import edu.unl.cse.efs.java.JavaCaptureMonitor;
+import edu.unl.cse.efs.tools.StringTools;
 import edu.unl.cse.efs.view.EventFlowSlicerErrors;
 import edu.unl.cse.guitarext.JavaTestInteractions;
-import edu.unl.cse.jontools.string.StringTools;
 import edu.umd.cs.guitar.event.ActionClass;
 import edu.umd.cs.guitar.event.JFCBasicHoverHandler;
 import edu.umd.cs.guitar.model.GUITARConstants;

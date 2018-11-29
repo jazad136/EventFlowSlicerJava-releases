@@ -51,12 +51,12 @@ import edu.unl.cse.efs.java.JavaLaunchApplication;
 import edu.unl.cse.efs.java.JavaCaptureMonitor;
 import edu.unl.cse.efs.replay.JFCReplayerConfigurationEFS;
 import edu.unl.cse.efs.ripper.JFCRipperConfigurationEFS;
+import edu.unl.cse.efs.tools.ArrayTools;
+import edu.unl.cse.efs.tools.PathConformance;
 import edu.unl.cse.efs.util.ReadArguments;
 import edu.unl.cse.efs.view.EventFlowSlicerController;
 import edu.unl.cse.efs.view.EventFlowSlicerErrors;
 import edu.unl.cse.efs.view.EventFlowSlicerView;
-import edu.unl.cse.jontools.paths.PathConformance;
-import edu.unl.cse.jontools.string.ArrayTools;
 
 public class EventFlowSlicer {
 

@@ -16,7 +16,7 @@ import edu.umd.cs.guitar.replayer.GReplayerConfiguration;
 import edu.unl.cse.efs.java.JavaLaunchApplication;
 import edu.unl.cse.efs.replay.ApplicationMonitor;
 import edu.unl.cse.efs.replay.ReplayerController;
-import edu.unl.cse.jontools.string.ArrayTools;
+import edu.unl.cse.efs.tools.ArrayTools;
 import edu.umd.cs.guitar.model.data.Task;
 
 public abstract class ReplayerLauncher extends Thread {

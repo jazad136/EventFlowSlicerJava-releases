@@ -27,8 +27,8 @@ import org.kohsuke.args4j.Option;
 
 import edu.umd.cs.guitar.model.XMLHandler;
 import edu.umd.cs.guitar.model.data.GUIStructure;
+import edu.unl.cse.efs.tools.PathConformance;
 import edu.unl.cse.efs.view.EventFlowSlicerErrors;
-import edu.unl.cse.jontools.paths.PathConformance;
 
 /**
  * Entry point to convert GUI structure to Event Flow Graph supported by EFS.

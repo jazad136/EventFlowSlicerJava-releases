@@ -27,8 +27,8 @@ import edu.unl.cse.bmktools.EFGBookmarking;
 import edu.unl.cse.efs.ApplicationData;
 import edu.unl.cse.efs.guitarplugin.EFSEFGConverter;
 import edu.unl.cse.efs.guitarplugin.GUIStructure2EFGConverterEFS;
+import edu.unl.cse.efs.tools.PathConformance;
 import edu.unl.cse.efs.view.EventFlowSlicerErrors;
-import edu.unl.cse.jontools.paths.PathConformance;
 import edu.unl.cse.guitarext.GUITARDataFiles;
 import edu.unl.cse.guitarext.GUITARDataFiles.WrongFileTypeException;
 

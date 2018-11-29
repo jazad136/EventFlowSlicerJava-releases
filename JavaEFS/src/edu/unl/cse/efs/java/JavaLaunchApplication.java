@@ -24,8 +24,8 @@ import edu.unl.cse.efs.LaunchApplication;
 import edu.unl.cse.efs.app.EventFlowSlicer;
 import edu.unl.cse.efs.util.ReadArguments;
 import edu.unl.cse.efs.view.EventFlowSlicerView;
-import edu.unl.cse.jontools.paths.PathConformance;
 import edu.unl.cse.efs.commun.giveevents.NetCommunication;
+import edu.unl.cse.efs.tools.PathConformance;
 
 /**
  * This class that can readily be used to launch a Java application on the fly.

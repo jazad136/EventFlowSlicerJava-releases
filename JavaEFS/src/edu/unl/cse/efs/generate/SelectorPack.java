@@ -8,9 +8,9 @@ import edu.umd.cs.guitar.awb.JavaActionTypeProvider;
 import edu.umd.cs.guitar.event.ActionClass;
 import edu.umd.cs.guitar.model.data.ObjectFactory;
 import edu.umd.cs.guitar.model.data.Widget;
-import edu.unl.cse.bmktools.EFGBookmarking;
+import edu.unl.cse.efs.bkmktools.EFGBookmarking;
+import edu.unl.cse.efs.tools.TaskListConformance;
 import edu.unl.cse.guitarext.JavaTestInteractions;
-import edu.unl.cse.jontools.widget.TaskListConformance;
 
 /**
  * A Selector Pack is a set of related widgets that a test case selector has specified, that
@@ -55,31 +55,6 @@ public class SelectorPack
 					}
 				}
 			}
-//			String oldEId = w.getEventID();
-//			if(oldEId.contains(hoverSuffix)) {
-//				String newEId = oldEId;
-//				String hoverInfix = " " + JavaTestInteractions.hoverSurname;
-//				int idx = newEId.lastIndexOf(hoverInfix);
-//				if(idx != -1) {
-//					newEId = oldEId.substring(0, idx);
-//					newEId += oldEId.substring(idx+hoverInfix.length());
-//				}
-//				int actNumIdx = newEId.indexOf("_");
-//				if(actNumIdx != -1 && Character.isDigit(newEId.charAt(actNumIdx+1))) {
-//					StringBuilder sb = new StringBuilder();
-//					sb.append(newEId.substring(0, actNumIdx));
-//					sb.append("_0");
-//					sb.append(newEId.substring(actNumIdx+2));
-//					newEId = sb.toString();
-//				}
-//				newEId = newEId.replace(hoverSuffix, clickSuffix);
-//				for(Widget lw : nonHovers) {
-//					if(lw.getEventID().equals(newEId)) {
-//						targetWidgets.add(lw);
-//						break;
-//					}
-//				}
-//			}
 		}
 		return targetWidgets;
 	}
