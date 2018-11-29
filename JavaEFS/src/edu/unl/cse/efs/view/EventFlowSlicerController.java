@@ -1,6 +1,5 @@
 package edu.unl.cse.efs.view;
 
-import static org.junit.Assert.fail;
 
 import java.awt.EventQueue;
 import java.awt.SecondaryLoop;
@@ -214,7 +213,7 @@ public class EventFlowSlicerController
 			}
 			System.out.println("No more slices.");
 		} catch(IOException e) {
-			fail("Generator could not write files.");
+			throw new IOException("Generator could not write files.");
 		}
 		EFG minimalEFG = tcg.postEFG;
 		XMLHandler handler = new XMLHandler();
