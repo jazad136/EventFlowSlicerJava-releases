@@ -16,14 +16,14 @@ import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
 
-import edu.umd.cs.guitar.graph.converter.EFG2GraphvizFixString;
-import edu.umd.cs.guitar.graph.converter.TST2GraphvizFixString;
+import edu.umd.cs.guitar.graph.converter.EFG2GraphvizEFS;
+import edu.umd.cs.guitar.graph.converter.TST2GraphvizEFS;
 import edu.umd.cs.guitar.model.XMLHandler;
 import edu.umd.cs.guitar.model.data.EFG;
 import edu.umd.cs.guitar.model.data.GUIStructure;
 import edu.umd.cs.guitar.model.data.TestCase;
-import edu.unl.cse.bmktools.Bookmarker;
-import edu.unl.cse.bmktools.EFGBookmarking;
+import edu.unl.cse.efs.bkmktools.Bookmarker;
+import edu.unl.cse.efs.bkmktools.EFGBookmarking;
 import edu.unl.cse.efs.ApplicationData;
 import edu.unl.cse.efs.guitarplugin.EFSEFGConverter;
 import edu.unl.cse.efs.guitarplugin.GUIStructure2EFGConverterEFS;
@@ -65,7 +65,7 @@ public class VisToolchain {
 
 	public static void part3T(TestCase testCase, String newFileBase)
 	{
-		StringBuffer result = TST2GraphvizFixString.toGraphviz(testCase);
+		StringBuffer result = TST2GraphvizEFS.toGraphviz(testCase);
 		if(newFileBase.isEmpty())
 			newFileBase = guic.OUTPUT_DIRECTORY + File.separator;
 
@@ -92,7 +92,7 @@ public class VisToolchain {
 	 */
 	public static void part3(EFG eventFlow, String newFileBase)
 	{
-		StringBuffer result = EFG2GraphvizFixString.toGraphviz(eventFlow);
+		StringBuffer result = EFG2GraphvizEFS.toGraphviz(eventFlow);
 		if(newFileBase.isEmpty())
 			newFileBase = guic.OUTPUT_DIRECTORY + File.separator;
 

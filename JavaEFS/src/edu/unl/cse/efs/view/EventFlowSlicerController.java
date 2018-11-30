@@ -58,7 +58,7 @@ import edu.unl.cse.efs.generate.FocusOnPack;
 import edu.unl.cse.efs.generate.PEFGCreator;
 import edu.unl.cse.efs.generate.SearchPack;
 import edu.unl.cse.efs.generate.SelectorPack;
-import edu.unl.cse.bmktools.EFGBookmarking;
+import edu.unl.cse.efs.bkmktools.EFGBookmarking;
 
 public class EventFlowSlicerController
 {

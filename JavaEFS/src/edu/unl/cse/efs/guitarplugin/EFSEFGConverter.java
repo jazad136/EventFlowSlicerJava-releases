@@ -5,7 +5,6 @@ import java.util.List;
 
 import edu.umd.cs.guitar.awb.ActionTypeProvider;
 import edu.umd.cs.guitar.event.ActionClass;
-import edu.umd.cs.guitar.graph.plugin.GraphConverter;
 import edu.umd.cs.guitar.model.GUITARConstants;
 import edu.umd.cs.guitar.model.data.EFG;
 import edu.umd.cs.guitar.model.data.EventGraphType;
@@ -18,6 +17,7 @@ import edu.umd.cs.guitar.model.wrapper.GUIStructureWrapper;
 import edu.umd.cs.guitar.model.wrapper.ComponentTypeWrapper;
 import edu.umd.cs.guitar.model.wrapper.EventWrapper;
 import edu.umd.cs.guitar.model.wrapper.GUITypeWrapper;
+import edu.umd.cs.guitar.ripper.plugin.GraphConverter;
 
 /**
  * Gui Structure to Event Flow Graph converter for purposes of EventFlowSlicer replay.

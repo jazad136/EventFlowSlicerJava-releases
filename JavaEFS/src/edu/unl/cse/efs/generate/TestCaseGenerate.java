@@ -22,13 +22,12 @@ import edu.umd.cs.guitar.model.GUITARConstants;
 import edu.umd.cs.guitar.model.XMLHandler;
 import edu.umd.cs.guitar.model.data.*;
 import edu.umd.cs.guitar.model.wrapper.*;
+import edu.unl.cse.efs.bkmktools.TSTBookmarking.TSTUnBookmarking;
 import edu.unl.cse.efs.tools.AlphabetIterator;
 import edu.unl.cse.efs.tools.ArrayTools;
 import edu.unl.cse.efs.tools.LocationComparator;
 import edu.unl.cse.efs.tools.TaskListConformance;
 import edu.unl.cse.guitarext.JavaTestInteractions;
-
-import static edu.unl.cse.bmktools.TSTBookmarking.*;
 
 /**
  * Class bearing the main level of support for the EventFlowSlicer test case generator.

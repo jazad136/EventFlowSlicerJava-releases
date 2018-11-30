@@ -35,7 +35,7 @@ import edu.umd.cs.guitar.model.data.EFG;
 import edu.umd.cs.guitar.model.data.GUIStructure;
 import edu.umd.cs.guitar.model.data.TaskList;
 import edu.unl.cse.efs.util.ReadArguments;
-import edu.unl.cse.bmktools.EFGBookmarking;
+import edu.unl.cse.efs.bkmktools.EFGBookmarking;
 import edu.unl.cse.efs.ApplicationData;
 import edu.unl.cse.efs.LauncherData;
 import edu.unl.cse.efs.app.EventFlowSlicer;
