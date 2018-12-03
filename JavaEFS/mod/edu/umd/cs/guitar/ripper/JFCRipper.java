@@ -46,6 +46,7 @@ import edu.umd.cs.guitar.model.data.ComponentType;
 import edu.umd.cs.guitar.model.data.Configuration;
 import edu.umd.cs.guitar.model.data.FullComponentType;
 import edu.umd.cs.guitar.model.data.GUIStructure;
+import edu.umd.cs.guitar.model.data.LogWidget;
 import edu.umd.cs.guitar.model.data.ObjectFactory;
 import edu.umd.cs.guitar.model.wrapper.AttributesTypeWrapper;
 import edu.umd.cs.guitar.model.wrapper.ComponentTypeWrapper;
@@ -57,11 +58,11 @@ import edu.umd.cs.guitar.util.DefaultFactory;
 import edu.umd.cs.guitar.util.GUITARLog;
 
 /**
- *
+ * 
  * Executing class for JFCRipper
- *
+ * 
  * <p>
- *
+ * 
  * @author <a href="mailto:baonn@cs.umd.edu"> Bao Nguyen </a>
  */
 public class JFCRipper {
@@ -77,11 +78,11 @@ public class JFCRipper {
 
 	/**
 	 * Execute the jfc ripper
-	 *
+	 * 
 	 * <p>
-	 *
+	 * 
 	 * @throws CmdLineException
-	 *
+	 * 
 	 */
 	Ripper ripper;
 
@@ -124,7 +125,10 @@ public class JFCRipper {
 		ComponentListType lCloseWins = ripper.getlCloseWindowComp();
 		ObjectFactory factory = new ObjectFactory();
 
+		LogWidget logWidget = factory.createLogWidget();
 
+		logWidget.setOpenWindow(lOpenWins);
+		logWidget.setCloseWindow(lCloseWins);
 
 		// ------------------
 		// Elapsed time:
@@ -139,7 +143,7 @@ public class JFCRipper {
 	}
 
 	/**
-    *
+    * 
     */
 	private void setupEnv() throws Exception {
 		// --------------------------
@@ -231,15 +235,15 @@ public class JFCRipper {
 		}
 
 		// Setup ripper to use regex for window title matching
-
+		
 		if(CONFIG.RANDOM_WALK_STEPS!=null){
 			ripper.setRandomWalk(true);
 			ripper.setMaxSteps(CONFIG.RANDOM_WALK_STEPS);
 		}else{
 			ripper.setRandomWalk(false);
 		}
-
-
+		
+		
 		/**
 		 * Set additional GUI artifact data path The directory is created if it
 		 * does not exist. If it exists, contents are not deleted

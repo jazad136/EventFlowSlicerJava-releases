@@ -24,9 +24,12 @@
  */
 package edu.umd.cs.guitar.model.wrapper;
 
+import java.lang.Math;
 import java.util.ArrayList;
 import java.util.List;
 
+import edu.umd.cs.guitar.model.data.AttributesType;
+import edu.umd.cs.guitar.model.data.PropertyType;
 import edu.umd.cs.guitar.model.data.ContainerType;
 import edu.umd.cs.guitar.model.data.ContentsType;
 import edu.umd.cs.guitar.model.data.ComponentType;

@@ -1,9 +1,24 @@
+/*******************************************************************************
+ *    Copyright (c) 2018 Jonathan A. Saddler
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ *    
+ *    Contributors:
+ *     Jonathan A. Saddler - initial API and implementation
+ *******************************************************************************/
 package edu.unl.cse.efs.view;
 
-
-import java.awt.EventQueue;
 import java.awt.SecondaryLoop;
-import java.awt.Toolkit;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -14,9 +29,6 @@ import java.io.PrintWriter;
 import java.lang.ProcessBuilder.Redirect;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 
 import javax.swing.JFrame;
@@ -31,37 +43,27 @@ import edu.unl.cse.efs.java.JavaReplayerLauncher;
 import edu.unl.cse.efs.replay.JFCReplayerConfigurationEFS;
 import edu.unl.cse.efs.ripper.JFCRipperConfigurationEFS;
 import edu.unl.cse.efs.ripper.JFCRipperEFS;
+import edu.unl.cse.efs.tools.PathConformance;
 import edu.unl.cse.efs.util.ReadArguments;
 import edu.unl.cse.efs.view.ft.FittingTool;
-import edu.unl.cse.efs.view.tcselect.IPSelectorDisplay;
 import edu.unl.cse.efs.generate.TestCaseGenerate;
 import edu.unl.cse.efs.guitarplugin.EFSEFGConverter;
-import edu.unl.cse.jontools.paths.PathConformance;
-import edu.unl.cse.jontools.widget.LocationComparator;
-import edu.unl.cse.jontools.widget.TaskListConformance;
+import edu.unl.cse.jontools.paths.TaskListConformance;
 import edu.umd.cs.guitar.model.GUITARConstants;
 import edu.umd.cs.guitar.model.XMLHandler;
 import edu.umd.cs.guitar.model.data.EFG;
 import edu.umd.cs.guitar.model.data.EventType;
 import edu.umd.cs.guitar.model.data.GUIStructure;
 import edu.umd.cs.guitar.model.data.ObjectFactory;
-import edu.umd.cs.guitar.model.data.Required;
 import edu.umd.cs.guitar.model.data.TaskList;
 import edu.umd.cs.guitar.model.data.Widget;
-import edu.umd.cs.guitar.model.wrapper.GUIStructureWrapper;
 import edu.unl.cse.efs.ApplicationData;
 import edu.unl.cse.efs.LauncherData;
 import edu.unl.cse.efs.app.EventFlowSlicer;
-import edu.unl.cse.efs.generate.DirectionalPack;
+import edu.unl.cse.efs.bkmktools.EFGBookmarking;
 import edu.unl.cse.efs.generate.EFGPacifier;
-import edu.unl.cse.efs.generate.FocusOnPack;
-import edu.unl.cse.efs.generate.PEFGCreator;
-import edu.unl.cse.efs.generate.SearchPack;
-import edu.unl.cse.efs.generate.SelectorPack;
-import edu.unl.cse.bmktools.EFGBookmarking;
 
-public class EventFlowSlicerController
-{
+public class EventFlowSlicerController {
 	private ApplicationData ad;
 	private JavaLaunchApplication jLaunch;
 	private JavaCaptureLauncher currentCapture;
@@ -71,14 +73,7 @@ public class EventFlowSlicerController
 	private TaskList workingTaskList;
 	private EFG workingEventFlow;
 	private PrintWriter logFileWriter;
-	private SecondaryLoop ripLoop;
-	private List<SelectorPack> facetInstructions;
-	private List<DirectionalPack> facetDirectionals;
-	private FocusOnPack facetFocus;
-	private SearchPack facetSearches;
-	private List<Integer> facetSearchesToModify;
 	private boolean doLogging;
-
 
 	public EventFlowSlicerController(ApplicationData appDataObject)
 	{
@@ -86,7 +81,6 @@ public class EventFlowSlicerController
 		ObjectFactory fact = new ObjectFactory();
 		ripperArtifact = fact.createGUIStructure();
 		workingTaskList = fact.createTaskList();
-		facetInstructions = new ArrayList<SelectorPack>();
 	}
 
 	public void setWorkingEventFlow(EFG efg)
@@ -130,187 +124,6 @@ public class EventFlowSlicerController
 		FittingTool.startAndReadTo(ad, parentFrame);
 	}
 
-
-	public void startSelectorDialog(JFrame parentFrame)
-	{
-		facetInstructions = IPSelectorDisplay.startAndGetPacks(ad, parentFrame);
-		facetDirectionals = IPSelectorDisplay.timDirPacksOutput;
-		if(IPSelectorDisplay.timFocPacksOutput != null && !IPSelectorDisplay.timFocPacksOutput.isEmpty()) {
-			facetFocus = IPSelectorDisplay.timFocPacksOutput.get(0);
-		}
-		if(IPSelectorDisplay.abbySearchPacksOutput != null && !IPSelectorDisplay.abbySearchPacksOutput.isEmpty()) {
-			facetSearches = IPSelectorDisplay.abbySearchPacksOutput.get(0);
-			facetSearchesToModify = new ArrayList<Integer>(IPSelectorDisplay.tooltipModify);
-		}
-		System.out.println("Modifying constraints...");
-		workingTaskList.getWidget().clear();
-		workingTaskList.getWidget().addAll(IPSelectorDisplay.outputScope);
-		ObjectFactory fact = new ObjectFactory();
-		List<Widget> focusList = IPSelectorDisplay.timFocPacksOutput.get(0).list;
-		for(Widget w : focusList) {
-			Required sample = fact.createRequired();
-			sample.getWidget().add(w);
-			// add the required rule necessary to get the generator running to the tasklist
-			boolean foundR = false;
-			for(Required r : workingTaskList.getRequired()) {
-				if(sample.equals(r)) {
-					foundR = true;
-					break;
-				}
-			}
-			if(!foundR)
-				workingTaskList.getRequired().add(sample);
-		}
-		writeTaskListFile();
-	}
-
-
-	public int generateFacetedTCsFor(int directionInstruction) throws IOException
-	{
-		int testCases = 0;
-		File newDDirectory = new File(ad.getOutputDirectory().getAbsoluteFile(), "D" + directionInstruction);
-
-		TestCaseGenerate tcg = new TestCaseGenerate(
-				workingEventFlow,
-				ripperArtifact,
-				newDDirectory.getAbsolutePath());
-		// set up packs
-		List<SelectorPack> packs = new ArrayList<SelectorPack>();
-		if(facetDirectionals != null)
-			packs.addAll(facetDirectionals);
-		if(facetFocus != null)
-			packs.add(facetFocus);
-		if(facetSearches != null)
-			packs.add(facetSearches);
-		// ensure that search performers have updated values.
-		for(SelectorPack testP : packs) {
-			if(testP instanceof SearchPack) {
-				SearchPack testSP = ((SearchPack)testP);
-				List<Widget> newFullScope = TaskListConformance.checkAndSetWidgets(workingTaskList.getWidget(), ripperArtifact, workingEventFlow);
-				for(int i : facetSearchesToModify) {
-					// pull index from the tasklist.
-					// reset the search pack performer.
-					Widget newPerformer = newFullScope.get(i);
-					testSP.setSearchPerformer(i, newPerformer);
-				}
-				testSP.resetList(newFullScope);
-			}
-			else {
-				List<Widget> checkedWidgets = TaskListConformance.checkAndSetWidgets(testP.list, ripperArtifact, workingEventFlow);
-				testP.resetList(checkedWidgets);
-			}
-		}
-		// setup the generator
-		tcg.setupSliceSets(workingTaskList, packs.toArray(new SelectorPack[0]));
-		tcg.setupSliceIndexSets(workingTaskList);
-		tcg.resetTimes();
-
-		try {
-			boolean hasMore = tcg.hasMoreSlices();
-			while(hasMore) {
-				testCases += tcg.runSliceAlgorithmAndWriteResultsToOutputDirectory(false);
-				hasMore = tcg.advanceSplicer();
-			}
-			System.out.println("No more slices.");
-		} catch(IOException e) {
-			throw new IOException("Generator could not write files.");
-		}
-		EFG minimalEFG = tcg.postEFG;
-		XMLHandler handler = new XMLHandler();
-		String minimalFilename = ad.getOutputGenBaseFile() + "_minimal.EFG";
-		System.out.println("Writing final minimal EFG to " + minimalFilename);
-		long finalIOTime = System.currentTimeMillis();
-
-		try { handler.writeObjToFile(minimalEFG, new FileOutputStream(minimalFilename)); }
-		catch(IOException e) {
-			finalIOTime = System.currentTimeMillis() - finalIOTime;
-			// log time
-			if(doLogging) {
-				logFileWriter.append("gentc\t" + (tcg.algoDurationTime + tcg.ioHandlingTime + finalIOTime) + "\tms\n");
-				logFileWriter.close();
-			}
-			throw new IOException("Generation was completed. (final EFG could not be written)");
-		}
-		finalIOTime = System.currentTimeMillis() - finalIOTime;
-		// log time
-		if(doLogging) {
-			logFileWriter.append("gentc\t" + (tcg.algoDurationTime + tcg.ioHandlingTime + finalIOTime) + "\tms\n");
-			logFileWriter.close();
-		}
-		System.out.println("Done.");
-		return testCases;
-	}
-	public int startGeneratingTestCasesWithFacets(LauncherData ld) throws IOException
-	{
-		try {
-			if(!ad.outputDirectoryExists()) {
-				if(!ad.getOutputDirectory().mkdirs()) {
-					throw new RuntimeException("Could not create results directory and write test cases:\n"
-							+ ad.getOutputDirectory().getPath());
-				}
-			}
-		} catch(Exception e) {
-			throw new SecurityException(e.getMessage());
-		}
-		EFGPacifier pacifier = new EFGPacifier(workingEventFlow, workingTaskList, ad.getOutputGenBaseFile().getAbsolutePath());
-		System.out.println("Using pacifier run type " + ld.getGeneratorRunningType() + ":");
-		switch(ld.getGeneratorRunningType()) {
-			case NOCHOICE:
-			case RSECWO: workingEventFlow = pacifier.pacifyInputGraphAndWriteResultsRev3(); break;
-			case ECRSWO: workingEventFlow = pacifier.pacifyInputGraphAndWriteResultsRev4(); break;
-			case WORSEC: workingEventFlow = pacifier.pacifyInputGraphAndWriteResultsRev6(); break;
-			case NOREDS: // do nothing.
-		}
-		if(doLogging) {
-			logFileWriter.append("1\t" + pacifier.times[EFGPacifier.RED1] + "\tms\n");
-			logFileWriter.append("2\t" + pacifier.times[EFGPacifier.RED2] + "\tms\n");
-			logFileWriter.append("3\t" + pacifier.times[EFGPacifier.RED3] + "\tms\n");
-		}
-		TestCaseGenerate tcg = new TestCaseGenerate(
-				workingEventFlow,
-				ripperArtifact,
-				ad.getOutputDirectory().getAbsolutePath());
-		int testCases = 0;
-		// parameterize the events.
-		PEFGCreator pefgc = new PEFGCreator(workingEventFlow, workingTaskList);
-		workingEventFlow = pefgc.augmentEvents();
-		if(!facetInstructions.isEmpty()) {
-			for(int i = 0; i < facetDirectionals.size(); i++)
-				testCases += generateFacetedTCsFor(i);
-			return testCases;
-		}
-
-		tcg.setupIndexSets(workingTaskList);
-		tcg.resetTimes();
-		try{ testCases = tcg.runAlgorithmAndWriteResultsToOutputDirectory(false);}
-		catch(IOException e) {
-			throw new IOException("Generation Erorrs", e);
-		}
-		EFG minimalEFG = tcg.postEFG;
-		XMLHandler handler = new XMLHandler();
-		String minimalFilename = ad.getOutputGenBaseFile() + "_minimal.EFG";
-		System.out.println("Writing final minimal EFG to " + minimalFilename);
-		long finalIOTime = System.currentTimeMillis();
-
-		try { handler.writeObjToFile(minimalEFG, new FileOutputStream(minimalFilename)); }
-		catch(IOException e) {
-			finalIOTime = System.currentTimeMillis() - finalIOTime;
-			// log time
-			if(doLogging) {
-				logFileWriter.append("gentc\t" + (tcg.algoDurationTime + tcg.ioHandlingTime + finalIOTime) + "\tms\n");
-				logFileWriter.close();
-			}
-			throw new IOException("Generation was completed. (final EFG could not be written)");
-		}
-		finalIOTime = System.currentTimeMillis() - finalIOTime;
-		// log time
-		if(doLogging) {
-			logFileWriter.append("gentc\t" + (tcg.algoDurationTime + tcg.ioHandlingTime + finalIOTime) + "\tms\n");
-			logFileWriter.close();
-		}
-		System.out.println("Done.");
-		return testCases;
-	}
 	/*
 	 *\\\\\\
 	 *\\\\\GENERATION
@@ -345,16 +158,12 @@ public class EventFlowSlicerController
 			logFileWriter.append("2\t" + pacifier.times[EFGPacifier.RED2] + "\tms\n");
 			logFileWriter.append("3\t" + pacifier.times[EFGPacifier.RED3] + "\tms\n");
 		}
-//		// add parameters to the events.
-//		PEFGCreator pefgc = new PEFGCreator(workingEventFlow, workingTaskList);
-//		workingEventFlow = pefgc.augmentEvents();
 
 		TestCaseGenerate tcg = new TestCaseGenerate(
 				workingEventFlow,
 				ripperArtifact,
+				workingTaskList,
 				ad.getOutputDirectory().getAbsolutePath());
-		tcg.setupIndexSets(workingTaskList);
-		tcg.resetTimes();
 		int testCases = 0;
 		try {
 			testCases = tcg.runAlgorithmAndWriteResultsToOutputDirectory(false);
@@ -585,7 +394,7 @@ public class EventFlowSlicerController
 	 * RIPPING
 	 * ******
 	 */
-	public void startRip()
+	public void startRip(JFCRipperConfigurationEFS rcefs)
 	{
 		try {
 			if(!ad.outputDirectoryExists()) {
@@ -616,25 +425,8 @@ public class EventFlowSlicerController
 		System.out.println("  " + rcString);
 		System.out.println(bars);
 
-		currentRip = new JFCRipperEFS();
-
-		if(EventQueue.isDispatchThread()) {
-			ripLoop = Toolkit.getDefaultToolkit().getSystemEventQueue().createSecondaryLoop();
-			Thread ripThread = new Thread(
-				new Runnable() {public void run() {
-					// finish what needs to be finished.
-//					EventFlowSlicer.initRipperVMChanges();
-					ripperArtifact = currentRip.execute();
-					// continue working.
-					ripLoop.exit();
-				}
-			}
-			);
-			ripThread.start();
-			ripLoop.enter();
-		}
-		else
-			ripperArtifact = currentRip.execute();
+		currentRip = new JFCRipperEFS(rcefs);
+		ripperArtifact = currentRip.execute();
 	}
 
 
@@ -650,9 +442,9 @@ public class EventFlowSlicerController
 		final ProcessBuilder pb = setupRipProcess(); // Create the process that we need to fire off to begin ripping.
 		// print some information
 
-		String appString = "Application Name\t: " + PathConformance.parseApplicationName(ad.getAppFile().getPath());
+		String appString = "Application Name\t: " + PathConformance.parseApplicationName(ad.getAppFile().getAbsolutePath());
 		String pathString = "Path to application\t: " + PathConformance.parseApplicationPath(ad.getAppFile().getPath());
-		String constraintsString = "Constraints File\t: " + ad.getWorkingTaskListFile().getPath();
+		String constraintsString = "Constraints File\t: " + ad.getWorkingTaskListFile().getAbsolutePath();
 		String rdString = "Results Directory\t: " + ad.getOutputDirectory();
 		String rcString;
 		if(!ad.hasRipConfigurationFile())
@@ -678,13 +470,11 @@ public class EventFlowSlicerController
 					String line;
 					while((line = appOutput.readLine()) != null)
 						System.out.println("STDOUT: " + line);
-					// convert files to their proper format
 					int exitCode = p.waitFor();
-					endRipProcess(waitLoop);
 					System.out.println("EVENTFLOWSLICER: The application under test was closed.");
 					if(exitCode != 0)
 						System.out.println("Application under test exited with code " + exitCode);
-
+					endRipProcess(waitLoop);
 				}
 				catch(IOException e) {
 					System.err.println("There was an error starting the ripper.");
@@ -709,7 +499,7 @@ public class EventFlowSlicerController
 		String message = "";
 		try {
 			ad.setDefaultWorkingTaskListFile();
-			System.out.println("EVENTFLOWSLICER: Attempting to read post-rip TaskList...");
+			System.out.println("EventFlowSlicer: Attempting to read post-rip TaskList...");
 			XMLHandler handler = new XMLHandler();
 			TaskList newConstraints = (TaskList)handler.readObjFromFile(ad.getWorkingTaskListFile(), TaskList.class);
 			int oldWidgetCount = workingTaskList.getWidget().size();
@@ -718,7 +508,7 @@ public class EventFlowSlicerController
 			message = "The rip added (" + Math.abs(newWidgetCount - oldWidgetCount) + ") previously hidden events to the constraints file.\n";
 			workingTaskList = newConstraints;
 		} catch(ClassCastException | NullPointerException e) {
-			message = "Rip was not successful: Working tasklist file was not found on file system.";
+			message = "Working tasklist file was not found on file system.";
 		}
 		return message;
 	}
@@ -771,13 +561,14 @@ public class EventFlowSlicerController
 		}
 		String colonArgs;
 		colonArgs = "";
+
 		if(ad.hasArgumentsAppFile()) {
 			colonArgs = ReadArguments.colonDelimAppArgumentsFrom(ad.getArgumentsAppFile().getAbsolutePath());
 			finalAppArgs = new String[]{"-a", colonArgs};
 		}
-		if(ad.hasArgumentsVMFile())
+		if(ad.hasArgumentsVMFile()) {
 			vmFileArg = new String[]{"-vm", ad.getArgumentsVMFile().getAbsolutePath()};
-
+		}
 		final ProcessBuilder pb = new ProcessBuilder();
 		File currentLoc = new File(EventFlowSlicer.getRunLocation());
 		if(currentLoc.isDirectory())
@@ -803,9 +594,8 @@ public class EventFlowSlicerController
 		// if we're inferring widgets requiring parameterized actions, modify the input tasklist with the widgets that were inferred.
 		workingTaskList = currentRip.getRulesFilter().getTasklist();
 		List<Widget> specialParameterized = currentRip.getRulesFilter().getParameterizedWidgets();
-		String message = "";
 		if(specialParameterized.isEmpty())
-			message += "0 actionable widgets were inferred by the rip.";
+			return "0 actionable widgets were inferred by the rip.";
 		else {
 			int addedInferred = 0;
 			for(Widget w : specialParameterized)
@@ -813,12 +603,10 @@ public class EventFlowSlicerController
 					addedInferred++;
 					workingTaskList.getWidget().add(w);
 				}
-			message += "(" + addedInferred + ") actionable widgets were added to the tasklist.";
+			return "(" + addedInferred + ") actionable widgets were added to the tasklist.";
 		}
-		return message;
+
 	}
-
-
 	/**
 	 * This method is used to complete the rip process when the process is complete. The class that started the rip process
 	 * should wait until the waitLoop provided has called the loop's exit method at the end of this procedure
@@ -834,123 +622,36 @@ public class EventFlowSlicerController
 			ripperArtifact = (GUIStructure) handler.readObjFromFile(ad.getWorkingGUIFile(), GUIStructure.class);
 		}
 		catch(ClassCastException e) {
-			System.err.println("EVENTFLOWSLICER: Ripper artifact not available");
 			waitLoop.exit();
 			return;
 		}
 		// create the EFG file.
-		EFG efgOutput = null;
 		try {
 			// use this code to rip the EFG.
 			EFSEFGConverter converter = new EFSEFGConverter("JFC");
+			EFG efgOutput = null;
 			try {efgOutput = (EFG)converter.generate(ripperArtifact);
-			} catch(InstantiationException e) {
-				System.err.println("EVENTFLOWSLICER: EFG was not converted: " + e.getMessage());
-				return;
-			}
+			} catch(InstantiationException e) {/*cannot happen.*/}
+
+			System.out.println("EVENTFLOWSLICER: Writing completed EFG File to:\n\t" + ad.getWorkingEFGFile().getPath());
+			handler.writeObjToFile(efgOutput, ad.getWorkingEFGFile().getAbsolutePath());
+			System.out.println("EVENTFLOWSLICER: Done.");
 			workingEventFlow = efgOutput;
-		}
-		catch(Exception e) {
-			System.err.println("EFG Creation failed after ripping process was completed.");
-		}
-		if(workingEventFlow != null) {
-			try{
-				// bookmarking
-				EFG bookmarkedEFG = EFGPacifier.copyOf(workingEventFlow);
-				EFGBookmarking bkmk = new EFGBookmarking(bookmarkedEFG, ripperArtifact);
-				bookmarkedEFG = bkmk.getBookmarked(true);
-				modifyEFGInitials(bookmarkedEFG);
-				System.out.println("EVENTFLOWSLICER: Writing completed EFG File to:\n\t" + ad.getWorkingEFGFile().getPath());
-				handler.writeObjToFile(workingEventFlow, ad.getWorkingEFGFile().getAbsolutePath());
-				System.out.println("EVENTFLOWSLICER: Done.");
-			}
-			catch(Exception e) {
-				System.err.println("Failed Bookmarking test.");
-			}
-		}
-
-		waitLoop.exit();
-	}
-
-	public List<DirectionalPack> getFacetDirectionals()
-	{
-		return facetDirectionals;
-	}
-
-	public void endRipProcess()
-	{
-		// fetch the GUI from the file system.
-
-		XMLHandler handler = new XMLHandler();
-		try {
-			ripperArtifact = (GUIStructure) handler.readObjFromFile(ad.getWorkingGUIFile(), GUIStructure.class);
-		}
-		catch(ClassCastException e) {
-			System.err.println("EVENTFLOWSLICER: Ripper artifact not available");
-			return;
-		}
-		// create the EFG file.
-		try {
-			// use this code to rip the EFG.
-			EFSEFGConverter converter = new EFSEFGConverter("JFC");
-			EFG efgOutput;
-			try {efgOutput = (EFG)converter.generate(ripperArtifact);
-			} catch(InstantiationException e) {
-				System.err.println("EVENTFLOWSLICER: EFG was not converted: " + e.getMessage());
-				return;
-			}
-			workingEventFlow = efgOutput;
-
 		}
 		catch(Exception e) {
 			System.err.println("EFG Creation failed after ripping process was completed.");
 		}
 		try{
 			// bookmarking
-			if(workingEventFlow != null) {
-				EFG bookmarkedEFG = EFGPacifier.copyOf(workingEventFlow);
-				EFGBookmarking bkmk = new EFGBookmarking(bookmarkedEFG, ripperArtifact);
-				bookmarkedEFG = bkmk.getBookmarked(true);
-				modifyEFGInitials(bookmarkedEFG);
-
-				System.out.println("EVENTFLOWSLICER: Writing completed EFG File to:\n\t" + ad.getWorkingEFGFile().getPath());
-				handler.writeObjToFile(workingEventFlow, ad.getWorkingEFGFile().getAbsolutePath());
-				System.out.println("EVENTFLOWSLICER: Done.");
-				System.out.println("EVENTFLOWSLICER: Bookmarking test successful.");
-			}
+			EFG bookmarkedEFG = EFGPacifier.copyOf(workingEventFlow);
+			EFGBookmarking bkmk = new EFGBookmarking(bookmarkedEFG, ripperArtifact);
+			bookmarkedEFG = bkmk.getBookmarked(true);
+			System.out.println("EVENTFLOWSLICER: Bookmarking test successful.");
 		}
 		catch(Exception e) {
 			System.err.println("Failed Bookmarking test.");
 		}
-	}
-	public void modifyEFGInitials(EFG bookmarkedEFG)
-	{
-		if(facetDirectionals != null && !facetDirectionals.isEmpty()) {
-			LinkedList<Widget> firsts = new LinkedList<Widget>();
-			for(DirectionalPack dp : facetDirectionals) {
-				GUIStructureWrapper gsw = new GUIStructureWrapper(ripperArtifact);
-				gsw.parseData();
-				LocationComparator oc = new LocationComparator(gsw, workingTaskList.getWidget(), bookmarkedEFG.getEvents().getEvent());
-				Collection<LinkedList<Widget>> mapped = oc.getMappedWidgets(dp.hovers, dp.isRightDirectional()).values();
-				if(!mapped.isEmpty())
-					firsts.addAll(mapped.iterator().next());
-			}
-			Iterator<EventType> bIt = bookmarkedEFG.getEvents().getEvent().iterator();
-			List<Widget> newFirsts = TaskListConformance.checkAndSetWidgets(firsts, ripperArtifact, bookmarkedEFG);
-			for(EventType et : workingEventFlow.getEvents().getEvent()) {
-				EventType nextBE = bIt.next();
-				boolean found = false;
-				for(int i = 0; i < newFirsts.size() && !found; i++) {
-					if(nextBE.getEventId().equals(newFirsts.get(i).getEventID())) {
-						et.setInitial(true);
-						found = true;
-					}
-				}
-				if(!found)
-					et.setInitial(false);
-			}
-		}
-
+		waitLoop.exit();
 	}
 
 	public String copyTaskListToRipDirectory() throws JAXBException

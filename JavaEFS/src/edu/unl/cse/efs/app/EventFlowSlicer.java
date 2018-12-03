@@ -1,19 +1,29 @@
-
+/*******************************************************************************
+ *    Copyright (c) 2018 Jonathan A. Saddler
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ *    
+ *    Contributors:
+ *     Jonathan A. Saddler - initial API and implementation
+ *******************************************************************************/
 package edu.unl.cse.efs.app;
 
-import java.awt.Component;
-import java.awt.MouseInfo;
-import java.awt.Point;
 import java.awt.SecondaryLoop;
 import java.awt.Toolkit;
-import java.awt.Window;
-import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintStream;
-import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
-import java.net.URLDecoder;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -26,9 +36,6 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 import javax.swing.JFrame;
-import javax.swing.LookAndFeel;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.JAXBIntrospector;
@@ -39,44 +46,37 @@ import org.kohsuke.args4j.CmdLineParser;
 
 import edu.umd.cs.guitar.model.GUITARConstants;
 import edu.umd.cs.guitar.model.JFCApplication2;
+import edu.umd.cs.guitar.model.data.Configuration;
 import edu.umd.cs.guitar.model.data.EFG;
 import edu.umd.cs.guitar.model.data.GUIStructure;
 import edu.umd.cs.guitar.model.data.TaskList;
+import edu.umd.cs.guitar.ripper.JFCRipperConfiguration;
 import edu.unl.cse.efs.ApplicationData;
 import edu.unl.cse.efs.LauncherData;
 import edu.unl.cse.efs.LauncherData.GenType;
 import edu.unl.cse.efs.commun.giveevents.NetCommunication;
 import edu.unl.cse.efs.java.JavaCaptureTaskList;
 import edu.unl.cse.efs.java.JavaLaunchApplication;
-import edu.unl.cse.efs.java.JavaCaptureMonitor;
 import edu.unl.cse.efs.replay.JFCReplayerConfigurationEFS;
 import edu.unl.cse.efs.ripper.JFCRipperConfigurationEFS;
+import edu.unl.cse.efs.tools.ArrayTools;
+import edu.unl.cse.efs.tools.PathConformance;
 import edu.unl.cse.efs.util.ReadArguments;
 import edu.unl.cse.efs.view.EventFlowSlicerController;
 import edu.unl.cse.efs.view.EventFlowSlicerErrors;
 import edu.unl.cse.efs.view.EventFlowSlicerView;
-import edu.unl.cse.jontools.paths.PathConformance;
-import edu.unl.cse.jontools.string.ArrayTools;
 
 public class EventFlowSlicer {
-
-
-	public static LookAndFeel lookAndFeel;
 	private static SecondaryLoop waitLoop;
 	private static LauncherData ld;
 	private static ApplicationData ad;
-	private static EventFlowSlicerController controller;
-	private static EventFlowSlicerView.SetupView viewHandle;
 	private static HashMap<String, String> poppedSystemProperties = new HashMap<String, String>();
-
-	private static boolean doGUI, doRip, doCapture, doGenerate, doConstraints, doReplay;
+	@SuppressWarnings("unused")
+	private static boolean doGUI, doRip, doCapture, doGenerate, doConstraints, doBookmark, doReplay;
 	public static final String DEFAULT_JAVA_INVOKE_STRING = System.getProperty("java.home")
 			+ System.getProperty("file.separator") + "bin" + System.getProperty("file.separator") + "java";
 	public static final String DEFAULT_JAVA_RMI_PORT = "1099";
 	public static final String APP_INVOKE_STRING = getRunLocation();
-	public static String loadPreferencesFilename;
-	public static File loadPreferencesDirectory;
-
 	public static final PrintStream originalOut = System.out;
 	public static final PrintStream originalErr = System.err;
 
@@ -84,15 +84,9 @@ public class EventFlowSlicer {
 		try {
 			String location = EventFlowSlicer.class.getProtectionDomain().getCodeSource()
 					.getLocation().toURI().getPath();
-
-			String decodedPath = (location == null) ? "" : URLDecoder.decode(location, "UTF-8");
-			if(decodedPath.isEmpty()) {
-				decodedPath = URLDecoder.decode(ClassLoader.getSystemClassLoader().getResource(".").getPath(), "UTF-8");
-			}
-			return decodedPath;
+			// location = System.getProperty("user.dir");
+			return location;
 		} catch (URISyntaxException uris) {
-			return "";
-		} catch (UnsupportedEncodingException e) {
 			return "";
 		}
 	}
@@ -100,40 +94,21 @@ public class EventFlowSlicer {
 	private static void reset() {
 		ad = new ApplicationData();
 		ld = new LauncherData(DEFAULT_JAVA_RMI_PORT);
-		doGUI = doCapture = doConstraints = doRip = doGenerate = doReplay = false;
-		loadPreferencesDirectory = new File(System.getProperty("user.dir")).getAbsoluteFile();
-		loadPreferencesFilename = ReadArguments.DEFAULT_CONFIGFILENAME;
+		doGUI = doCapture = doConstraints = doRip = doGenerate = doBookmark = doReplay = false;
 	}
 
-
-	public static void resetToPreferences()
-	{
-		ad.resetNonTransientData();
-		ld = new LauncherData(DEFAULT_JAVA_RMI_PORT);
-		try {
-			ReadArguments.setupPreferences(loadPreferencesDirectory.getAbsolutePath(), loadPreferencesFilename, true);
-			ReadArguments.searchPreferences(ad, ld, ReadArguments.ConfigProperty.all);
-		} catch(JAXBException e) {
-
-		}
-	}
 	public static void main(String[] args) {
-		lookAndFeel = UIManager.getLookAndFeel();
 		reset();
 		try {
-//			resetToPreferences();
 			args = exhaustMainArgs(args);
-			controller = new EventFlowSlicerController(ad);
-			if(!(ld.sendsToRMI() || ld.sendsBackRMI())) {
-				System.out.println("Operating in Local VM Mode only");
-			}
+			EventFlowSlicerController efc = new EventFlowSlicerController(ad);
 			if (doGUI) {
 				guiArgs(args);
 				System.out.println("Opening Graphical Interface");
 
 				JFrame frame = EventFlowSlicerView.setupFrame(EventFlowSlicerView.FRAME_BASE_SIZE_X,
 						EventFlowSlicerView.FRAME_BASE_SIZE_Y);
-				viewHandle = new EventFlowSlicerView.SetupView(frame, ad, ld);
+				new EventFlowSlicerView.SetupView(frame, ad, ld);
 				EventFlowSlicerView.show(frame);
 
 				// update the GUI.
@@ -163,42 +138,40 @@ public class EventFlowSlicer {
 			} else if (doCapture) {
 				System.out.println("Doing capture");
 				captureArgs(args);
-				ad.setDefaultWorkingTaskListFile();
-				controller.startCapture(ld);
+				efc.startCapture(ld);
 			} else if (doRip) {
 				System.out.println("Doing rip");
-				JFCRipperConfigurationEFS config = ReadArguments.ripperConfiguration(args, ad);
-				ld.setRipperConfiguration(config);
+				JFCRipperConfigurationEFS config = rippingArgs(args);
 				if (!ld.sendsToRMI()) {
-					controller.startRip();
-					System.out.println(controller.modifyWorkingTasklistAfterRip());
+					efc.startRip(config);
+
+					System.out.println(efc.modifyWorkingTasklistAfterRip());
 					System.out.println("Done ripping.");
 					ad.setDefaultWorkingTaskListFile();
 					System.out.println("Writing TaskList file to...\n" + ad.getWorkingTaskListFile().getPath());
-					controller.writeTaskListFile();
+					efc.writeTaskListFile();
 					System.out.println("Done.");
 					System.exit(0); // we're done running the program. Exit now.
 				} else {
 					waitLoop = Toolkit.getDefaultToolkit().getSystemEventQueue().createSecondaryLoop();
-					controller.ripOutsideVM(waitLoop);
+					efc.ripOutsideVM(waitLoop);
 					waitLoop.enter();
 					System.out.println("EventFlowSlicer: Attempting to read rip TaskList...");
-					String message = controller.setRipTasklist();
+					String message = efc.setRipTasklist();
 					System.out.println(message);
-					System.exit(0);
 				}
 			} else if (doConstraints) {
 				System.out.println("Doing constraints");
-				constraintsArgs(args, controller);
+				constraintsArgs(args, efc);
 				// move the working constraints file to where it needs to be for
 				// editing.
 				ad.setDefaultWorkingTaskListFile();
-				controller.writeTaskListFile();
+				efc.writeTaskListFile();
 
-				controller.startFitting();
+				efc.startFitting();
 			} else if (doGenerate) {
 				System.out.println("Doing generate");
-				generateArgs(args, controller);
+				generateArgs(args, efc);
 				// the default running type is the original used in the thesis.
 				if (ld.getGeneratorRunningType() == LauncherData.GenType.NOCHOICE)
 					ld.setGeneratorRunningType(LauncherData.GenType.RSECWO);
@@ -206,18 +179,17 @@ public class EventFlowSlicer {
 					if (!ad.getOutputDirectory().mkdirs())
 						throw new IllegalArgumentException("Generation output directory could not be created.");
 
-				controller.bookmarkEFG(); // prepare the EFG
-				controller.relabelConstraintsWidgets(); // prepare the constraints
-				controller.setupGeneratorLogFile();
-				controller.startGeneratingTestCasesWithFacets(ld);
+				efc.bookmarkEFG(); // prepare the EFG
+				efc.relabelConstraintsWidgets(); // prepare the constraints
+				efc.setupGeneratorLogFile();
+				efc.startGeneratingTestCases(ld);
 			} else if (doReplay) {
 				System.out.println("Doing replay");
-				JFCReplayerConfigurationEFS config = replayArgs(args, controller);
-				ld.setReplayerConfiguration(config);
-				controller.bookmarkEFG();
-				controller.startReplay(ld);
+				replayArgs(args, efc);
+				efc.bookmarkEFG();
+				efc.startReplay(ld);
 				try {
-					controller.waitForReplayerFinish();
+					efc.waitForReplayerFinish();
 				} catch (InterruptedException e) {
 					System.out.println("Replayer task was interrupted before completion.");
 				}
@@ -234,8 +206,8 @@ public class EventFlowSlicer {
 		remaining.addAll(Arrays.asList(args));
 		Iterator<String> argsIt = remaining.iterator();
 		String target;
-		boolean tFound, oFound, eFound, rtFound, gFound;
-		tFound = oFound = eFound = rtFound = gFound = false;
+		boolean tFound, oFound, eFound, ebFound, rtFound, gFound;
+		tFound = oFound = eFound = ebFound = rtFound = gFound = false;
 		while (argsIt.hasNext()) {
 			target = argsIt.next().toLowerCase();
 			switch (target) {
@@ -247,8 +219,8 @@ public class EventFlowSlicer {
 				try {
 					String filepath = argsIt.next();
 					argsIt.remove();
-					File parent = new File(filepath);
 					ad.setOutputDirectory(filepath);
+					File parent = new File(ad.getOutputDirectoryProvided());
 					if (filepath.isEmpty() || !parent.exists())
 						throw new IllegalArgumentException("Output directory provided\n" + "\'" + filepath + "\'\n"
 								+ "does not exist on the file system.");
@@ -289,13 +261,22 @@ public class EventFlowSlicer {
 				}
 			}
 				break;
-			case "-e": {
+			case "-e":
+			case "-eb": {
 				if (target.equals("-e")) {
 					if (eFound)
 						throw new IllegalArgumentException("-e parameter cannot be defined twice.");
+					if (ebFound)
+						throw new IllegalArgumentException("-e and -eb are mutually exclusive parameters.");
 					eFound = true;
+					doBookmark = true;
+				} else {
+					if (ebFound)
+						throw new IllegalArgumentException("-eb parameter cannot be defined twice.");
+					if (eFound)
+						throw new IllegalArgumentException("-e and -eb are mutually exclusive parameters.");
+					ebFound = true;
 				}
-
 				try {
 					argsIt.remove();
 					String filepath = argsIt.next();
@@ -649,8 +630,63 @@ public class EventFlowSlicer {
 			ad.setAppFilePath(left[0]);
 	}
 
-	public static void initRipperVMChanges()
-	{
+	private static JFCRipperConfigurationEFS rippingArgs(String[] args) {
+		JFCRipperConfigurationEFS configuration = new JFCRipperConfigurationEFS();
+		CmdLineParser parser = new CmdLineParser(configuration);
+		try {
+			parser.parseArgument(args);
+		} catch (CmdLineException e) {
+			throw new IllegalArgumentException(e);
+		}
+
+		String filepath;
+		// check application
+		if (JFCRipperConfigurationEFS.CMD_LINE_ARGS.isEmpty())
+			throw new IllegalArgumentException(
+					"Application file was not provided as an argument to the ripper arguments");
+		filepath = JFCRipperConfigurationEFS.CMD_LINE_ARGS.get(0);
+
+		ad.setAppFilePath(filepath);
+		if (JavaLaunchApplication.launchesJar(filepath))
+			JFCRipperConfiguration.USE_JAR = true;
+		if (JFCRipperConfigurationEFS.MAIN_CLASS.isEmpty() && !filepath.isEmpty())
+			JFCRipperConfigurationEFS.MAIN_CLASS = ad.getAppFile().getAbsolutePath();
+
+		if (JFCRipperConfigurationEFS.CUSTOM_MAIN_CLASS.isEmpty()) {
+			JFCRipperConfigurationEFS.LONG_PATH_TO_APP = JFCRipperConfigurationEFS.MAIN_CLASS;
+			if (!JFCRipperConfigurationEFS.USE_JAR)
+				JFCRipperConfigurationEFS.MAIN_CLASS = PathConformance.parseApplicationName(filepath);
+		} else {
+			JFCRipperConfigurationEFS.LONG_PATH_TO_APP = JFCRipperConfigurationEFS.MAIN_CLASS;
+			JFCRipperConfigurationEFS.MAIN_CLASS = JFCRipperConfigurationEFS.CUSTOM_MAIN_CLASS;
+		}
+
+
+		String pathPath = PathConformance.parseApplicationPath(filepath);
+		if(!pathPath.isEmpty()) {
+			if(JFCRipperConfigurationEFS.URL_LIST.isEmpty()) // there is a path to append.
+				JFCRipperConfigurationEFS.URL_LIST = pathPath;
+			else
+				JFCRipperConfigurationEFS.URL_LIST += GUITARConstants.CMD_ARGUMENT_SEPARATOR + pathPath;
+		}
+		filepath = JFCRipperConfigurationEFS.APP_ARGS_FILE;
+		ad.setArgumentsAppFile(filepath);
+		if (ad.hasArgumentsAppFile()) {
+			if (!ad.argumentsAppFileExists())
+				throw new IllegalArgumentException(
+						"Application Arguments file provided does not exist on the file system.\n" + "\'" + filepath + "\'");
+			else {
+				String colonArgs = ReadArguments.colonDelimAppArgumentsFrom(ad.getArgumentsAppFile().getAbsolutePath());
+				JFCRipperConfigurationEFS.ARGUMENT_LIST = colonArgs;
+			}
+		}
+		filepath = JFCRipperConfigurationEFS.VM_ARGS_FILE;
+		ad.setArgumentsVMFile(filepath);
+		if (ad.hasArgumentsVMFile()) {
+			if (!ad.argumentsVMFileExists())
+				throw new IllegalArgumentException(
+						"Java VM Arguments file provided does not exist on the file system.\n" + "\'" + filepath + "\'");
+		}
 		boolean useVMArgs = !JFCRipperConfigurationEFS.VM_ARGS_FILE.isEmpty();
 		if(useVMArgs) {
 			String[] jvmArgs = ReadArguments.readVMArguments(JFCRipperConfigurationEFS.VM_ARGS_FILE);
@@ -666,25 +702,82 @@ public class EventFlowSlicer {
 			if(sysProp != null)
 				poppedSystemProperties = sysProp;
 		}
-	}
+		if (!ripperAppExists())
+			throw new IllegalArgumentException(
+					"Application file provided:\n\'" + JFCRipperConfigurationEFS.LONG_PATH_TO_APP + "\'\n" + "cannot be found on the file system.");
 
-	public static void initReplayerVMChanges()
-	{
-		boolean useVMArgs = !JFCReplayerConfigurationEFS.VM_ARGS_FILE.isEmpty();
-		if(useVMArgs) {
-			String[] jvmArgs = ReadArguments.readVMArguments(JFCReplayerConfigurationEFS.VM_ARGS_FILE);
-			String[] urlsList = new String[0];
-			HashMap<String, String> sysProp = JavaLaunchApplication.imitateVMPropertyChanges(jvmArgs);
-			urlsList = JavaLaunchApplication.getCPUrlsList(jvmArgs);
-			for(String s : urlsList) {
-				if(JFCReplayerConfigurationEFS.URL_LIST.isEmpty())
-					JFCReplayerConfigurationEFS.URL_LIST += s;
-				else
-					JFCReplayerConfigurationEFS.URL_LIST += GUITARConstants.CMD_ARGUMENT_SEPARATOR + s;
-			}
-			if(sysProp != null)
-				poppedSystemProperties = sysProp;
+		// results directory
+		filepath = JFCRipperConfigurationEFS.RESULTS_DIRECTORY;
+		File parent = new File(filepath).getAbsoluteFile().getParentFile();
+		ad.setOutputDirectory(filepath);
+		if (filepath.isEmpty() || filepath == null)
+			throw new IllegalArgumentException("An output directory was not provided via the -resdir argument");
+		else if (!parent.exists())
+			throw new IllegalArgumentException("Output directory provided\n" + ad.getOutputDirectory().getPath() + "\n"
+					+ "does not exist on the file system.");
+
+		// get output files
+
+		ad.setDefaultWorkingGUIFile();
+		JFCRipperConfigurationEFS.GUI_FILE = ad.getWorkingGUIFile().getAbsolutePath();
+		ad.setDefaultWorkingEFGFile();
+		JFCRipperConfiguration.LOG_FILE = ad.getOutputDirectory().getAbsolutePath() + File.separator + "Rip.log";
+
+		ad.setCustomMainClass(JFCRipperConfigurationEFS.CUSTOM_MAIN_CLASS);
+
+		// check constraints.
+		try {
+			filepath = JFCRipperConfigurationEFS.RULES_FILE;
+			ad.setWorkingTaskListFile(filepath);
+			if (!ad.workingTaskListFileExists())
+				throw new IllegalArgumentException(
+						"Constraints tasklist file provided does not exist on the file system\n" + "\'" + filepath
+								+ "\'");
+
+			// check if this file contains TaskList data
+			JAXBContext context = JAXBContext.newInstance(TaskList.class);
+			Unmarshaller um = context.createUnmarshaller();
+			Object myFile = JAXBIntrospector.getValue(um.unmarshal(ad.getWorkingTaskListFile()));
+			if (!(myFile instanceof TaskList))
+				throw new IllegalArgumentException(
+						"File provided to -constfile parameter is a " + myFile.getClass() + " file.");
+		} catch (JAXBException e) {
+			throw new IllegalArgumentException("Invalid argument passed to -constfile parameter:\n"
+					+ "Errors in XML syntax or structure.\n" + e.getLinkedException().getMessage());
 		}
+
+
+
+		// check configuration file.
+		filepath = JFCRipperConfigurationEFS.CONFIG_FILE;
+		ad.setRipConfigurationFile(filepath);
+		if (ad.hasRipConfigurationFile()) {
+			if (!ad.ripConfigurationFileExists())
+				throw new IllegalArgumentException(
+						"Ripper Configuration file provided does not exist on the file system.\n" + "\'" + filepath
+								+ "\'");
+			// check if this file contains Configuration data
+			try {
+				JAXBContext context = JAXBContext.newInstance(Configuration.class);
+				Unmarshaller um = context.createUnmarshaller();
+				Object myFile = JAXBIntrospector.getValue(um.unmarshal(ad.getRipConfigurationFile()));
+				if (!(myFile instanceof Configuration))
+					throw new IllegalArgumentException(
+							"File provided to -ripcon parameter is a " + myFile.getClass() + " file.");
+			} catch (JAXBException e) {
+				throw new IllegalArgumentException("Invalid argument passed to -constfile parameter:\n"
+						+ "Errors in XML syntax or structure.\n" + e.getLinkedException().getMessage());
+			}
+		}
+
+		// properly and robustly inherit features from the input arguments, and overwrite the initial waiting time.
+		if(JFCRipperConfigurationEFS.APPLICATION_OPEN_DELAY < 0)
+			JFCRipperConfigurationEFS.INITIAL_WAITING_TIME = ApplicationData.openWaitTime;
+		else {
+			JFCRipperConfigurationEFS.INITIAL_WAITING_TIME = JFCRipperConfigurationEFS.APPLICATION_OPEN_DELAY;
+			ApplicationData.openWaitTime = JFCRipperConfigurationEFS.INITIAL_WAITING_TIME;
+		}
+		return configuration;
 	}
 
 	public static JFCReplayerConfigurationEFS replayArgs(String[] args, EventFlowSlicerController efc)
@@ -704,57 +797,30 @@ public class EventFlowSlicer {
 		filepath = JFCReplayerConfigurationEFS.CMD_LINE_ARGS.get(0);
 
 		ad.setAppFilePath(filepath);
-//		if(JavaLaunchApplication.launchesJar(filepath))
-//			JFCReplayerConfigurationEFS.USE_JAR = true;
-//		if(JFCReplayerConfigurationEFS.MAIN_CLASS.isEmpty() && !filepath.isEmpty())
-//			JFCReplayerConfigurationEFS.MAIN_CLASS = ad.getAppFile().getAbsolutePath();
-//		JFCReplayerConfigurationEFS.LONG_PATH_TO_APP = JFCReplayerConfigurationEFS.MAIN_CLASS;
-//
-//		// if there is a custom main class, use it as the path to the main class.
-//		if(!JFCReplayerConfigurationEFS.CUSTOM_MAIN_CLASS.isEmpty())
-//			JFCReplayerConfigurationEFS.MAIN_CLASS = JFCReplayerConfigurationEFS.CUSTOM_MAIN_CLASS;
-//		// if we're using a jar, then just use the filename as the main class path.
-//		else if(!JFCReplayerConfigurationEFS.USE_JAR)
-//			JFCReplayerConfigurationEFS.MAIN_CLASS = PathConformance.parseApplicationName(filepath);
-//
-//
-//		// set up the URL list further, if the input path to the app file is non
-//		// empty, add that path to the url lists, so that classpaths can be recognized from there.
-//		String inputPath = PathConformance.parseApplicationPath(filepath);
-//		if(!inputPath.isEmpty()) {
-//			if(JFCReplayerConfigurationEFS.URL_LIST.isEmpty())
-//				JFCReplayerConfigurationEFS.URL_LIST = inputPath;
-//			else
-//				JFCReplayerConfigurationEFS.URL_LIST += GUITARConstants.CMD_ARGUMENT_SEPARATOR + inputPath;
-//		}
-		if (JavaLaunchApplication.launchesJar(filepath))
+		if(JavaLaunchApplication.launchesJar(filepath))
 			JFCReplayerConfigurationEFS.USE_JAR = true;
-		if (JFCReplayerConfigurationEFS.MAIN_CLASS.isEmpty() && !filepath.isEmpty())
+		if(JFCReplayerConfigurationEFS.MAIN_CLASS.isEmpty() && !filepath.isEmpty())
 			JFCReplayerConfigurationEFS.MAIN_CLASS = ad.getAppFile().getAbsolutePath();
+		JFCReplayerConfigurationEFS.LONG_PATH_TO_APP = JFCReplayerConfigurationEFS.MAIN_CLASS;
 
-		if (JFCReplayerConfigurationEFS.CUSTOM_MAIN_CLASS.isEmpty()) {
-			JFCReplayerConfigurationEFS.LONG_PATH_TO_APP = JFCReplayerConfigurationEFS.MAIN_CLASS;
-			if (!JFCReplayerConfigurationEFS.USE_JAR)
-				JFCReplayerConfigurationEFS.MAIN_CLASS = PathConformance.parseApplicationName(filepath);
-		} else {
-			JFCReplayerConfigurationEFS.LONG_PATH_TO_APP = JFCReplayerConfigurationEFS.MAIN_CLASS;
+		// if there is a custom main class, use it as the path to the main class.
+		if(!JFCReplayerConfigurationEFS.CUSTOM_MAIN_CLASS.isEmpty())
 			JFCReplayerConfigurationEFS.MAIN_CLASS = JFCReplayerConfigurationEFS.CUSTOM_MAIN_CLASS;
+		// if we're using a jar, then just use the filename as the main class path.
+		else if(!JFCReplayerConfigurationEFS.USE_JAR)
+			JFCReplayerConfigurationEFS.MAIN_CLASS = PathConformance.parseApplicationName(filepath);
+
+
+		// set up the URL list further, if the input path to the app file is non
+		// empty, add that path to the url lists, so that classpaths can be recognized from there.
+		String inputPath = PathConformance.parseApplicationPath(filepath);
+		if(!inputPath.isEmpty()) {
+			if(JFCReplayerConfigurationEFS.URL_LIST.isEmpty())
+				JFCReplayerConfigurationEFS.URL_LIST = inputPath;
+			else
+				JFCReplayerConfigurationEFS.URL_LIST += GUITARConstants.CMD_ARGUMENT_SEPARATOR + inputPath;
 		}
 
-		// Edit URL List
-		String pathPath = PathConformance.parseApplicationPath(filepath);
-		if(!pathPath.isEmpty()) {
-			if(JFCReplayerConfigurationEFS.URL_LIST.isEmpty()) // there is a path to append.
-				JFCReplayerConfigurationEFS.URL_LIST = pathPath;
-			else
-				JFCReplayerConfigurationEFS.URL_LIST += GUITARConstants.CMD_ARGUMENT_SEPARATOR + pathPath;
-		}
-		if(JFCReplayerConfigurationEFS.USE_JAR) {
-			if(JFCReplayerConfigurationEFS.URL_LIST.isEmpty()) // there is a path to append.
-				JFCReplayerConfigurationEFS.URL_LIST = JFCReplayerConfigurationEFS.LONG_PATH_TO_APP;
-			else
-				JFCReplayerConfigurationEFS.URL_LIST += GUITARConstants.CMD_ARGUMENT_SEPARATOR + JFCReplayerConfigurationEFS.LONG_PATH_TO_APP;
-		}
 		// check constraints.
 
 		filepath = JFCReplayerConfigurationEFS.APP_ARGS_FILE;
@@ -773,13 +839,27 @@ public class EventFlowSlicer {
 		ad.setArgumentsVMFile(filepath);
 		if (ad.hasArgumentsVMFile()) {
 			if (!ad.argumentsVMFileExists())
-				throw new IllegalArgumentException(
-						"Java VM Arguments file provided does not exist on the file system.\n" + "\'" + filepath + "\'");
+				throw new IllegalArgumentException("Java VM Arguments file provided" + "\'" + filepath + "\'\n"
+						+ "does not exist on the file system.");
 		}
-		EventFlowSlicer.initReplayerVMChanges();
+		boolean useVMArgs = !JFCReplayerConfigurationEFS.VM_ARGS_FILE.isEmpty();
+		if(useVMArgs) {
+			String[] jvmArgs = ReadArguments.readVMArguments(JFCReplayerConfigurationEFS.VM_ARGS_FILE);
+			String[] urlsList = new String[0];
+			HashMap<String, String> sysProp = JavaLaunchApplication.imitateVMPropertyChanges(jvmArgs);
+			urlsList = JavaLaunchApplication.getCPUrlsList(jvmArgs);
+			for(String s : urlsList) {
+				if(JFCReplayerConfigurationEFS.URL_LIST.isEmpty())
+					JFCReplayerConfigurationEFS.URL_LIST += s;
+				else
+					JFCReplayerConfigurationEFS.URL_LIST += GUITARConstants.CMD_ARGUMENT_SEPARATOR + s;
+			}
+			if(sysProp != null)
+				poppedSystemProperties = sysProp;
+		}
 		if (!replayerAppExists())
 			throw new IllegalArgumentException(
-					"Application file provided:\n\'" + JFCReplayerConfigurationEFS.LONG_PATH_TO_APP + "\'\n" + "cannot be loaded from the file system.");
+					"Application file provided:\n" + filepath + "\n" + "cannot be found on the file system.");
 
 		// Results directory
 		filepath = JFCReplayerConfigurationEFS.RESULTS_DIRECTORY;
@@ -863,8 +943,7 @@ public class EventFlowSlicer {
 		return configuration;
 	}
 
-	private static void captureArgs(String[] args)
-	{
+	private static void captureArgs(String[] args) {
 		ArrayList<String> remaining = new ArrayList<String>();
 		remaining.addAll(Arrays.asList(args));
 		Iterator<String> argsIt = remaining.iterator();
@@ -981,74 +1060,11 @@ public class EventFlowSlicer {
 		String target;
 		String allArguments = "-capture, -constraints, -rip, -generate, -replay, and -gui";
 		boolean rmiFound, noRMIFound, sendbackFound, ripFound, genFound, captureFound, constFound, replayFound,
-				rselFound, guiFound, preferencesFound, prefsdirFound;
-		rmiFound = noRMIFound = sendbackFound = ripFound = genFound =
-				captureFound = constFound = replayFound = rselFound =
-				guiFound = preferencesFound = prefsdirFound = false;
+				rselFound, guiFound;
+		rmiFound = noRMIFound = sendbackFound = ripFound = genFound = captureFound = constFound = replayFound = rselFound = guiFound = false;
 		while (argsIt.hasNext()) {
 			target = argsIt.next().toLowerCase();
 			switch (target) {
-			case "-preferences": { //
-				if(preferencesFound)
-					throw new IllegalArgumentException("-preferences parameter cannot be defined twice.");
-				preferencesFound = true;
-				try {
-					argsIt.remove();
-					String prefsFileString = argsIt.next();
-					File file = new File(prefsFileString);
-					if(!file.exists())
-						throw new IllegalArgumentException("Preferences file provided to -preferences parameter:\n"
-								+ "\'" + file.getAbsolutePath() + "\'\n" + "does not exist on the file system.");
-					if(file.isDirectory())
-						throw new IllegalArgumentException("Preferences file provided to -preferences parameter is a directory.");
-					loadPreferencesDirectory = file.getParentFile();
-					loadPreferencesFilename = file.getName();
-					argsIt.remove();
-				} catch(NoSuchElementException e) {
-					throw new IllegalArgumentException("ERROR: Invalid arguments for -preferences parameter:\n"
-							+ "Usage: -preferences <path>,\n"
-							+ "\twhere path is a path to a valid file containing EventFlowSlicer preferences.\n");
-				}
-			} break;
-			// >> Let's use this argument to allow the user to specify where preferences should
-			case "-saveprefsdir" : {
-				if(prefsdirFound)
-					throw new IllegalArgumentException("-prefsdir parameter cannot be defined twice.");
-				prefsdirFound = true;
-				try {
-					argsIt.remove();
-					String prefsDirString = argsIt.next();
-					File file = new File(prefsDirString);
-					if(!file.exists())
-						throw new IllegalArgumentException("Preferences directory to -prefsdir parameter: \n"
-								+ "\'" + file.getAbsolutePath() + "\'\n" + "does not exist on the file system.");
-					if(!file.isDirectory())
-						throw new IllegalArgumentException("Argument provided to -prefsDir parameter is a normal file.\n"
-								+ "  It must point to an existing directory on the file system.");
-					ReadArguments.setConfigurationIOFile(file.getAbsolutePath(), ReadArguments.DEFAULT_CONFIGFILENAME);
-					argsIt.remove();
-				}
-				catch(NoSuchElementException e) {
-					throw new IllegalArgumentException("ERROR: Invalid arguments for -prefsDir parameter:\n"
-							+ "Usage: -prefsDir <path>,\n"
-							+ "\twhere path is a path to a directory containing at least one file of EventFlowSlicer preferences.\n");
-				}
-				// Justification for this savePrefsDir argument.
-				// PROS:
-				//  + Doing this makes it possible for the user to control where prefs are stored, and that's
-				// 	convenient, to prevent overwriting.
-				// CONS
-				// 	- We can't just load the file 'epreferences.xml' from the location we specify with prefsdir
-				//  	+ That's not desirable. We already have a way of indicating the file we want to load using preferences
-				//		argument. We don't need two ways.
-				//  - we still can't specify which file is the one saved.
-				//  	+ that's good. We don't want the user to be able to specify the name
-				// 		of the preferences file that gets saved. Then the user somehow has to know the name
-				// 		of that file every time, and we need to keep track of that too. Not safe for the user
-				//		who doesn't want things overwritten. Not simple to keep track of for us.
-				// >> Let's use this argument to allow the user to specify where preferences should
-				// be stored. The defensible pros outweigh the unsubstantiated cons.
-			} break;
 			case "-noressubdir": {
 				ad.unsetSubdirectoryFiller();
 				argsIt.remove();
@@ -1060,6 +1076,7 @@ public class EventFlowSlicer {
 				if (sendbackFound || noRMIFound)
 					throw new IllegalArgumentException(
 							"-sendback, -normi, and -rmi parameters cannot be defined together.");
+
 				rmiFound = true;
 				try {
 					argsIt.remove();
@@ -1301,7 +1318,6 @@ public class EventFlowSlicer {
 			networkStub = (NetCommunication) UnicastRemoteObject.exportObject(networkStub, Integer.parseInt(port));
 
 		} catch (RemoteException | NumberFormatException e) {
-			System.err.println("Failed to generate network stub.");
 			throw new RuntimeException("Tried to generate stub to put on registry but failed \n" + e);
 		}
 
@@ -1336,73 +1352,19 @@ public class EventFlowSlicer {
 		return true;
 	}
 
-//	public static boolean ripperAppExists() {
-//		try {
-//			String[] URLs;
-//			if (!JFCRipperConfigurationEFS.URL_LIST.isEmpty())
-//				URLs = JFCRipperConfigurationEFS.URL_LIST.split(GUITARConstants.CMD_ARGUMENT_SEPARATOR);
-//			else
-//				URLs = new String[0];
-//			URLs = JFCApplication2.convertToURLStrings(URLs);
-//			new JFCApplication2(JFCRipperConfigurationEFS.MAIN_CLASS, JFCRipperConfigurationEFS.LONG_PATH_TO_APP, JFCRipperConfigurationEFS.USE_JAR, URLs);
-//		} catch (Exception e) {
-//			System.err.println("ERROR: Class Not Found on File System:\n" + e.getMessage());
-//			return false;
-//		}
-//		return true;
-//	}
-
-	public static boolean processEFSKeystroke(KeyEvent e, Window w, JavaCaptureMonitor m)
-	{
-		if(e.getID() == KeyEvent.KEY_PRESSED) {
-			// if we pressed ctrl_shift_<something>
-			int code = e.getKeyCode();
-			int mask = e.getModifiersEx();
-			int captureMask = KeyEvent.CTRL_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK;
-			if((mask & captureMask) == captureMask)  {
-				if(code == KeyEvent.VK_ENTER)
-					m.processSpecialKeyEvent(w, e.getComponent(), e);
-
-				if(code == KeyEvent.VK_R) {
-					m.reRip(w);
-					return true;
-				}
-				else if(code == KeyEvent.VK_H) { // if we pressed ctrl_shift_H
-					// thanks goes out to
-					// http://stackoverflow.com/questions/2733896/identifying-swing-component-at-a-particular-screen-coordinate-and-manually-dis
-
-					Point mouse = MouseInfo.getPointerInfo().getLocation();
-					Point origMouse = (Point)mouse.clone();
-					mouse.x -= w.getLocationOnScreen().x;
-					mouse.y -= w.getLocationOnScreen().y;
-
-					Component underneath = SwingUtilities.getDeepestComponentAt(w, mouse.x, mouse.y);
-					Point underPoint = underneath.getLocationOnScreen();
-					int mouseHovX = origMouse.x - underPoint.x;
-					int mouseHovY = origMouse.y - underPoint.y;
-					m.processHoverEvent(w, underneath, mouseHovX, mouseHovY);
-					return true;
-				}
-				else if(code == KeyEvent.VK_C) {
-					if(viewHandle == null) {
-						controller.stopCapture();
-						if(!ld.sendsBackRMI()) {
-							// before closing the whole app, write this file to the file system.
-							// just in case
-							System.out.println("\n\nWriting tasklist file to:\n  " + ad.getWorkingTaskListFile());
-							controller.writeTaskListFile();
-							System.out.println("Done.");
-						}
-						System.exit(0);
-					}
-					else {
-						EventFlowSlicerView.CaptureAction.stopButtonEvents();
-					}
-					return true;
-				}
-
-			}
+	public static boolean ripperAppExists() {
+		try {
+			String[] URLs;
+			if (!JFCRipperConfigurationEFS.URL_LIST.isEmpty())
+				URLs = JFCRipperConfigurationEFS.URL_LIST.split(GUITARConstants.CMD_ARGUMENT_SEPARATOR);
+			else
+				URLs = new String[0];
+			URLs = JFCApplication2.convertToURLStrings(URLs);
+			new JFCApplication2(JFCRipperConfigurationEFS.MAIN_CLASS, JFCRipperConfigurationEFS.LONG_PATH_TO_APP, JFCRipperConfigurationEFS.USE_JAR, URLs);
+		} catch (Exception e) {
+			System.err.println("ERROR: Class Not Found on File System:\n" + e.getMessage());
+			return false;
 		}
-		return false;
+		return true;
 	}
 }

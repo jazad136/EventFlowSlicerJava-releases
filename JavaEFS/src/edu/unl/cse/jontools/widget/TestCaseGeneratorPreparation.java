@@ -1,3 +1,21 @@
+/*******************************************************************************
+ *    Copyright (c) 2018 Jonathan A. Saddler
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ *    
+ *    Contributors:
+ *     Jonathan A. Saddler - initial API and implementation
+ *******************************************************************************/
 package edu.unl.cse.jontools.widget;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -23,20 +41,19 @@ import edu.umd.cs.guitar.model.data.Order;
 import edu.umd.cs.guitar.model.data.OrderGroup;
 import edu.umd.cs.guitar.model.data.Repeat;
 import edu.umd.cs.guitar.model.data.Required;
-import edu.umd.cs.guitar.model.data.Stop;
 import edu.umd.cs.guitar.model.data.TaskList;
 import edu.umd.cs.guitar.model.data.Widget;
+import edu.unl.cse.efs.tools.PathConformance;
+import edu.unl.cse.efs.tools.WildcardFiles;
 import edu.unl.cse.guitarext.JavaTestInteractions;
-import edu.unl.cse.jontools.paths.PathConformance;
-import edu.unl.cse.jontools.paths.WildcardFiles;
 
 
 /**
  * This class is responsible for preparing constraints and reading the file
  * system for the construction of inputs for a test case generator.
- *
- * This class avoids throwing exceptions as much as possible.
- * Errors are reported through the invalid bits that are set by each method.
+ * 
+ * This class avoids throwing exceptions as much as possible. 
+ * Errors are reported through the invalid bits that are set by each method. 
  * @author Jonathan Saddler
  */
 public class TestCaseGeneratorPreparation {
@@ -46,17 +63,17 @@ public class TestCaseGeneratorPreparation {
 	private static LinkedList<File> invalidFiles = new LinkedList<File>();
 	public static boolean reqInvalid, ordInvalid, atmInvalid, mexInvalid, repInvalid;
 	public static boolean eliminateAllWindowAmbiguity = true;
-
-	public static enum RuleName{REQ("REQ"), ORD("ORD"), ATM("ATM"), MEX("MEX"), REP("REP"), STO("STO");
-
+	
+	public static enum RuleName{REQ("REQ"), ORD("ORD"), ATM("ATM"), MEX("MEX"), REP("REP"); 
+		
 		public final String folderName;
 		private RuleName(String folderName)
 		{
 			this.folderName = folderName;
 		}
 	}
-
-
+	
+	
 	// Run on input : /Users/jsaddle/Desktop/ResearchResults/CogTool-Helper-Java/CogtoolHelperResultsTest
 	public static void main(String[] args)
 	{
@@ -67,27 +84,27 @@ public class TestCaseGeneratorPreparation {
 			File theDir = new File(fileDirectory);
 			if(theDir.exists()) {
 				TaskList tl = fact.createTaskList();
-//				tl = incorporateAllConstraintsFrom(theDir, tl);
+				tl = incorporateAllConstraintsFrom(theDir, tl);
 				System.out.println(tl);
 				System.out.println("Done.");
-			}
-		}
+			}	
+		} 
 	}
-
+	
 	public TestCaseGeneratorPreparation(File topDirectory, List<Widget> widgets)
 	{
 		createDirectoryStructure(topDirectory, widgets);
 	}
-
+	
 	public static void clearInvalidBits()
 	{
 		repInvalid = reqInvalid = ordInvalid = atmInvalid = mexInvalid = false;
 	}
-
-
+	
+	
 	public static TaskList overwriteWidgets(TaskList baseTaskList, List<Widget> forNewRule)
 	{
-		if(baseTaskList == null)
+		if(baseTaskList == null) 
 			baseTaskList = fact.createTaskList();
 		List<Widget> base = baseTaskList.getWidget();
 		base.clear();
@@ -96,7 +113,7 @@ public class TestCaseGeneratorPreparation {
 		return baseTaskList;
 	}
 	public static TaskList overwriteRule(TaskList baseTaskList, HyperList<Widget> forNewRule, RuleName rule)
-	{
+	{	
 		if(baseTaskList == null)
 			baseTaskList = fact.createTaskList();
 		switch(rule) {
@@ -106,7 +123,7 @@ public class TestCaseGeneratorPreparation {
 			for(List<Widget> list : forNewRule.getListsIterable()) {
 				// for each list within, create a new Required rule.
 				Required newRul = fact.createRequired();
-				for(Widget w : list)
+				for(Widget w : list) 
 					if(w != null)
 						newRul.getWidget().add(w);
 				baseRequired.add(newRul);
@@ -117,20 +134,21 @@ public class TestCaseGeneratorPreparation {
 			List<Exclusion> baseExclusion = baseTaskList.getExclusion();
 			baseExclusion.clear();
 			for(List<Widget> list : forNewRule.getListsIterable()) {
-				// for each list within, create a new exclusion rule.
+				// for each list within, create a new exclusion rule. 
 				Exclusion newRul = fact.createExclusion();
-				for(Widget w : list)
-					if(w != null)
+				for(Widget w : list) 
+					if(w != null)	
 						newRul.getWidget().add(w);
 				baseExclusion.add(newRul);
 			}
 			return baseTaskList;
 		}
-
+		
 		case REP: {
-//			boolean rList = false;
-//			if(forNewRule instanceof RepeatList)
-//				rList = true;
+//			return baseTaskList;
+			boolean rList = false;
+			if(forNewRule instanceof RepeatList)
+				rList = true;
 			List<Repeat> baseRepeat = baseTaskList.getRepeat();
 			baseRepeat.clear();
 			for(List<Widget> list: forNewRule.getListsIterable()) {
@@ -138,23 +156,11 @@ public class TestCaseGeneratorPreparation {
 				for(Widget w : list)
 					if(w != null)
 						newRul.getWidget().add(w);
-//				if(rList) {
-//					RepeatList rL = (RepeatList)forNewRule;
-//					// do something special here.
-//				}
+				if(rList) {
+					RepeatList rL = (RepeatList)forNewRule;
+					// do something special here. 
+				}
 				baseRepeat.add(newRul);
-			}
-			return baseTaskList;
-		}
-		case STO: {
-			List<Stop> baseStop = baseTaskList.getStop();
-			baseStop.clear();
-			for(List<Widget> list: forNewRule.getListsIterable()) {
-				Stop newRul = fact.createStop();
-				for(Widget w : list)
-					if(w != null)
-						newRul.getWidget().add(w);
-				baseStop.add(newRul);
 			}
 			return baseTaskList;
 		}
@@ -172,9 +178,9 @@ public class TestCaseGeneratorPreparation {
 		}}
 		return baseTaskList;
 	}
-
+	
 	/**
-	 * Only works for Atomic Rule and Order Rule.
+	 * Only works for Atomic Rule and Order Rule. 
 	 * @param baseTaskList
 	 * @param forNewRule
 	 * @param rule
@@ -188,8 +194,8 @@ public class TestCaseGeneratorPreparation {
 			for(List<Widget> list : forNewRule.getListsIterable()) {
 				// for each list within create one order group
 				OrderGroup newG = fact.createOrderGroup();
-				for(Widget w : list)
-					if(w != null)
+				for(Widget w : list) 
+					if(w != null) 
 						newG.getWidget().add(w);
 				newSet.getOrderGroup().add(newG);
 			}
@@ -201,8 +207,8 @@ public class TestCaseGeneratorPreparation {
 			for(List<Widget> list : forNewRule.getListsIterable()) {
 				// for each list within, create one atomic group
 				AtomicGroup newG = fact.createAtomicGroup();
-				for(Widget w : list)
-					if(w != null)
+				for(Widget w : list) 
+					if(w != null) 
 						newG.getWidget().add(w);
 				newSet.getAtomicGroup().add(newG);
 			}
@@ -212,59 +218,59 @@ public class TestCaseGeneratorPreparation {
 	}
 	/**
 	 * Try to progress through the parsing of all constraints from the folders in topDirectory.
-	 * if an attempt to read one of the constraints directories fails or succeeds,
+	 * if an attempt to read one of the constraints directories fails or succeeds, 
 	 * progress to the next type of constraint so that it can be parsed next.<br><br>
-	 *
+	 * 
 	 * Return the task list containing the combination of the old constraints in tasklist with the
 	 * new constraints read from this operation.
 	 */
-//	public static TaskList incorporateAllConstraintsFrom(File topDirectory, TaskList baseTasklist)
-//	{
-//		RuleName currentOperand = RuleName.MEX;
-//		while(currentOperand != RuleName.REP) {
-//			try {
-//				// try to progress through the parsing of all constraints from the folders in topDirectory.
-//				// if one fails or succeeds, progress to the next type of constraint so that it can be parsed next.
-//				switch(currentOperand) {
-//				case MEX: baseTasklist.getExclusion().addAll(readExclusionDirectory(topDirectory));
-//				currentOperand = RuleName.ORD;
-//				case ORD: baseTasklist.getOrder().addAll(readOrderDirectory(topDirectory));
-//				currentOperand = RuleName.ATM;
-//				case ATM: baseTasklist.getAtomic().addAll(readAtomicDirectory(topDirectory));
-//				currentOperand = RuleName.REQ;
-//				case REQ: baseTasklist.getRequired().addAll(readRequiredDirectory(topDirectory));
-//				currentOperand = RuleName.REP;
-//				case REP: baseTasklist.getRepeat().addAll(readRepeatDirectory(topDirectory));
-//				}
-//			} catch(Exception e) {
-//				switch(currentOperand) {
-//				case MEX: mexInvalid = true; currentOperand = RuleName.ORD; break;
-//				case ORD: ordInvalid = true; currentOperand = RuleName.ATM; break;
-//				case ATM: atmInvalid = true; currentOperand = RuleName.REQ; break;
-//				case REQ: reqInvalid = true; currentOperand = RuleName.REP; break;
-//				case REP: repInvalid = true;
-//				}
-//			}
-//		}
-//		return baseTasklist;
-//	}
-
+	public static TaskList incorporateAllConstraintsFrom(File topDirectory, TaskList baseTasklist)
+	{
+		RuleName currentOperand = RuleName.MEX;
+		while(currentOperand != RuleName.REP) {
+			try {
+				// try to progress through the parsing of all constraints from the folders in topDirectory.
+				// if one fails or succeeds, progress to the next type of constraint so that it can be parsed next.
+				switch(currentOperand) {
+				case MEX: baseTasklist.getExclusion().addAll(readExclusionDirectory(topDirectory)); 
+				currentOperand = RuleName.ORD;
+				case ORD: baseTasklist.getOrder().addAll(readOrderDirectory(topDirectory)); 
+				currentOperand = RuleName.ATM;
+				case ATM: baseTasklist.getAtomic().addAll(readAtomicDirectory(topDirectory));
+				currentOperand = RuleName.REQ;
+				case REQ: baseTasklist.getRequired().addAll(readRequiredDirectory(topDirectory)); 
+				currentOperand = RuleName.REP;
+				case REP: baseTasklist.getRepeat().addAll(readRepeatDirectory(topDirectory));  
+				}
+			} catch(Exception e) {
+				switch(currentOperand) {
+				case MEX: mexInvalid = true; currentOperand = RuleName.ORD; break;
+				case ORD: ordInvalid = true; currentOperand = RuleName.ATM; break;
+				case ATM: atmInvalid = true; currentOperand = RuleName.REQ; break;
+				case REQ: reqInvalid = true; currentOperand = RuleName.REP; break;
+				case REP: repInvalid = true;
+				}
+			}
+		}
+		return baseTasklist;
+	}
+	
 	/**
 	 * Removes from the provided list of widgets any
 	 * duplicates or widgets with null, empty, or useless eventId values
-	 * and returns the processed list.
+	 * and returns the processed list. 
 	 */
 	private static List<Widget> removeUselessWidgets(List<Widget> widgets)
 	{
 		ArrayList<Widget> toWrite = new ArrayList<Widget>(widgets);
 		HashMap<String, ArrayList<String>> windowMap = new HashMap<String, ArrayList<String>>();
-
+		
 		Iterator<Widget> wIt = toWrite.iterator();
 		Widget nextWriteCandidate;
 		while(wIt.hasNext()) {
 			nextWriteCandidate = wIt.next();
-			if(nextWriteCandidate.getEventID() == null
-			|| nextWriteCandidate.getEventID().isEmpty()
+			if(nextWriteCandidate.getEventID() == null 
+			|| nextWriteCandidate.getEventID().isEmpty() 
 			|| nextWriteCandidate.getEventID().equals(JavaTestInteractions.hasNoID)) {
 				wIt.remove(); // can't write events with useless event Ids
 			}
@@ -272,49 +278,49 @@ public class TestCaseGeneratorPreparation {
 				String eId = nextWriteCandidate.getEventID();
 				String wId = nextWriteCandidate.getWindow();
 				if(windowMap.containsKey(eId)) {
-					if(windowMap.get(eId).contains(wId))
+					if(windowMap.get(eId).contains(wId)) 
 						wIt.remove(); // can't write the same event window combo twice.
-					else
+					else 
 						windowMap.get(eId).add(wId); // can separate window titles later
 				}
 				else {
-					windowMap.put(eId, new ArrayList<String>(Arrays.asList(wId)));
+					windowMap.put(eId, new ArrayList<String>(Arrays.asList(wId))); 
 				}
 			}
 		}
-
+		
 		return toWrite;
 	}
-
-
+	
+	
 	public static void createDirectoryStructure(File top, List<Widget> widgets)
 	{
 		File[] tops = new File[RuleName.values().length];
-
+		
 		for( RuleName name: RuleName.values()) {
 			File vw = new File(top, name.folderName + File.separator);
 			vw.mkdirs();
-			if(!vw.isDirectory())
+			if(!vw.isDirectory()) 
 				throw new IllegalArgumentException("Directory proglem: structure rooted at directory \n" + top + "\n for CogToolHelper expermiment could not be created.");
 			tops[name.ordinal()] = vw;
 		}
 		// make subfolders, if the first one worked, then the rest should work as well.
-
+		
 		(new File(tops[RuleName.REQ.ordinal()], "1" + File.separator)).mkdir();
 		File ordtop = new File(tops[RuleName.ORD.ordinal()], "1" + File.separator);
 		ordtop.mkdir();
-
+		
 		(new File(ordtop, "1" + File.separator)).mkdir(); // subfolder
-
+		
 		File atmtop = new File(tops[RuleName.ATM.ordinal()], "1" + File.separator);
 		atmtop.mkdir();
 		(new File(atmtop, "1" + File.separator)).mkdir(); // subfolder
 		(new File(tops[RuleName.MEX.ordinal()], "1" + File.separator)).mkdir();
-
+		
 		// eliminate null ID widgets
-
+		
 		// add a new file to collected.
-
+		
 		widgets = removeUselessWidgets(widgets);
 		// write these widgets to a file.
 		boolean addAllWindowsLater = false;
@@ -345,9 +351,9 @@ public class TestCaseGeneratorPreparation {
 					else {
 						Widget newest = widgets.get(i);
 						Widget older = widgets.get(existingIndex);
-						// if windows are equal but names are the same,
+						// if windows are equal but names are the same, 
 						if(newest.getWindow() != null && !newest.getWindow().equals(older.getWindow())) {
-							if(eliminateAllWindowAmbiguity)
+							if(eliminateAllWindowAmbiguity) 
 								addAllWindowsLater = true; // solve all ambiguities later.
 							else {
 								// change the file names to reflect an ambiguity that must be solved.
@@ -363,7 +369,7 @@ public class TestCaseGeneratorPreparation {
 							writeNew[i] = false;
 					}
 				}
-				for(int i = 0; i < widgets.size(); i++)
+				for(int i = 0; i < widgets.size(); i++) 
 					if(writeNew[i]) {
 						if(addAllWindowsLater) {
 							String window = widgets.get(i).getWindow();
@@ -373,25 +379,25 @@ public class TestCaseGeneratorPreparation {
 						}
 						fos[i] = new FileOutputStream(collected.get(i));
 					}
-
+				
 //				for(int i = 0; i < widgets.size(); i++) {
 				for(int i = widgets.size()-1; i >= 0; i--) {
 					if(writeNew[i]) {
 						TaskList widgetTL = (new ObjectFactory()).createTaskList();
 						widgetTL.getWidget().add(widgets.get(i));
 						handler.writeObjToFile(widgetTL, fos[i]); // write each widget to a file named by its widget name.
-
+						
 					}
 				}
-
-//				for(int i = 0; i < fos.length; i++)
-				for(int i = fos.length-1; i >= 0; i--)
+				
+//				for(int i = 0; i < fos.length; i++) 
+				for(int i = fos.length-1; i >= 0; i--) 
 					if(writeNew[i])
 						fos[i].close();
-
+				
 			}
 			catch(Exception e) {
-				for(int i = 0; i < fos.length; i++)
+				for(int i = 0; i < fos.length; i++) 
 					fos[i].close();
 				System.out.println(e);
 			}
@@ -400,10 +406,10 @@ public class TestCaseGeneratorPreparation {
 			System.out.println(e);
 		}
 	}
-
-
+	
+	
 	/**
-	 * Read widgets grouped together in subfolders in the MEX subdirectory of topDirectory, and return them
+	 * Read widgets grouped together in subfolders in the MEX subdirectory of topDirectory, and return them 
 	 * stored int a repeat object
 	 * @param topDirectory
 	 * @return
@@ -416,67 +422,67 @@ public class TestCaseGeneratorPreparation {
 		File mexDir = new File(topDirectory, RuleName.MEX.folderName + File.separator);
 		int nextDirOrdinal = 1;
 		File nextDir = new File(mexDir, nextDirOrdinal + File.separator);
-
+		
 		// does the subdirectory contain a directory named "1"?
 		// if so, read all widgets from this directory and store them in the nth exclusion rule.
 		// start at directory named 1, then continue to directory named n+1.
-		boolean foundNext = nextDir.exists();
+		boolean foundNext = nextDir.exists(); 
 		while(foundNext) {
 			Exclusion nextObject = fact.createExclusion();
 			nextObject.getWidget().addAll(readWidgetsFrom(nextDir));
 			toReturn.add(nextObject);
-			// does the subdirectory contain another directory namd "n+1", where 1 is first n?
+			// does the subdirectory contain another directory namd "n+1", where 1 is first n? 
 			// if so read all the widgets from this directory and store them in the n+1'th exclusion constraint.
 			nextDirOrdinal++;
 			nextDir = new File(mexDir, nextDirOrdinal + File.separator);
 			foundNext = nextDir.exists();
 		}
-
+		
 		// if subdirectory does not contain directory named n, end the search, and return the list of required objects.
 		return toReturn;
 	}
-
+	
 	/**
 	 * Read widgets grouped together directories of the order group directories under the ORD subdirectory of topDirectory.
-	 * (topDir/ORD.folderName/n/m/(...widgets...)) and return all groups stored in an Order object.
+	 * (topDir/ORD.folderName/n/m/(...widgets...)) and return all groups stored in an Order object.  
 	 * @param topDirectory
 	 * @return
 	 */
 	private static List<Order> readOrderDirectory(File topDirectory) throws IOException
 	{
 		List<Order> toReturn = new ArrayList<Order>();
-
+		
 		// does the subdirectory contain a directory named "1"?
 		// if so, search this folder for a directory named 1 as a subdirectory of this directory.
 		// start at directory named 1, then continue to directory named n+1.
-
+		
 		File ordDir = new File(topDirectory, RuleName.ORD.folderName + File.separator);
 		int nextSetOrdinal = 1;
 		int nextGroupOrdinal;
 		File nextSetDir = new File(ordDir, nextSetOrdinal + File.separator);
 		boolean foundNext = nextSetDir.exists();
-
+		
 		while(foundNext) {
 			nextGroupOrdinal = 1;
 			File nextDir = new File(nextSetDir, nextGroupOrdinal + File.separator);
 			boolean foundNextGroup = nextDir.exists();
 			Order nextOrder = fact.createOrder();
-
+			
 			while(foundNextGroup) {
 				// add the last group of widgets found to the current order object.
 				OrderGroup nextGroup = fact.createOrderGroup();
 				List<Widget> groupWidgets = readWidgetsFrom(nextDir);
 				nextGroup.getWidget().addAll(groupWidgets);
 				nextOrder.getOrderGroup().add(nextGroup);
-
-				// does the subdirectory contain another directory namd "n+1", where 1 is first n?
+				 
+				// does the subdirectory contain another directory namd "n+1", where 1 is first n? 
 				// if so read all the widgets from this directory and store them in the n+1'th order group constraint.
 				nextGroupOrdinal++;
 				nextDir = new File(nextSetDir, nextGroupOrdinal + File.separator);
 				foundNextGroup = nextDir.exists();
-
+				
 			}
-			// if subdirectory of directory n (m+1) does not exist, finish directory n and move on to directory
+			// if subdirectory of directory n (m+1) does not exist, finish directory n and move on to directory 
 			// n+1 rather than m+1.
 			// add the current order object to the list of returned objects.
 			toReturn.add(nextOrder);
@@ -486,48 +492,48 @@ public class TestCaseGeneratorPreparation {
 		}
 		return toReturn;
 	}
-
+	
 	/**
 	 * Read widgets grouped together directories of the order group directories under the ORD subdirectory of topDirectory.
-	 * (topDir/ORD.folderName/n/m/(...widgets...)) and return all groups stored in an Order object.
+	 * (topDir/ORD.folderName/n/m/(...widgets...)) and return all groups stored in an Order object.  
 	 * @param topDirectory
 	 * @return
 	 */
 	private static List<Atomic> readAtomicDirectory(File topDirectory) throws IOException
 	{
 		List<Atomic> toReturn = new ArrayList<Atomic>();
-
+		
 		// does the subdirectory contain a directory named "1"?
 		// if so, search this folder for a directory named 1 as a subdirectory of this directory.
 		// start at directory named 1, then continue to directory named n+1.
-
+		
 		File ordDir = new File(topDirectory, RuleName.ATM.folderName + File.separator);
 		int nextSetOrdinal = 1;
 		int nextGroupOrdinal;
 		File nextSetDir = new File(ordDir, nextSetOrdinal + File.separator);
 		boolean foundNext = nextSetDir.exists();
-
+		
 		while(foundNext) {
 			nextGroupOrdinal = 1;
 			File nextDir = new File(nextSetDir, nextGroupOrdinal + File.separator);
 			boolean foundNextGroup = nextDir.exists();
 			Atomic nextAtomic = fact.createAtomic();
-
+			
 			while(foundNextGroup) {
 				// add the last group of widgets found to the current order object.
 				AtomicGroup nextGroup = fact.createAtomicGroup();
 				List<Widget> groupWidgets = readWidgetsFrom(nextDir);
 				nextGroup.getWidget().addAll(groupWidgets);
 				nextAtomic.getAtomicGroup().add(nextGroup);
-
-				// does the subdirectory contain another directory namd "n+1", where 1 is first n?
+				 
+				// does the subdirectory contain another directory namd "n+1", where 1 is first n? 
 				// if so read all the widgets from this directory and store them in the n+1'th order group constraint.
 				nextGroupOrdinal++;
 				nextDir = new File(nextSetDir, nextGroupOrdinal + File.separator);
 				foundNextGroup = nextDir.exists();
-
+				
 			}
-			// if subdirectory of directory n (m+1) does not exist, finish directory n and move on to directory
+			// if subdirectory of directory n (m+1) does not exist, finish directory n and move on to directory 
 			// n+1 rather than m+1.
 			// add the current order object to the list of returned objects.
 			toReturn.add(nextAtomic);
@@ -535,7 +541,7 @@ public class TestCaseGeneratorPreparation {
 			nextSetDir = new File(ordDir, nextSetOrdinal + File.separator);
 			foundNext = nextSetDir.exists();
 		}
-
+		
 		return toReturn;
 	}
 	/**
@@ -547,27 +553,27 @@ public class TestCaseGeneratorPreparation {
 	private static List<Required> readRequiredDirectory(File topDirectory) throws IOException
 	{
 		List<Required> toReturn = new ArrayList<Required>();
-
-
+		
+		
 		// does the subdirectory contain a directory named "1"?
 		// if so, read all widgets from this directory and store them in the nth required rule.
 		// start at directory named 1, then continue to directory named n+1.
 		File reqDir = new File(topDirectory, RuleName.REQ.folderName + File.separator);
 		int nextDirOrdinal = 1;
 		File nextDir = new File(reqDir, nextDirOrdinal + File.separator);
-		boolean foundNext = nextDir.exists();
-
+		boolean foundNext = nextDir.exists(); 
+		
 		while(foundNext) {
 			Required nextObject = fact.createRequired();
 			nextObject.getWidget().addAll(readWidgetsFrom(nextDir));
 			toReturn.add(nextObject);
-			// does the subdirectory contain another directory namd "n+1", where 1 is first n?
+			// does the subdirectory contain another directory namd "n+1", where 1 is first n? 
 			// if so read all the widgets from this directory and store them in the n+1'th required constraint.
 			nextDirOrdinal++;
 			nextDir = new File(reqDir, nextDirOrdinal + File.separator);
 			foundNext = nextDir.exists();
 		}
-
+		
 		// if subdirectory does not contain directory named n, end the search, and return the list of required objects.
 		return toReturn;
 	}
@@ -586,12 +592,12 @@ public class TestCaseGeneratorPreparation {
 		toReturn.getWidget().addAll(readWidgetsFrom(repFile));
 		return Arrays.asList(new Repeat[]{toReturn});
 	}
-
-
+	
+	
 	/**
 	 * Lookup the groups that exist under exclusion rules from a constraints file.
 	 * This method assumes that Widget objects within widget tasklists files cannot turn up null
-	 * , and that neither can an Order or Atomic.
+	 * , and that neither can an Order or Atomic. 
 	 * @param tlFile
 	 * @return
 	 */
@@ -601,19 +607,19 @@ public class TestCaseGeneratorPreparation {
 		JAXBContext context;
 		try{ context = JAXBContext.newInstance(TaskList.class);}
 			catch(JAXBException e) {throw new RuntimeException("An JAXB XML recognizer error occurred: " + mode + " Rule could not be read.");}
-
+		
 		try {
-			// test to see if the file is a valid TST
-	    	if(!widgetTLFile.exists())
+			// test to see if the file is a valid TST	
+	    	if(!widgetTLFile.exists()) 
 	    		recordInvalidFile(widgetTLFile);
 	    	else if(widgetTLFile.isDirectory())
 	    		recordInvalidFile(widgetTLFile);
 	    	Unmarshaller um = context.createUnmarshaller();
 	    	Object myTL = JAXBIntrospector.getValue(um.unmarshal(widgetTLFile));
-	    	if(!(myTL instanceof TaskList))
+	    	if(!(myTL instanceof TaskList)) 
 	    		recordInvalidFile(widgetTLFile);
 	    	baseTaskList = (TaskList)myTL;
-
+	    	
 			switch(mode) {
 			case REQ: {
 				ArrayList<HyperList<Widget>> collected = new ArrayList<HyperList<Widget>>();
@@ -622,7 +628,7 @@ public class TestCaseGeneratorPreparation {
 				// for each required rule, create a new list within
 				LinkedList<Widget> addList = new LinkedList<Widget>();
 				for(Required list : base) {
-					for(Widget w : list.getWidget())
+					for(Widget w : list.getWidget()) 
 						addList.add(w);
 					if(forNewRule.isDepthEmpty())
 						forNewRule.addAll(addList);
@@ -632,7 +638,7 @@ public class TestCaseGeneratorPreparation {
 				}
 				collected.add(forNewRule);
 				return collected;
-			}
+			} 
 			case MEX: {
 				ArrayList<HyperList<Widget>> collected = new ArrayList<HyperList<Widget>>();
 				List<Exclusion> base = baseTaskList.getExclusion();
@@ -647,22 +653,6 @@ public class TestCaseGeneratorPreparation {
 				collected.add(forNewRule);
 				return collected;
 			}
-			case STO: {
-				ArrayList<HyperList<Widget>> collected = new ArrayList<HyperList<Widget>>();
-				List<Stop> base = baseTaskList.getStop();
-				HyperList<Widget> forNewRule = new HyperList<Widget>();
-				// for each repeat rule, create a new list within.
-				LinkedList<Widget> addList = new LinkedList<Widget>();
-				for(Stop list : base) {
-					for(Widget w : list.getWidget())
-						addList.add(w);
-					if(forNewRule.isDepthEmpty()) 	forNewRule.addAll(addList);
-					else							forNewRule.addNewList(addList);
-					addList.clear();
-				}
-				collected.add(forNewRule);
-				return collected;
-			}
 			case REP: {
 				/*
 				 * ArrayList<HyperList<Widget>> collected = new ArrayList<HyperList<Widget>>();
@@ -671,7 +661,7 @@ public class TestCaseGeneratorPreparation {
 				// for each required rule, create a new list within
 				LinkedList<Widget> addList = new LinkedList<Widget>();
 				for(Required list : base) {
-					for(Widget w : list.getWidget())
+					for(Widget w : list.getWidget()) 
 						addList.add(w);
 					if(forNewRule.isDepthEmpty())
 						forNewRule.addAll(addList);
@@ -685,10 +675,10 @@ public class TestCaseGeneratorPreparation {
 				ArrayList<HyperList<Widget>> collected = new ArrayList<HyperList<Widget>>();
 				List<Repeat> base = baseTaskList.getRepeat();
 				HyperList<Widget> forNewRule = new HyperList<Widget>();
-				// for each repeat rule, create a new list within.
+				// for each repeat rule, create a new list within. 
 				LinkedList<Widget> addList = new LinkedList<Widget>();
 				for(Repeat list : base) {
-					for(Widget w : list.getWidget())
+					for(Widget w : list.getWidget()) 
 						addList.add(w);
 					if(forNewRule.isDepthEmpty()) 	forNewRule.addAll(addList);
 					else							forNewRule.addNewList(addList);
@@ -697,8 +687,8 @@ public class TestCaseGeneratorPreparation {
 				collected.add(forNewRule);
 				return collected;
 //				// for each repeat widget, add a single widget to an overall list.
-//				if(base != null)
-//					for(Widget w : base.getWidget())
+//				if(base != null) 
+//					for(Widget w : base.getWidget()) 
 //						collected.add(w);
 //				ArrayList<HyperList<Widget>> toReturn = new ArrayList<HyperList<Widget>>();
 //				toReturn.add(new HyperList<Widget>(collected));
@@ -711,18 +701,18 @@ public class TestCaseGeneratorPreparation {
 				for(Order list : base) {
 					forNewRule.clear();
 					// for each new rule create one hyperlist to represent all groups in that order rule
-					for(OrderGroup g : list.getOrderGroup())
+					for(OrderGroup g : list.getOrderGroup()) 
 						if(g != null) {
-							if(forNewRule.isDepthEmpty())
+							if(forNewRule.isDepthEmpty()) 
 								forNewRule.addAll(g.getWidget());
 							else
 								forNewRule.addNewList(g.getWidget());
 						}
 					collected.add(forNewRule);
 				}
-				if(base.isEmpty())
-					collected.add(forNewRule); // can't have an order set with 0 elements.
-
+				if(base.isEmpty()) 
+					collected.add(forNewRule); // can't have an order set with 0 elements.  
+				
 				return collected;
 			}
 			case ATM: {
@@ -731,11 +721,11 @@ public class TestCaseGeneratorPreparation {
 				HyperList<Widget> forNewRule = new HyperList<Widget>();
 				for(Atomic list : base) {
 					forNewRule.clear();
-					// for each new rule create one hyperlist to
+					// for each new rule create one hyperlist to 
 					// represent all groups in that order rule
-					for(AtomicGroup g : list.getAtomicGroup())
+					for(AtomicGroup g : list.getAtomicGroup()) 
 						if(g != null) {
-							if(forNewRule.isDepthEmpty())
+							if(forNewRule.isDepthEmpty()) 
 								forNewRule.addAll(g.getWidget());
 							else
 								forNewRule.addNewList(g.getWidget());
@@ -757,29 +747,29 @@ public class TestCaseGeneratorPreparation {
 	 * @throws IOException
 	 */
 	public static List<Widget> readWidgetsFromConstraintsFile(File widgetTLFile) throws IOException
-	{
+	{	
 		List<Widget> collected = new ArrayList<Widget>();
 		TaskList nextList;
 		JAXBContext context;
 		try{ context = JAXBContext.newInstance(TaskList.class);}
 			catch(JAXBException e) {throw new RuntimeException("An JAXB XML recognizer error occurred: repeat widgets could not be read.");}
-
+		
 		try {
-			// test to see if the file is a valid TST
-	    	if(!widgetTLFile.exists())
+			// test to see if the file is a valid TST	
+	    	if(!widgetTLFile.exists()) 
 	    		recordInvalidFile(widgetTLFile);
 	    	else if(widgetTLFile.isDirectory())
 	    		recordInvalidFile(widgetTLFile);
 	    	Unmarshaller um = context.createUnmarshaller();
 	    	Object myTL = JAXBIntrospector.getValue(um.unmarshal(widgetTLFile));
-	    	if(!(myTL instanceof TaskList))
+	    	if(!(myTL instanceof TaskList)) 
 	    		recordInvalidFile(widgetTLFile);
 	    	nextList = (TaskList)myTL;
 			collected.addAll(nextList.getWidget());
 		} catch(JAXBException e) {recordInvalidFile(widgetTLFile);}
 		return collected;
 	}
-
+	
 	public static List<Widget> readWidgetsFrom(File widgetTLDirectory) throws IOException
 	{
 		List<File> repFiles = WildcardFiles.findFiles(widgetTLDirectory.getAbsolutePath(), "");
@@ -788,17 +778,17 @@ public class TestCaseGeneratorPreparation {
 		JAXBContext context;
 		try{ context = JAXBContext.newInstance(TaskList.class);}
 		catch(JAXBException e) {throw new RuntimeException("An JAXB XML recognizer error occurred: repeat widgets could not be read.");}
-
+		
 		for(File f : repFiles) {
 			try {
-				// test to see if the file is a valid TST
-		    	if(!f.exists())
+				// test to see if the file is a valid TST	
+		    	if(!f.exists()) 
 		    		continue; // skip invalid files
 		    	else if(f.isDirectory())
 		    		continue; // skip directories found.
 		    	Unmarshaller um = context.createUnmarshaller();
 		    	Object myTL = JAXBIntrospector.getValue(um.unmarshal(f));
-		    	if(!(myTL instanceof TaskList))
+		    	if(!(myTL instanceof TaskList)) 
 		    		continue;
 		    	nextList = (TaskList)myTL;
 				collected.addAll(nextList.getWidget());
@@ -809,7 +799,7 @@ public class TestCaseGeneratorPreparation {
 		}
 		return collected;
 	}
-
+	
 	private static void recordInvalidFile(File file)
 	{
 		invalidFiles.add(file);

@@ -1,3 +1,21 @@
+/*******************************************************************************
+ *    Copyright (c) 2018 Jonathan A. Saddler
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ *    
+ *    Contributors:
+ *     Jonathan A. Saddler - initial API and implementation
+ *******************************************************************************/
 package edu.unl.cse.efs.view.ft;
 
 import java.awt.Component;
@@ -5,7 +23,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.List;
 
 import javax.swing.AbstractListModel;
 import javax.swing.ImageIcon;
@@ -22,11 +39,11 @@ public class DisplayingWidgetsModel extends AbstractListModel<DisplayIcon> imple
 	private LinkedList<PairUpdate> newListAdditions;
 	private LinkedList<PairUpdate> newListRemovals;
 	public static DisplayIcon noneIcon;
-	static {
+	static {	
 		noneIcon = new DisplayIcon("none");
 	}
 	private class PairUpdate implements Comparable<PairUpdate>{
-		final DisplayIcon up; final int index;
+		final DisplayIcon up; final int index; 
 		PairUpdate(DisplayIcon up, int index){this.up = up; this.index = index;}
 		/**
 		 * @see java.lang.Object#hashCode()
@@ -46,7 +63,7 @@ public class DisplayingWidgetsModel extends AbstractListModel<DisplayIcon> imple
 			PairUpdate other = (PairUpdate) obj;
 			if (!getOuterType().equals(other.getOuterType())) return false;
 			if (up == null) {
-				if (other.up != null) return false; }
+				if (other.up != null) return false; } 
 			else if (!up.equals(other.up)) return false;
 			return true;
 		}
@@ -57,24 +74,24 @@ public class DisplayingWidgetsModel extends AbstractListModel<DisplayIcon> imple
 			return Integer.compare(index, o.index);
 		}
 	}
-
-
+	
+	
 	public DisplayingWidgetsModel()
 	{
 		inDisplay = new LinkedList<DisplayIcon>();
 		newListAdditions = new LinkedList<>();
 		newListRemovals = new LinkedList<>();
 	}
-
+	
 	/**
-	 * This method should
+	 * This method should 
 	 * @param initial
 	 */
 	public DisplayingWidgetsModel(Collection<Widget> initial)
 	{
 		this();
-
-
+		
+		
 		for(Widget w : initial) {
 			DisplayIcon newDI = new DisplayIcon(w);
 			for(int idx = 0; idx < inDisplay.size(); idx++) {
@@ -91,7 +108,7 @@ public class DisplayingWidgetsModel extends AbstractListModel<DisplayIcon> imple
 			inDisplay.add(newDI);
 		}
 	}
-
+	
 	public DisplayingWidgetsModel(ListModel<DisplayIcon> otherModel)
 	{
 		this();
@@ -107,9 +124,9 @@ public class DisplayingWidgetsModel extends AbstractListModel<DisplayIcon> imple
 			remove(i);
 		fireChanges();
 	}
-
+	
 	public boolean add(DisplayIcon newDI) {
-		// add a new update.
+		// add a new update. 
 		if(!inDisplay.contains(newDI)) {
 			int newIndex = (newListAdditions.isEmpty() ? getSize() : newListAdditions.peek().index+1);
 			PairUpdate newP = new PairUpdate(newDI, newIndex);
@@ -120,13 +137,13 @@ public class DisplayingWidgetsModel extends AbstractListModel<DisplayIcon> imple
 		}
 		return false;
 	}
-
+	
 	/**
-	 * Immediately add newDI to the display and sort the display, without firing any
+	 * Immediately add newDI to the display and sort the display, without firing any 
 	 * listSelectionIntervalChanged events.
-	 *
+	 * 
 	 * Preconditions: No additions or removals should be in effect before calling
-	 * this method.
+	 * this method.   
 	 * @param newDI
 	 * @return
 	 */
@@ -143,7 +160,7 @@ public class DisplayingWidgetsModel extends AbstractListModel<DisplayIcon> imple
 		}
 		return false;
 	}
-
+	
 	public boolean add(Widget w) {
 		/*
 		 * Use this formula when it's time to fix this problem
@@ -161,10 +178,10 @@ public class DisplayingWidgetsModel extends AbstractListModel<DisplayIcon> imple
 			}
 			inDisplay.add(newDI);
 		 */
-	// add a new update.
+	// add a new update. 
 		DisplayIcon newDI = new DisplayIcon(w);
 		boolean isACopy = false;
-		if(inDisplay.contains(newDI)) {
+		if(inDisplay.contains(newDI)) { 
 			// change the display of the old icon.
 			int idx = inDisplay.indexOf(newDI);
 			DisplayIcon first = remove(newDI);
@@ -177,27 +194,27 @@ public class DisplayingWidgetsModel extends AbstractListModel<DisplayIcon> imple
 		int newIndex = (newListAdditions.isEmpty() ? getSize() : newListAdditions.peek().index+1);
 		newListAdditions.add(new PairUpdate(newDI, newIndex));
 		return isACopy;
-
+		
 //		if(!inDisplay.contains(newDW)) {
 //			int newIndex = (newListAdditions.isEmpty() ? getSize() : newListAdditions.peek().index+1);
 //			newListAdditions.add(new PairUpdate(newDW, newIndex));
 //			return true;
 //		}
 	}
-
+	
 	public int findWidget(Widget w)
 	{
 		return findIcon(new DisplayIcon(w));
 	}
-
+	
 	public int findIcon(DisplayIcon di)
 	{
-		for(int i = 0; i < inDisplay.size(); i++)
+		for(int i = 0; i < inDisplay.size(); i++) 
 			if(inDisplay.get(i).equals(di))
 				return i;
 		return -1;
 	}
-
+	
 	public DisplayIcon remove(DisplayIcon toRemove)
 	{
 		int rIndex = findIcon(toRemove);
@@ -205,20 +222,20 @@ public class DisplayingWidgetsModel extends AbstractListModel<DisplayIcon> imple
 			return new DisplayIcon();
 		return remove(rIndex);
 	}
-
-	public DisplayIcon remove(int index)
+	
+	public DisplayIcon remove(int index)		  
 	{
 		if(index >= inDisplay.size() || index < 0)
 			return new DisplayIcon();
-		else {
+		else { 
 			newListRemovals.add(new PairUpdate(inDisplay.get(index), index));
 			return inDisplay.get(index);
 		}
 	}
-
+	
 	public void fireChanges()
 	{
-		// handle removals
+		// handle removals 
 		Collections.sort(newListRemovals);
 		Iterator<PairUpdate> removalIt = newListRemovals.descendingIterator();
 		while(removalIt.hasNext()) {
@@ -231,7 +248,7 @@ public class DisplayingWidgetsModel extends AbstractListModel<DisplayIcon> imple
 		if(!newListAdditions.isEmpty()) {
 			int firstIndex = newListAdditions.peekFirst().index;
 			int lastIndex = newListAdditions.peekLast().index;
-			for(PairUpdate u : newListAdditions)
+			for(PairUpdate u : newListAdditions) 
 				inDisplay.add(u.up);
 			fireIntervalAdded(this, firstIndex-allRemoved, lastIndex-allRemoved);
 		}
@@ -241,19 +258,19 @@ public class DisplayingWidgetsModel extends AbstractListModel<DisplayIcon> imple
 	}
 	public Iterator<DisplayIcon> iterator()    	{return inDisplay.iterator();}
 	public int getSize() 				  	   	{return inDisplay.size();}
-
+	
 	public DisplayIcon getElementAt(int index) 	{return inDisplay.get(index);}
 	public String toString()			  		{return printSpacedListing(0);}
-
+	
 	/**
 	 * This method returns true if the current display contains no content.
-	 *
-	 * Preconditions:
+	 * 
+	 * Preconditions: 	
 	 * Postconditions: 	True is returned if the display currently contains no content,
-	 * 					or a single widget specifying that there is no content.
+	 * 					or a single widget specifying that there is no content. 
 	 * @return
 	 */
-	public boolean isDisplayEmpty()
+	public boolean isDisplayEmpty() 
 	{
 		if(getSize() == 0)
 			return true;
@@ -269,33 +286,22 @@ public class DisplayingWidgetsModel extends AbstractListModel<DisplayIcon> imple
 			toReturn += sp(numSpaces) + w + "\n";
 		return toReturn;
 	}
-
-
+	
+	
 	private static String sp(int num)
 	{
 		if(num == 0)
 			return "";
 		else return " " + sp(num-1);
 	}
-
-	public static List<Widget> mappedWidgets(Iterable<DisplayIcon> dwm, List<Widget> list)
-	{
-		LinkedList<Widget> toReturn = new LinkedList<Widget>();
-		for(DisplayIcon ruleDi : dwm)
-			for(Widget w : list)
-				if(ruleDi.matchesIconOf(w)) {
-					toReturn.add(w);
-					break;
-				}
-		return toReturn;
-	}
+	
 	public class Renderer extends JLabel implements ListCellRenderer<Widget>
 	{
 		final ImageIcon longIcon = new ImageIcon("long.gif");
 	    final ImageIcon shortIcon = new ImageIcon("short.gif");
 		@Override
-		public Component getListCellRendererComponent(JList<? extends Widget> list, Widget value,
-		       int index, boolean isSelected, boolean cellHasFocus)
+		public Component getListCellRendererComponent(JList<? extends Widget> list, Widget value,            
+		       int index, boolean isSelected, boolean cellHasFocus)    
 		{
 	         String s = value.toString();
 	         setText(s);

@@ -35,8 +35,12 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.security.ProtectionDomain;
 import java.util.*;
+import java.util.jar.Attributes;
 import java.util.jar.JarInputStream;
 import java.util.jar.Manifest;
+
+import edu.unl.cse.efs.util.ManifestDataRipper;
+import edu.unl.cse.efs.util.ManifestDataRipper.ManifestDataEntry;
 import edu.umd.cs.guitar.exception.ApplicationConnectException;
 
 /**
@@ -119,11 +123,13 @@ public class JFCApplication2 extends GApplication
 
 //			for(ManifestDataEntry e : ManifestDataRipper.getAllManifestData(mf))
 //				System.out.println(e);
+
 			mainClass = mf.getMainAttributes().getValue("Main-Class");
 			if(mainClass == null || mainClass.isEmpty())
 				mainClass = entrance;
 
 			jarStream.close();
+
 			this.cClass = initializeMainClass(mainClass, URLs);
 		}
 		else {

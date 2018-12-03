@@ -64,23 +64,23 @@ import java.util.Random;
 
 /**
  * The core ripping algorithm implementation.
- *
+ * 
  * Exceptions encountered during the ripping processes are propagated up from
  * the lower level as high as possible. Ideally, the execute() method should
  * propagate it upwards. As of now, the execute() function is as far as the
  * exceptions propagate.
- *
+ * 
  * Exceptions caused by GUITAR state errors are thrown as RipperStateException.
  * All other exceptions are caused by the AUT.
- *
+ * 
  * <p>
- *
+ * 
  * @author <a href="mailto:baonn@cs.umd.edu"> Bao Nguyen </a>
  */
 public class Ripper {
 	/**
 	 * SECTION: DATA
-	 *
+	 * 
 	 * This section contains data structures and accessor functions for the data
 	 * structures.
 	 */
@@ -88,7 +88,7 @@ public class Ripper {
 	/**
 	 * Flag to print out the component information during ripping. information
 	 * is used for debugging and create the ripper configuration file.
-	 *
+	 * 
 	 * <p>
 	 * This feature is off by default. Turn on it by adding
 	 * -Dguitar.ripper.printCompInfo to the command-line java call.
@@ -98,7 +98,7 @@ public class Ripper {
 	/**
 	 * Constructor with loggere
 	 * <p>
-	 *
+	 * 
 	 * @param logger
 	 *            External logger
 	 */
@@ -241,7 +241,7 @@ public class Ripper {
 
 	/**
 	 * Set the path where the ripper can save artifacts.
-	 *
+	 * 
 	 * @param strDataPath
 	 *            Name of path where the ripper stores artifacts
 	 */
@@ -254,7 +254,7 @@ public class Ripper {
 
 	/**
 	 * Add a window filter
-	 *
+	 * 
 	 * @param filter
 	 */
 	public void addWindowFilter(GWindowFilter filter) {
@@ -268,7 +268,7 @@ public class Ripper {
 
 	/**
 	 * Remove a window filter
-	 *
+	 * 
 	 * @param filter
 	 */
 	public void removeWindowFilter(GWindowFilter filter) {
@@ -281,7 +281,7 @@ public class Ripper {
 
 	/**
 	 * Add a component filter
-	 *
+	 * 
 	 * @param filter
 	 */
 	public void addComponentFilter(GRipperAdapter filter) {
@@ -294,7 +294,7 @@ public class Ripper {
 
 	/**
 	 * Remove a component filter
-	 *
+	 * 
 	 * @param filter
 	 */
 	public void removeComponentFilter(GRipperAdapter filter) {
@@ -340,16 +340,16 @@ public class Ripper {
 
 	/**
 	 * SECTION: LOGIC
-	 *
+	 * 
 	 * This section contains methods which implement the ripper logic.
 	 */
 
 	/**
 	 * Entry point for beginning the ripping process.
-	 *
+	 * 
 	 * The ripping process generates the .GUI file and other artifacts (if any)
 	 * in the strDataPath directory.
-	 *
+	 * 
 	 * Exceptions propagate up to this method as of now. Ideally, this method
 	 * must propagate it to the caller.
 	 */
@@ -362,10 +362,10 @@ public class Ripper {
 
 			// 1. Set Up the environment
 			monitor.setUp();
-
+			
 			// 2. Get the list of root window
 			List<GWindow> gRootWindows = monitor.getRootWindows();
-
+			
 			if (gRootWindows == null) {
 //				GUITARLog.log.warn("No root window");
 				throw new RipperStateException();
@@ -438,7 +438,7 @@ public class Ripper {
 //				GUITARLog.log.warn("No ID generator assigned");
 				throw new RipperStateException();
 			} else {
-
+				
 				idGenerator.generateID(dGUIStructure);
 			}
 
@@ -469,7 +469,7 @@ public class Ripper {
 	/**
 	 * Rip a window
 	 * <p>
-	 *
+	 * 
 	 * @param gWindow
 	 * @return
 	 */
@@ -481,7 +481,7 @@ public class Ripper {
 				beforeComponnentPlugin.beforeRippingWindow(gWindow);
 			}
 		}
-
+		
 
 		System.out.println("------- BEGIN WINDOW -------");
 		System.out.println("Ripping window: *" + gWindow.getTitle() + "*");
@@ -493,7 +493,7 @@ public class Ripper {
 				System.out.println("Window filter " + wf.getClass().getSimpleName() + " is applied");
 //				GUITARLog.log.info("-------- END WINDOW --------");
 				System.out.println("-------- END WINDOW --------");
-
+				
 				return wf.ripWindow(gWindow);
 			}
 		}
@@ -558,13 +558,13 @@ public class Ripper {
 
 	/**
 	 * Rip a component
-	 *
+	 * 
 	 * As of now this method does not propagate exceptions. It needs to be
 	 * modified to progate exceptions. All callers need to be modified to handle
 	 * exceptions.
-	 *
+	 * 
 	 * <p>
-	 *
+	 * 
 	 * @param component
 	 * @return
 	 */
@@ -606,12 +606,13 @@ public class Ripper {
 			if (cm.isProcess(component, window)) {
 				ComponentTypeWrapper retCompWrapper = null;
 
+//				GUITARLog.log.info("Filter " + cm.getClass().getSimpleName() + " is applied");
 				System.out.println("Filter " + cm.getClass().getSimpleName() + " is applied");
-
+				
 				retComp = cm.ripComponent(component, window);
 				retCompWrapper = new ComponentTypeWrapper(retComp);
 
-				// Add the sUUID property now
+				// Add the sUUID propoerty now
 				if (sUUID != null) {
 					retCompWrapper.addProperty(GUITARConstants.UUID_TAG_NAME,
 							sUUID);
@@ -885,7 +886,7 @@ public class Ripper {
 	/**
 	 * Print out debug info for the current component
 	 * <p>
-	 *
+	 * 
 	 * @param component
 	 * @param window
 	 */
@@ -931,12 +932,13 @@ public class Ripper {
 		sComponentInfo += "</FullComponent>" + "\n";
 		sComponentInfo += "\n";
 
+//		GUITARLog.log.info(sComponentInfo);
 		System.out.println(sComponentInfo);
 	}
 
 	/**
 	 * Capture the image of GWindow
-	 *
+	 * 
 	 * @param gWindow
 	 *            Window whose image to capture.
 	 * @return String UUID on success.
@@ -949,10 +951,12 @@ public class Ripper {
 			monitor.captureImage(gComponent, strDataPath + "/" + randomInt);
 
 		} catch (AWTException e) {
+//			GUITARLog.log.error("AWT exception while capturing image.");
 			System.err.println("AWT exception while capturing image.");
 			throw e;
 
 		} catch (IOException e) {
+//			GUITARLog.log.error("IO Exception while ripping.");
 			System.err.println("IO Exception while ripping.");
 			throw e;
 		}

@@ -38,8 +38,6 @@ import javax.accessibility.AccessibleRole;
 import javax.accessibility.AccessibleState;
 import javax.accessibility.AccessibleStateSet;
 
-import edu.umd.cs.guitar.event.ActionClass;
-import edu.umd.cs.guitar.model.data.AttributesType;
 import edu.umd.cs.guitar.model.data.ComponentType;
 import edu.umd.cs.guitar.model.data.ContainerType;
 import edu.umd.cs.guitar.model.data.ContentsType;
@@ -47,21 +45,18 @@ import edu.umd.cs.guitar.model.data.GUIType;
 import edu.umd.cs.guitar.model.data.ObjectFactory;
 import edu.umd.cs.guitar.model.data.PropertyType;
 import edu.umd.cs.guitar.model.wrapper.ComponentTypeWrapper;
-import edu.unl.cse.guitarext.GUIEventModel;
-import edu.unl.cse.guitarext.HeadTable;
-import edu.unl.cse.guitarext.JavaTestInteractions;
 
 /**
  * Implementation for {@link GWindow} for Java Swing
- *
+ * 
  * @see GWindow
- *
+ * 
  * @author <a href="mailto:baonn@cs.umd.edu"> Bao Nguyen </a>
  */
 public class JFCXWindow extends GWindow {
 
 	Window window;
-	String storedEventID;
+
 	/**
 	 * Constructor: sets the window referred to by this
 	 * JFCXWindow
@@ -69,13 +64,12 @@ public class JFCXWindow extends GWindow {
 	 */
 	public JFCXWindow(Window window) {
 		this.window = window;
-		storedEventID = "";
 	}
 	/**
 	 * Get the JFC window object.
-	 *
+	 * 
 	 * <p>
-	 *
+	 * 
 	 * @return the window
 	 */
 	public Window getWindow() {
@@ -86,8 +80,8 @@ public class JFCXWindow extends GWindow {
 	{
 		return window.isActive();
 	}
-
-
+	
+	
 	public boolean isRoot()
 	{
 		AccessibleRole windowRole = window.getAccessibleContext().getAccessibleRole();
@@ -95,94 +89,9 @@ public class JFCXWindow extends GWindow {
 			return true;
 		return false;
 	}
-
-	public String getEventID()
-	{
-		if(!storedEventID.isEmpty())
-			return storedEventID;
-
-		JavaTestInteractions myJTI = null;
-		boolean jtiFound = false;
-		for(JavaTestInteractions jti : HeadTable.allInteractions) {
-			for(Window w : jti.getWindowsScanned())
-				if(JavaTestInteractions.windowTitlesAreSame(getTitle(), getGUITARTitle(w))) {
-					myJTI = jti;
-					jtiFound = true;
-				}
-		}
-		if(!jtiFound) {
-			myJTI = new JavaTestInteractions();
-			myJTI.setCurrentWindow(window);
-			HeadTable.allInteractions.add(myJTI);
-		}
-		// can replace by method findJTI() and the code above to create JTI.
-		if(JFCXComponent.nowRipping) {
-			// since we're ripping, let's just get the names we need right now
-			String newId = myJTI.assignNameByRole(window, -1);
-			storedEventID = newId;
-			return storedEventID;
-		}
-		else {
-			// since we're not ripping, we have to look up the id amongst the events
-			String newId = myJTI.lookupID(window, getTitle(), ActionClass.WINDOW.actionName);
-			storedEventID = newId;
-			return storedEventID;
-		}
-	}
-	public String getClassVal() {
-		if(window == null)
-			return null;
-		if(window.getAccessibleContext() == null)
-			return null;
-		return window.getAccessibleContext().getAccessibleRole().toDisplayString();
-	}
-	public GUIType extractWindow()
-	{
-        GUIType retGUI;
-
-        retGUI = factory.createGUIType();
-
-        // ---------------------
-        // Window
-        // ---------------------
-        ComponentType window = factory.createComponentType();
-        ComponentTypeWrapper windowAdapter = new ComponentTypeWrapper(window);
-        // Add properties required by GUITAR
-        windowAdapter.addValueByName(GUITARConstants.TITLE_TAG_NAME, getTitle());
-        // Class
-     	String sClass = getClassVal();
-     	windowAdapter.addValueByName(GUITARConstants.CLASS_TAG_NAME, sClass);
-        // Modal
-        windowAdapter.addValueByName(GUITARConstants.MODAL_TAG_NAME, "" + isModal());
-        // Is Root window
-        windowAdapter.addValueByName(GUITARConstants.ROOTWINDOW_TAG_NAME, "" + isRoot());
-        // EventID
-        windowAdapter.addValueByName(GUITARConstants.CTH_EVENT_ID_NAME, getEventID());
-        window = windowAdapter.getDComponentType();
-
-        AttributesType attributes = window.getAttributes();
-        List<PropertyType> lProperties = attributes.getProperty();
-        List<PropertyType> lGUIProperties = getGUIProperties();
-
-        if (lGUIProperties != null)
-            lProperties.addAll(lGUIProperties);
-        attributes.setProperty(lProperties);
-        window.setAttributes(attributes);
-        retGUI.setWindow(window);
-
-        // ---------------------
-        // Container
-
-        ContainerType container = factory.createContainerType();
-        ContentsType contents = factory.createContentsType();
-        container.setContents(contents);
-        retGUI.setContainer(container);
-
-        return retGUI;
-	}
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see edu.umd.cs.guitar.model.GXWindow#extractWindowInfo()
 	 */
 	@Override
@@ -223,7 +132,7 @@ public class JFCXWindow extends GWindow {
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see edu.umd.cs.guitar.model.GXWindow#getContainer()
 	 */
 	@Override
@@ -233,13 +142,13 @@ public class JFCXWindow extends GWindow {
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see edu.umd.cs.guitar.model.GXWindow#isModal()
 	 */
 	@Override
-	public boolean isModal()
+	public boolean isModal() 
 	{
-		// If there is no an isModal method then try to access states
+		// If there is no an isModal method then try to access states 
 		AccessibleContext context = window.getAccessibleContext();
 		if (context == null)
 			return false;
@@ -247,7 +156,7 @@ public class JFCXWindow extends GWindow {
 		if (states.contains(AccessibleState.MODAL))
 			return true;
 		return false;
-//		// Check if there is an isModal method
+//		// Check if there is an isModal method 
 //		Boolean isModal = null;
 //		try {
 //			Class<?> partypes[] = new Class[0];
@@ -270,7 +179,7 @@ public class JFCXWindow extends GWindow {
 //		if (isModal != null)
 //			return isModal;
 //
-//		// If there is no an isModal method then try to access states
+//		// If there is no an isModal method then try to access states 
 //		AccessibleContext context = window.getAccessibleContext();
 //		if (context == null)
 //			return false;
@@ -283,7 +192,7 @@ public class JFCXWindow extends GWindow {
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see edu.umd.cs.guitar.model.GXObject#getName()
 	 */
 	@Override
@@ -303,29 +212,9 @@ public class JFCXWindow extends GWindow {
 		return sName;
 	}
 
-	public static String getGUITARTitle(Window window) {
-		if(window == null)
-			return "";
-		String sName = null;
-		// Check for accessibility name
-		AccessibleContext aContext = window.getAccessibleContext();
-		if (aContext != null) {
-			sName = aContext.getAccessibleName();
-			if (sName != null)
-				return sName;
-		}
-
-		sName = window.getClass().getName();
-		if(sName != null)
-			return sName;
-		sName = "Pos(" +
-					JFCXComponent.getGUITAROffsetX((Component)window) + ","
-					+ JFCXComponent.getGUITAROffsetY((Component)window) + ")";
-		return sName;
-	}
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see edu.umd.cs.guitar.model.GXWindow#getGUIProperties()
 	 */
 	@Override
@@ -336,7 +225,7 @@ public class JFCXWindow extends GWindow {
 
 	/**
 	 * Get all bean properties of the component
-	 *
+	 * 
 	 * @return
 	 */
 	private List<PropertyType> getGUIBeanProperties() {
@@ -386,7 +275,7 @@ public class JFCXWindow extends GWindow {
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see java.lang.Object#hashCode()
 	 */
 	@Override
@@ -400,7 +289,7 @@ public class JFCXWindow extends GWindow {
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
 	@Override
@@ -426,7 +315,7 @@ public class JFCXWindow extends GWindow {
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see edu.umd.cs.guitar.model.GWindow#isValidWindow()
 	 */
 	@Override
@@ -452,7 +341,7 @@ public class JFCXWindow extends GWindow {
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see edu.umd.cs.guitar.model.GObject#getX()
 	 */
 	@Override
@@ -462,7 +351,7 @@ public class JFCXWindow extends GWindow {
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see edu.umd.cs.guitar.model.GObject#getY()
 	 */
 	@Override
@@ -472,12 +361,12 @@ public class JFCXWindow extends GWindow {
 
 	public List<PropertyType> getIDProperties() {
 		List<PropertyType> retIDProperties = new ArrayList<PropertyType>();
-
+		
 		PropertyType title = factory.createPropertyType();
 		title.setName(GUITARConstants.TITLE_TAG_NAME);
 		title.getValue().add(this.getTitle());
 		retIDProperties.add(title);
-
+		
 		return retIDProperties;
 	}
 

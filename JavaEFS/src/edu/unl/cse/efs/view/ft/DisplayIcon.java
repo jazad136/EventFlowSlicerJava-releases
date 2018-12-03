@@ -1,14 +1,32 @@
+/*******************************************************************************
+ *    Copyright (c) 2018 Jonathan A. Saddler
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ *    
+ *    Contributors:
+ *     Jonathan A. Saddler - initial API and implementation
+ *******************************************************************************/
 package edu.unl.cse.efs.view.ft;
 
 import edu.umd.cs.guitar.model.data.Widget;
 
 /**
  * This display icon class correctly parses the information passed to the constructor into
- * parts that can be used for display.
+ * parts that can be used for display. 
  * @author jsaddle
  *
  */
-public class DisplayIcon implements Comparable<DisplayIcon>
+public class DisplayIcon implements Comparable<DisplayIcon> 
 	{
 		String toDisplay;
 		String compareString;
@@ -16,7 +34,7 @@ public class DisplayIcon implements Comparable<DisplayIcon>
 		String secondString;
 		String thirdString;
 		boolean primed;
-
+		
 		public DisplayIcon()
 		{
 			toDisplay = "";
@@ -28,23 +46,17 @@ public class DisplayIcon implements Comparable<DisplayIcon>
 		public DisplayIcon(Widget w)
 		{
 			toDisplay = w.toString();
-			String paramString;
-			if(w.getParameter() != null && !w.getParameter().isEmpty()) {
-				paramString = w.getParameter();
-			}
-			else
-				paramString = "";
-			compareString = w.getName() + w.getEventID() + w.getWindow() + paramString;
+			compareString = w.getName() + w.getEventID() + w.getWindow();
 			firstString = w.getName();
 			secondString = w.getWindow();
 			thirdString = w.getEventID();
 			primed = false;
 		}
-
+		
 		public DisplayIcon(String toDisplay)
 		{
 			this.toDisplay = toDisplay;
-
+			
 			compareString = toDisplay;
 			firstString = "";
 			secondString = "";
@@ -70,26 +82,26 @@ public class DisplayIcon implements Comparable<DisplayIcon>
 			return primeBefore;
 		}
 		/**
-		 * Return true if and only if the display icon that would be created from
+		 * Return true if and only if the display icon that would be created from 
 		 * w matches this icon semantically.
 		 */
 		public boolean matchesIconOf(Widget w){ return this.equals(new DisplayIcon(w)); }
-
-
-
+		
+		
+		
 		public static String getPrimedString(String firstString, String secondString, String thirdString)
 		{
 			// shorten the window string.
 			String sStr = secondString.length() > 8 ? secondString.substring(0,8) + "..." : secondString + "...";
 			// use all three parts in this new string.
-			return firstString + " [" + sStr + "] (" + thirdString + ")";
+			return firstString + " [" + sStr + "] (" + thirdString + ")"; 
 		}
-
+		
 		public static String getWindowedIconString(Widget w)
 		{
 			return getPrimedString(w.getName(), w.getWindow(), w.getEventID());
 		}
-
+		
 		/**
 		 * Return a string version
 		 */
@@ -99,12 +111,12 @@ public class DisplayIcon implements Comparable<DisplayIcon>
 				return getPrimedString(firstString, secondString, thirdString);
 			return toDisplay;
 		}
-
+		
 		public int compareTo(DisplayIcon other)
 		{
 			return compareString.compareTo(other.compareString);
 		}
-
+		
 		/**
 		 * primeString is a factor in this hashcode method.
 		 */
@@ -115,7 +127,7 @@ public class DisplayIcon implements Comparable<DisplayIcon>
 			result = prime * result + ((compareString == null) ? 0 : compareString.hashCode());
 			return result;
 		}
-
+		
 		/**
 		 * primeString is a factor in this equals method
 		 */
@@ -135,5 +147,5 @@ public class DisplayIcon implements Comparable<DisplayIcon>
 				return false;
 			}
 			return true;
-		}
+		}		
 	}

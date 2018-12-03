@@ -1,3 +1,21 @@
+/*******************************************************************************
+ *    Copyright (c) 2018 Jonathan A. Saddler
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ *    
+ *    Contributors:
+ *     Jonathan A. Saddler - initial API and implementation
+ *******************************************************************************/
 package edu.unl.cse.efs.java;
 
 import java.util.*;
@@ -24,8 +42,8 @@ import edu.unl.cse.efs.LaunchApplication;
 import edu.unl.cse.efs.app.EventFlowSlicer;
 import edu.unl.cse.efs.util.ReadArguments;
 import edu.unl.cse.efs.view.EventFlowSlicerView;
-import edu.unl.cse.jontools.paths.PathConformance;
 import edu.unl.cse.efs.commun.giveevents.NetCommunication;
+import edu.unl.cse.efs.tools.PathConformance;
 
 /**
  * This class that can readily be used to launch a Java application on the fly.
@@ -794,7 +812,7 @@ public class JavaLaunchApplication extends LaunchApplication implements Runnable
 		// reset the look and feel now that the java app is done. 
 		// (otherwise the look and feel carries over to CogToolHelper, which we don't want!)
 		try {
-			UIManager.setLookAndFeel(EventFlowSlicer.lookAndFeel);
+			UIManager.setLookAndFeel(EventFlowSlicerView.lookAndFeel);
 		} catch(UnsupportedLookAndFeelException e) {
 			System.err.println("JavaLaunchApplication: Could not reset look and feel. Buttons may appear to "
 					+ "look strange in resulting interface.");

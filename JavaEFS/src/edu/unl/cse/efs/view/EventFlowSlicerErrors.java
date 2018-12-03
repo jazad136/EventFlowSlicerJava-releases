@@ -1,3 +1,21 @@
+/*******************************************************************************
+ *    Copyright (c) 2018 Jonathan A. Saddler
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ *    
+ *    Contributors:
+ *     Jonathan A. Saddler - initial API and implementation
+ *******************************************************************************/
 package edu.unl.cse.efs.view;
 
 import java.io.FileNotFoundException;
@@ -13,14 +31,14 @@ public class EventFlowSlicerErrors {
 			"Usage: java -jar efsjava.jar"
 			+ "\n\t-capture <application_file> -resdir <output_directory> "
 			+ "[ -args <arguments_string_file> ] [ -vm <virtual_machine_arguments_string_file> ]"
-			+ "\n\n\t-constraints -constfile <constraints_file>"
+			+ "\n\t-constraints -constfile <constraints_file>"
 			+ ""
-			+ "\n\n\t-rip <application_file> -resdir <output_directory> -constfile <consraints_file>  "
+			+ "\n\t-rip <application_file> -resdir <output_directory> -constfile <consraints_file>  "
 			+ "[ -args <arguments_string_file> ] [ -vm <java_virtual_machine_arguments_string_file> ] [ -cmc <special_main_class> ] [ -ripcon <rip_configuration_file> ]"
-			+ "\n\n\t-generate <application_file> -g <input_gui_structure_file> <-e <input_GUITAR_efg_file> | -eb <input_human_readable_efg_file> > -constfile <consraints_file> "
+			+ "\n\t-generate <application_file> -g <input_gui_structure_file> <-e <input_GUITAR_efg_file> | -eb <input_human_readable_efg_file> > -constfile <consraints_file> "
 			+ "[ -args <arguments_string_file> ] [ -vm <java_virtual_machine_arguments_string_file> ] [ -cmc <special_main_class> ] [ -rt <generator_algorithm> ]"
-			+ "\n\n\t(-replay | -rpy_sel <test_case_string>> <application_file>) -g <output_gui_structure_file> -e <input__efg_file> -tcdir <input_test_case_directory> [ -args <arguments_string_file> ] [ -vm <java_virtual_machine_arguments_string_file> ] [ -cmc <special_main_class> ] [ -noressubdir ]"
-			+ "\n\n\t(-gui [gui_args...])";
+			+ "\n\t(-replay | -rpy_sel <test_case_string>> <application_file>) -g <output_gui_structure_file> -e <input__efg_file> -tcdir <input_test_case_directory> [ -args <arguments_string_file> ] [ -vm <java_virtual_machine_arguments_string_file> ] [ -cmc <special_main_class> ] [ -noressubdir ]"
+			+ "\n\t(-gui [gui_args...])";
 	
 	/*
 	 * java -jar efsjava.jar -capture [-args <arguments_string_file>] [-vm <-constfile>]

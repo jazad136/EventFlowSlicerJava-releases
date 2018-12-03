@@ -1,21 +1,21 @@
-/*
+/*	
  *  Copyright (c) 2009-@year@. The GUITAR group at the University of Maryland. Names of owners of this group may
  *  be obtained by sending an e-mail to atif@cs.umd.edu
- *
- *  Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
- *  documentation files (the "Software"), to deal in the Software without restriction, including without
+ * 
+ *  Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated 
+ *  documentation files (the "Software"), to deal in the Software without restriction, including without 
  *  limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- *	the Software, and to permit persons to whom the Software is furnished to do so, subject to the following
+ *	the Software, and to permit persons to whom the Software is furnished to do so, subject to the following 
  *	conditions:
- *
- *	The above copyright notice and this permission notice shall be included in all copies or substantial
+ * 
+ *	The above copyright notice and this permission notice shall be included in all copies or substantial 
  *	portions of the Software.
  *
- *	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT
- *	LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO
- *	EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- *	IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
- *	THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT 
+ *	LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO 
+ *	EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER 
+ *	IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR 
+ *	THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
  */
 package edu.umd.cs.guitar.model.wrapper;
 
@@ -23,9 +23,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import javax.accessibility.AccessibleRole;
-
-import edu.umd.cs.guitar.event.ActionClass;
 import edu.umd.cs.guitar.model.GUITARConstants;
 import edu.umd.cs.guitar.model.data.EventType;
 
@@ -34,7 +31,7 @@ import edu.umd.cs.guitar.model.data.EventType;
  */
 public class EventWrapper {
 
-	protected String ID;
+	String ID;
 
 	/**
 	 * @return the iD
@@ -51,8 +48,8 @@ public class EventWrapper {
 		ID = iD;
 	}
 
-	protected String action;
-	protected ComponentTypeWrapper component;
+	String action;
+	ComponentTypeWrapper component;
 
 	/**
 	 * The edge used to reveal a widget; including window opener and menu opener
@@ -74,25 +71,25 @@ public class EventWrapper {
 	public void setAction(String action) {
 		this.action = action;
 	}
-
+	
 	List<String> listeners;
-
+	
 	/**
-	 *
+	 * 
 	 * @return the listeners
 	 */
 	public List<String> getListeners(){
 		return listeners;
 	}
-
+	
 	/**
-	 *
+	 * 
 	 * @param the listeners
 	 */
 	public void setListeners( List<String> listeners ){
 		this.listeners = listeners;
 	}
-
+	
 	/**
 	 * @return the component
 	 */
@@ -110,11 +107,11 @@ public class EventWrapper {
 
 	/**
 	 * Check if an event can be followed after this event
-	 *
-	 * jsaddle:
+	 * 
+	 * jsaddle: 
 	 * Returns GUITARConstants.NO_EDGE : if no edge between this EventWrapper instance and other
 	 * Returns GUITARConstants.FOLLOW_EDGE : if a normal edge exists between this instance and other
-	 * Returns GUITARConstants.REACHING_EDGE : if a reaching edge exists between this instance and other
+	 * Returns GUITARConstants.REACHING_EDGE : if a reaching edge exists between this instance and other 
 	 * @param other
 	 *            the event to check
 	 * @return
@@ -130,10 +127,10 @@ public class EventWrapper {
 		GUITypeWrapper secondWindow = secondComponent.getWindow();
 
 		String ID = firstComponent
-				.getFirstValueByName(GUITARConstants.ID_TAG_NAME);
+				.getFirstValueByName(GUITARConstants.ID_TAG_NAME);		
 
 		// e2 is a keyboard event
-		String e2Action = other.getAction();
+		String e2Action = other.getAction(); 
 		boolean keyb = false;
 		if(e2Action.contains("Keyboard")){
 			keyb = true;
@@ -143,7 +140,7 @@ public class EventWrapper {
 					return GUITARConstants.NO_EDGE;
 				}
 				else if(type.equals(GUITARConstants.RESTRICED_FOCUS)){
-					return GUITARConstants.NO_EDGE;
+					return GUITARConstants.NO_EDGE; 
 				}else if(type.equals(GUITARConstants.TERMINAL)){
 					return GUITARConstants.NO_EDGE;
 				}else{
@@ -159,7 +156,7 @@ public class EventWrapper {
 
 		if(!keyb){
 			ComponentTypeWrapper directParent = other.component.getParent();
-
+	
 			while (directParent != null) {
 				String action = directParent
 						.getFirstValueByName(GUITARConstants.EVENT_TAG_NAME);
@@ -167,12 +164,12 @@ public class EventWrapper {
 					break;
 				directParent = directParent.getParent();
 			}
-
+			
 			// e2 have parent then it is a hidden event
 			if (directParent != null) {
 				String parentID = directParent
 						.getFirstValueByName(GUITARConstants.ID_TAG_NAME);
-
+	
 				if (ID.equals(parentID)) {
 					// return GUITARConstants.FOLLOW_EDGE;
 					// System.out.println(ID + "is a direct parent of " + otherID);
@@ -212,7 +209,7 @@ public class EventWrapper {
 //
 			if (invoker != null) {
 				windowsTopAfterFirstEvent.add(invoker.getWindow());
-
+				
 			}
 
 			// Non terminal
@@ -254,7 +251,7 @@ public class EventWrapper {
 
 		// Check if the 2nd event is in the list of available window after the
 		// 1st event
-
+		
 //		System.out.println("Top window after the first event");
 		for (GUITypeWrapper window : windowsAvailableAfterFirstEvent) {
 //			System.out.println(window.getTitle());
@@ -270,14 +267,14 @@ public class EventWrapper {
 
 	/**
 	 * Check if this event is hidden (e.g. menu item under menu)
-	 *
+	 * 
 	 * @return
 	 */
 	public boolean isHidden() {//BUG - Amanda - 2/4/2012
 		if(this.action.contains("Keyboard")){
 			return false;
 		}
-
+		
 		ComponentTypeWrapper parent = this.component.getParent();
 		while (parent != null) {
 			String action = parent
@@ -286,15 +283,15 @@ public class EventWrapper {
 				return true;
 			parent = parent.getParent();
 		}
-
+		
 		return false;
 	}
 
 	/**
 	 * Get event type
-	 *
+	 * 
 	 * <p>
-	 *
+	 * 
 	 * @return
 	 * @see EventType
 	 */
@@ -308,17 +305,13 @@ public class EventWrapper {
 		// return GUITARConstants.ACTIVATED_BY_PARENT;
 
 		// 1. Expand event
-		// jsaddle
-		String widgetAction = component.getFirstValueByName(GUITARConstants.EVENT_TAG_NAME);
-		if(widgetAction.equals(ActionClass.WINDOW.actionName))
-			return GUITARConstants.TERMINAL;
 		if (component.hasChild())
 			return GUITARConstants.EXPAND;
 
 		// 2. Terminal event
 
 		if (GUITARConstants.TERMINAL.equals(widgetType)) //Amanda - Shouldn't they be able to figure this out
-														//by checking the invoked windows list, not by defining all terminal types,
+														//by checking the invoked windows list, not by defining all terminal types, 
 														//sometimes "Apply" is terminal, sometimes it is not.
 			return GUITARConstants.TERMINAL;
 
@@ -337,7 +330,7 @@ public class EventWrapper {
 
 	}
 
-
+	
 	public String getName() {
 		return component.getFirstValueByName(GUITARConstants.NAME_TAG_NAME);
 	}

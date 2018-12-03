@@ -1,22 +1,3 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- * 
- *   http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
- */
-
 package edu.umd.cs.guitar.event;
 
 import java.awt.AWTException;
@@ -37,23 +18,21 @@ import edu.umd.cs.guitar.model.GUITARConstants;
 import edu.umd.cs.guitar.model.JFCXComponent;
 
 
-/** @author Jonathan A. Saddler
-*/
 public class JFCBasicHoverHandler extends JFCEventHandler {
 
 	public static final int miniEventWaitTime = 1000;
 	public static final int defaultWaitSeconds = 3;
 
-	public static final String Direct_Click_Command = "Click",
-		Wait_Command = "Wait",
-		Hover_Command = "Hover",
+	public static final String Direct_Click_Command = "Click", 
+		Wait_Command = "Wait", 
+		Hover_Command = "Hover", 
 		Text_Insert_Command= "Text_Insert";
-
+	
 	public JFCBasicHoverHandler()
 	{
-
+		
 	}
-
+	
 	@Override
 	protected void performImpl(GObject gComponent, Hashtable<String, List<String>> optionalData) {
 		if(gComponent == null)
@@ -64,7 +43,7 @@ public class JFCBasicHoverHandler extends JFCEventHandler {
 		int offY = compR.height / 2;
 		String ns = GUITARConstants.NAME_SEPARATOR;
 		performImpl(gComponent, Arrays.asList(new String[]{
-				Hover_Command + ns + offX + ns + offY,
+				Hover_Command + ns + offX + ns + offY, 
 				Wait_Command + ns + defaultWaitSeconds}), null);
 	}
 
@@ -74,7 +53,7 @@ public class JFCBasicHoverHandler extends JFCEventHandler {
 		if(gComponent == null)
 			return;
 		Component component = getComponent(gComponent);
-		// parse all the parameters into a 2D array, each row is a command.
+		// parse all the parameters into a 2D array, each row is a command. 
 		if (parameters instanceof List) {
 			 // set the text to be edited.
 			List<String> lParameter = (List<String>) parameters;
@@ -95,7 +74,7 @@ public class JFCBasicHoverHandler extends JFCEventHandler {
 				Rectangle compR = component.getBounds();
 				int offX = compR.width / 2;
 				int offY = compR.height / 2;
-
+				
 				if(command.equals(Hover_Command)) {
 					try {
 						if(set.length >= 3) {
@@ -104,10 +83,10 @@ public class JFCBasicHoverHandler extends JFCEventHandler {
 							offX = Integer.parseInt(offXString);
 							offY = Integer.parseInt(offYString);
 						}
-
+					
 						// move the mouse.
 						Point compL = component.getLocationOnScreen();
-
+						
 						final int hovX = compL.x + offX;
 						final int hovY = compL.y + offY;
 						if(hovX > compL.x + compR.width
@@ -123,40 +102,55 @@ public class JFCBasicHoverHandler extends JFCEventHandler {
 								System.err.println("Error: Hover action could not be performed: Java Robot could not be instantiated.");
 							}
 						}});
-					}
+					} 
 					catch(IllegalArgumentException e) {
 						System.err.println("Error: Step passed to hover perform method is invalid.");
-					}
+					}	
 				}
 				else if(command.equals(Wait_Command)) {
 					int waitDuration = defaultWaitSeconds;
-
+					
 					if(set.length >= 2) {
 						String waitString = set[1];
 						waitDuration = Integer.parseInt(waitString);
 					}
 					try {
-						Thread.sleep(waitDuration);
+						Thread.sleep(waitDuration);	
 					} catch(InterruptedException e) {
 						System.err.println("Hover command was interrupted during execution.");
 					}
 				}
 			}
 		}
-
-
+		
+		
 
 	}
 	@Override
-	public boolean isSupportedBy(GObject gComponent)
-	{
+	public boolean isSupportedBy(GObject gComponent) {
 		// TODO Auto-generated method stub
 		if (!(gComponent instanceof JFCXComponent))
 			return false;
 		JFCXComponent jComponent = (JFCXComponent) gComponent;
 		Component component = jComponent.getComponent();
-		String hoverSupport = hoverTypeAvailable(component);
-		return hoverSupport.equals("basic");
+		AccessibleContext aContext = component.getAccessibleContext();
+		if (aContext == null)
+			return false;
+		AccessibleRole myRole = aContext.getAccessibleRole();
+		if(myRole.equals(AccessibleRole.PUSH_BUTTON) ||
+		   myRole.equals(AccessibleRole.RADIO_BUTTON) ||
+		   myRole.equals(AccessibleRole.MENU) ||
+		   myRole.equals(AccessibleRole.MENU_ITEM) ||
+		   myRole.equals(AccessibleRole.CHECK_BOX) ||
+		   myRole.equals(AccessibleRole.TOGGLE_BUTTON)) {
+			return true;
+		}
+		else if(myRole.equals(AccessibleRole.COMBO_BOX) && JFCXComponent.hasChildren(component))
+			return true;
+		else if(myRole.equals(AccessibleRole.PAGE_TAB_LIST) && !JFCXComponent.hasChildren(component))
+			return true; 
+		// this class does not support this this widget for basic hovering. 
+		return false;
 	}
 
 }

@@ -1,6 +1,25 @@
+/*******************************************************************************
+ *    Copyright (c) 2018 Jonathan A. Saddler
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ *    
+ *    Contributors:
+ *     Jonathan A. Saddler - initial API and implementation
+ *******************************************************************************/
 package edu.unl.cse.efs.view;
 import java.awt.Dimension;
 import java.awt.EventQueue;
+import java.awt.FlowLayout;
 import java.awt.FocusTraversalPolicy;
 import java.awt.KeyboardFocusManager;
 import java.awt.SecondaryLoop;
@@ -12,8 +31,6 @@ import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -23,8 +40,16 @@ import java.util.HashSet;
 import java.util.Set;
 
 import javax.swing.*;
+import javax.swing.event.UndoableEditEvent;
+import javax.swing.event.UndoableEditListener;
 import javax.swing.text.DefaultEditorKit;
 import javax.swing.text.JTextComponent;
+import javax.swing.text.PlainDocument;
+import javax.swing.undo.CannotRedoException;
+import javax.swing.undo.CannotUndoException;
+import javax.swing.undo.UndoManager;
+import javax.swing.undo.UndoableEdit;
+import javax.swing.undo.UndoableEditSupport;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.JAXBIntrospector;
@@ -34,17 +59,16 @@ import edu.umd.cs.guitar.model.XMLHandler;
 import edu.umd.cs.guitar.model.data.EFG;
 import edu.umd.cs.guitar.model.data.GUIStructure;
 import edu.umd.cs.guitar.model.data.TaskList;
+import edu.umd.cs.guitar.ripper.JFCRipperConfiguration;
 import edu.unl.cse.efs.util.ReadArguments;
-import edu.unl.cse.bmktools.EFGBookmarking;
 import edu.unl.cse.efs.ApplicationData;
 import edu.unl.cse.efs.LauncherData;
 import edu.unl.cse.efs.app.EventFlowSlicer;
-import edu.unl.cse.efs.generate.EFGPacifier;
-import edu.unl.cse.efs.guitarplugin.EFSEFGConverter;
+import edu.unl.cse.efs.java.JavaLaunchApplication;
 import edu.unl.cse.efs.replay.JFCReplayerConfigurationEFS;
 import edu.unl.cse.efs.ripper.JFCRipperConfigurationEFS;
-import edu.unl.cse.jontools.paths.PathConformance;
-import edu.unl.cse.jontools.string.ArrayTools;
+import edu.unl.cse.efs.tools.ArrayTools;
+import edu.unl.cse.efs.tools.PathConformance;
 
 import static edu.unl.cse.efs.view.DecorationsRunner.*;
 import static java.awt.Component.*;
@@ -54,9 +78,9 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 
-public class EventFlowSlicerView
-{
+public class EventFlowSlicerView {
 	public static JFrame frameInUse;
+	public static LookAndFeel lookAndFeel;
 	public static final int FRAME_BASE_SIZE_X = 600, FRAME_BASE_SIZE_Y = 685;
 	public static final float HEADER_TEXT_FONT = 18;
 	public static final Dimension HEADER_SPACING = new Dimension(0, 30);
@@ -67,19 +91,21 @@ public class EventFlowSlicerView
 	public static ApplicationData ad;
 	public static LauncherData ld;
 	public static EventFlowSlicerController ac;
-	public static ViewVariables vars;
+	private static UndoManager undoM;
+	private static UndoActionListener undoActions;
 
 
 	public EventFlowSlicerView(ApplicationData someAD)
 	{
+		lookAndFeel = UIManager.getLookAndFeel();
+		undoActions = new UndoActionListener();
 		new MBContent();
 		new TopContent();
-		new FieldContent();
 		new BaseContent();
 		ad = someAD;
 		ac = new EventFlowSlicerController(ad);
 		ld = new LauncherData(EventFlowSlicer.DEFAULT_JAVA_RMI_PORT);
-		vars = new ViewVariables();
+		undoM = new UndoManager();
 	}
 
 	public EventFlowSlicerView(ApplicationData someAD, LauncherData someLD)
@@ -88,20 +114,16 @@ public class EventFlowSlicerView
 		ld = someLD;
 	}
 
-	public static class FileAction extends AbstractAction
+	public static class FileChooserAction extends AbstractAction
 	{
-		private static final long serialVersionUID = 1L;
 		private JTextComponent theArea;
 		private FindFile chooser;
 		private boolean findFilesOnly;
 		private String fieldName;
-		private String theString;
-		private final boolean useFindFile;
-		public FileAction(JTextComponent pasteArea, boolean findFilesOnly, boolean useFindFile)
+
+		public FileChooserAction(JTextComponent pasteArea, boolean findFilesOnly)
 		{
 			super("...");
-			this.useFindFile = useFindFile;
-			theString = "";
 			this.theArea = pasteArea;
 			this.findFilesOnly = findFilesOnly;
 			this.fieldName = pasteArea.getAccessibleContext().getAccessibleName();
@@ -115,27 +137,71 @@ public class EventFlowSlicerView
 				if(currentFile.exists())
 					chooser.setDefaultDirectory(new File(theArea.getText()));
 			}
-			theString = chooser.launch(findFilesOnly, frameInUse);
-			if(!theString.isEmpty()) {
-				if(useFindFile)
-					// use FindFile2's updateField method
-					FindFile2.updateField(fieldName, theString);
-				else
-					// use FindFile's updateField method
-					updateField(fieldName, theString);
+			String newPath = chooser.launch(findFilesOnly, frameInUse);
+			if(!newPath.isEmpty())
+				updateField(fieldName, newPath);
 
-			}
 
 		}
-		public String getReturnedString() { return theString; }
 	}
-
+	public static class UndoActionListener extends AbstractAction implements UndoableEditListener
+	{
+		PlainDocument lastField;
+		UndoableEdit lastEdit;
+		public UndoActionListener()
+		{
+			super("Undo");
+			lastField = null;
+		}
+		@Override
+		public void actionPerformed(ActionEvent e)
+		{
+			doUndo();
+		}
+		public static void doUndo()
+		{
+			if(undoM.canUndo())
+				undoM.undo();
+			if(!undoM.canUndo())
+				MBContent.undo.setEnabled(false);
+		}
+		@Override
+		public void undoableEditHappened(final UndoableEditEvent e)
+		{
+			boolean added = false;
+			if(e.getSource() instanceof PlainDocument) {
+				PlainDocument next = (PlainDocument)e.getSource();
+				if(lastField != null && next == lastField) {
+					undoM.addEdit(new UndoableEdit() {
+						@Override
+						public void undo() throws CannotUndoException {e.getEdit().undo();}
+						@Override public boolean canUndo() {return e.getEdit().canUndo();}
+						@Override public void redo() throws CannotRedoException {e.getEdit().redo();}
+						@Override public boolean canRedo() {return e.getEdit().canRedo();}
+						@Override public void die() {e.getEdit().die();}
+						@Override public boolean addEdit(UndoableEdit anEdit) {return e.getEdit().addEdit(anEdit);}
+						@Override public boolean replaceEdit(UndoableEdit anEdit) {return e.getEdit().replaceEdit(anEdit);}
+						// the important call.
+						@Override public boolean isSignificant() {return false;}
+						@Override public String getPresentationName() {return e.getEdit().getPresentationName();}
+						@Override public String getUndoPresentationName() {return e.getEdit().getUndoPresentationName();}
+						@Override public String getRedoPresentationName() {return e.getEdit().getRedoPresentationName();}
+					});
+					added = true;
+				}
+				else {
+					lastField = next;
+					lastEdit = e.getEdit();
+				}
+			}
+			if(!added) {
+				undoM.addEdit(e.getEdit());
+				MBContent.undo.setEnabled(true);
+			}
+		}
+	}
 	public static class PasteAction extends AbstractAction
 	{
-		/**
-		 *
-		 */
-		private static final long serialVersionUID = 1L;
 		private JTextComponent theArea;
 		public PasteAction(JTextComponent pasteArea)
 		{
@@ -163,116 +229,12 @@ public class EventFlowSlicerView
 
 		}
 	}
-
-	public static enum PrefsOption
-	{
-		SAVE(1), LOAD(2), SAVE_TO(3);
-		public final int prefNum;
-		private PrefsOption(int prefNum) { this.prefNum = prefNum; }
-	}
-	public static class PreferencesAction extends AbstractAction
-	{
-		PrefsOption chosenOption;
-		public static boolean loadPerformed;
-		public static String loadMessage;
-		public PreferencesAction(PrefsOption pOption)
-		{
-			super(nameString(pOption));
-			chosenOption = pOption;
-		}
-		public void doSave()
-		{
-			System.out.println("Saving preferences file to");
-			System.out.print(ReadArguments.currentConfigIOFilename + "\n... ");
-			if(!ReadArguments.configurationIsSet())
-				ReadArguments.loadNewConfiguration();
-			ReadArguments.setPreferencesFromView(ReadArguments.ConfigProperty.all);
-			ReadArguments.storeFile();
-			System.out.println("Done.");
-		}
-		public void doSaveTo()
-		{
-
-		}
-
-		public void tryLoad()
-		{
-			String fileString = FindFile2.constructedLoadFileString();
-			File file = new File(fileString);
-			if(!file.exists())
-				 loadMessage = "File selected no longer exists on the file system.";
-			if(file.isDirectory())
-				 loadMessage = "File selected is a directory.";
-			if(!loadMessage.isEmpty()) {
-				return;
-			}
-			else {
-				EventFlowSlicer.loadPreferencesDirectory = file.getParentFile();
-				EventFlowSlicer.loadPreferencesFilename = file.getName();
-				EventFlowSlicer.resetToPreferences();
-				if (ad.hasAppFile())
-					EventFlowSlicerView.updateAppFile();
-				if (ad.hasOutputDirectory())
-					EventFlowSlicerView.updateOutputDirectory();
-				if (ad.hasCustomMainClass())
-					EventFlowSlicerView.updateCustomMainClass();
-				if (ad.hasArgumentsAppFile())
-					EventFlowSlicerView.updateArgsAppFile();
-				if (ad.hasArgumentsVMFile())
-					EventFlowSlicerView.updateArgsVMFile();
-				if (ad.hasWorkingTaskListFile())
-					EventFlowSlicerView.updateConstraintsFile();
-				if (ad.hasWorkingGUIFile())
-					EventFlowSlicerView.updateGUIFile();
-				if (ad.hasWorkingEFGFile())
-					EventFlowSlicerView.updateEFGFile();
-				if (ad.hasWorkingTestCaseDirectory())
-					EventFlowSlicerView.updateTestCaseDirectory();
-				if (ad.hasRipConfigurationFile())
-					EventFlowSlicerView.updateRipConfigurationFile();
-				if (ld.hasLaunchSelectionArguments())
-					EventFlowSlicerView.updateReplayTestCases();
-			}
-		}
-		public void doLoad()
-		{
-			loadMessage = "";
-			SwingUtilities.invokeLater(new Runnable(){public void run() {
-				FindFile2.showDialog(frameInUse, PrefsOption.LOAD);
-				tryLoad();
-				if(!loadMessage.isEmpty()) {
-					System.err.println(loadMessage);
-					JOptionPane.showMessageDialog(frameInUse, new String[]{"Preferences file selected could not be loaded."
-							,"If EventFlowSlicer was launched from terminal,"
-							,"\nplease check the console's output for details."}, "Load Preferences File", JOptionPane.PLAIN_MESSAGE);
-				}
-				loadPerformed = true;
-			}});
-		}
-		public void actionPerformed(ActionEvent ae)
-		{
-			switch(chosenOption) {
-			case SAVE		: doSave();
-	break;	case LOAD		: doLoad();
-	break;	case SAVE_TO	: doSaveTo();
-	break;	default			:
-			}
-		}
-		public static String nameString(PrefsOption pOption) {
-			switch(pOption) {
-			case LOAD: return "Load Preferences";
-			case SAVE: return "Save Preferences";
-			case SAVE_TO: return "to...";
-			}
-			return "";
-		}
-	}
 	public static class TopContent
 	{
 		public static JPanel topPanel;
 		public static JLabel banner;
 		public static JButton startB, stopB;
-		public static JButton facetConsB, editConsB, ripB;
+		public static JButton editConsB, ripB;
 		public static JButton genTB, startRB;
 		public static JButton selHelp;
 		public static JTextField selT;
@@ -292,7 +254,7 @@ public class EventFlowSlicerView
 			rulGroup = new JPanel();
 			rulGroup.setBorder(BorderFactory.createTitledBorder("2. Constraints"));
 			ripGroup = new JPanel();
-			ripGroup.setBorder(BorderFactory.createTitledBorder("3. Model Setup"));
+			ripGroup.setBorder(BorderFactory.createTitledBorder("3. Rip"));
 			genGroup = new JPanel();
 			genGroup.setBorder(BorderFactory.createTitledBorder("4. Generate"));
 			repGroup = new JPanel();
@@ -301,7 +263,6 @@ public class EventFlowSlicerView
 			startB = new JButton("Start");
 			stopB = new JButton("Stop");
 			editConsB = new JButton("Edit Constraints");
-			facetConsB = new JButton("Facet Constraints");
 			ripB = new JButton("Rip Application");
 			genTB = new JButton("Generate Test Cases");
 			startRB = new JButton("Start");
@@ -339,7 +300,6 @@ public class EventFlowSlicerView
 			ripGroup.add(ripB);
 			rulGroup.setLayout(new BoxLayout(rulGroup, BoxLayout.PAGE_AXIS));
 			rulGroup.add(editConsB);
-			rulGroup.add(facetConsB);
 			// layout
 			twoGroups.add(rulGroup);
 			twoGroups.add(Box.createVerticalStrut(20));
@@ -377,7 +337,6 @@ public class EventFlowSlicerView
 			}
 		}
 	}
-
 	public static void show(final JFrame frame)
 	{
 		frameInUse = frame;
@@ -386,19 +345,10 @@ public class EventFlowSlicerView
 		TopContent.startB.addActionListener(new CaptureAction(frame, true));
 		TopContent.stopB.addActionListener(new CaptureAction(frame, false));
 		TopContent.editConsB.addActionListener(new ConstraintsAction(frame));
-		TopContent.facetConsB.addActionListener(new SelectorAction(frame));
 		TopContent.ripB.addActionListener(new RipAction(frame));
 		TopContent.genTB.addActionListener(new GenerateAction(frame));
 		TopContent.startRB.addActionListener(new ReplayAction(frame));
-		frame.addWindowListener(new WindowListener() {
-			public void windowOpened(WindowEvent e) 	{}
-			public void windowClosing(WindowEvent e) 	{ShutdownAction.exit(0);}
-			public void windowClosed(WindowEvent e) 	{ShutdownAction.exit(0);}
-			public void windowIconified(WindowEvent e) 	{}
-			public void windowDeiconified(WindowEvent e){}
-			public void windowActivated(WindowEvent e)  {}
-			public void windowDeactivated(WindowEvent e){}
-		});
+
 		SwingUtilities.invokeLater(new Runnable(){public void run(){
 			frame.pack();
 			frame.setVisible(true);
@@ -436,24 +386,15 @@ public class EventFlowSlicerView
 		TopContent.layout();
 		hardenEdits();
 		frameToUse.add(TopContent.topPanel);
-
-		// fields
-		FieldContent.layout();
-		hardenEdits();
-		frameToUse.add(FieldContent.basePanel);
-//		frameToUse.add(Box.createRigidArea(BORDER_SPACING));
-
-		// bottom buttons.
+		// bottom fields
 		BaseContent.layout();
-		frameToUse.add(BaseContent.base);
+		hardenEdits();
+		frameToUse.add(BaseContent.basePanel);
+		frameToUse.add(Box.createRigidArea(BORDER_SPACING));
 	}
 
-	public static class ShutdownAction extends AbstractAction implements Runnable
+	public static class ShutdownAction extends AbstractAction
 	{
-		/**
-		 *
-		 */
-		private static final long serialVersionUID = 1L;
 		int shutdownCode;
 		public ShutdownAction(int code, String displayString)
 		{
@@ -462,14 +403,6 @@ public class EventFlowSlicerView
 		}
 		public void actionPerformed(ActionEvent ae)
 		{
-			exit(shutdownCode);
-		}
-		public void run()
-		{
-			exit(shutdownCode);
-		}
-		public static void exit(int shutdownCode)
-		{
 			System.exit(shutdownCode);
 		}
 	}
@@ -477,7 +410,7 @@ public class EventFlowSlicerView
 	{
 		public static JMenuBar menuBar;
 		public static JMenu edit;
-		public static JMenuItem paste, exit;
+		public static JMenuItem paste, exit, undo;
 		public MBContent()
 		{
 			edit = new JMenu("Edit");
@@ -485,47 +418,26 @@ public class EventFlowSlicerView
 			paste = new JMenuItem(new DefaultEditorKit.PasteAction());
 			paste.setText("Paste");
 			exit = new JMenuItem(new ShutdownAction(0, "Exit"));
+			undo = new JMenuItem(undoActions);
+			undo.setEnabled(false);
 
 			paste.setMnemonic(KeyEvent.VK_P);
 			exit.setMnemonic(KeyEvent.VK_E);
+			undo.setMnemonic(KeyEvent.VK_U);
 		}
 		public static void layout()
 		{
 			menuBar = new JMenuBar();
 			edit.add(paste);
 			edit.add(exit);
+			edit.add(undo);
 			menuBar.add(edit);
+
 		}
 
 	}
 
 	public static class BaseContent
-	{
-		public static JButton loadB;
-		public static JButton saveB;
-		public static JButton saveToB;
-		public static JComponent[] all;
-		public static Box base;
-		public BaseContent()
-		{
-			loadB = new JButton(new PreferencesAction(PrefsOption.LOAD));
-			saveB = new JButton(new PreferencesAction(PrefsOption.SAVE));
-			saveToB = new JButton(new PreferencesAction(PrefsOption.SAVE_TO));
-			all = new JComponent[]{loadB, saveB, saveToB};
-		}
-		public static void layout()
-		{
-			base = new Box(BoxLayout.LINE_AXIS);
-			for(int i = 0; i < all.length; i++)
-				all[i].setAlignmentY(BOTTOM_ALIGNMENT);
-			base.add(loadB);
-			base.add(Box.createHorizontalGlue());
-			base.add(saveB);
-			base.add(saveToB);
-
-		}
-	}
-	public static class FieldContent
 	{
 		public static JLabel[] areaLabel;
 		public static JTextArea[] areas;
@@ -536,12 +448,10 @@ public class EventFlowSlicerView
 		public static JTextArea constraintsFilePath, eventFlowGraphFilePath, guiStructureFilePath;
 		public static JTextArea ripConfigurationFilePath;
 		public static JTextArea testCaseDirectoryPath;
-		public static JTextArea selectedLoadDirT;
-		public static JTextArea selectedLoadFileT;
 		public static JButton[] chooserButtons;
 		private static FocusTraversalPolicy ftp;
 		private static JPanel basePanel;
-		public FieldContent()
+		public BaseContent()
 		{
 			areaLabel = new JLabel[10];
 			areaLabel[0] = new JLabel("<html><b>Output Directory</b></html>");
@@ -613,13 +523,12 @@ public class EventFlowSlicerView
 
 			//buttons
 			chooserButtons = new JButton[areas.length];
-			// handle file choosers for directories
-			chooserButtons[0] = new JButton(new FileAction(areas[0], false, false));
-			chooserButtons[areas.length-1] = new JButton(new FileAction(areas[0], false, false));
-			// handle file choosers
+			chooserButtons[0] = new JButton(new FileChooserAction(areas[0], false));
+			chooserButtons[areas.length-1] = new JButton(new FileChooserAction(areas[0], false));
 			for(int i = 1; i < areas.length-1; i++)
 				if(areas[i] != customMainClassString)
-					chooserButtons[i] = new JButton(new FileAction(areas[i], true, false));
+					chooserButtons[i] = new JButton(new FileChooserAction(areas[i], true));
+
 
 		}
 		public static void layout()
@@ -644,6 +553,7 @@ public class EventFlowSlicerView
 			editingStartOfColumn(1);
 
 			for(int i = 0; i < areas.length; i++) {
+				areas[i].getDocument().addUndoableEditListener(undoActions);
 				/**
 				 * Thanks goes out to:
 				 * http://stackoverflow.com/questions/5042429/how-can-i-modify-the-behavior-of-the-tab-key-in-a-jtextarea
@@ -668,6 +578,13 @@ public class EventFlowSlicerView
 		         * Thanks goes out to:
 		         * http://docs.oracle.com/javase/tutorial/uiswing/components/generaltext.html
 		         */
+//		        final JTextArea theArea = areas[i];
+//		        InputMap im = areas[i].getInputMap();
+//		        ActionMap am = areas[i].getActionMap();
+//		        im.put(KeyStroke.getKeyStroke("ctrl Z"), "undoNow"+i);
+//		        am.put("undoNow"+i, new AbstractAction(){public void actionPerformed(ActionEvent ae){
+//
+//		        }});
 				place(sp);
 			}
 		}
@@ -686,6 +603,7 @@ public class EventFlowSlicerView
 	}
 	public static class SetupView
 	{
+
 		public SetupView(JFrame frameToUse, ApplicationData ad, LauncherData ld)
 		{
 			new EventFlowSlicerView(ad, ld);
@@ -717,61 +635,66 @@ public class EventFlowSlicerView
 			if(!newContent.isEmpty())
 				ad.setAppFilePath(newContent);
 			updateString = ad.getAppFile().getAbsolutePath();
-			updateArea = FieldContent.appFilePath;
+			updateArea = BaseContent.appFilePath;
 		}
 break;  case "outputDirectoryPath": {// output directory is handled specially
 			if(!newContent.isEmpty()) {
 				ad.setOutputDirectory(newContent);
+				updateString = new File(newContent).getAbsolutePath();
 			}
-			updateString = new File(newContent).getAbsolutePath();
-			updateArea = FieldContent.outputDirectoryPath;
+			else {
+				String outputText = ad.getOutputDirectory().getAbsolutePath();
+				String dFiller = ad.getSubdirectoryFiller();
+				updateString = outputText.replace(dFiller, "");
+			}
+			updateArea = BaseContent.outputDirectoryPath;
 		}
 break;	case "customMainClassString": {
 			if(!newContent.isEmpty())
 				ad.setCustomMainClass(newContent);
 			updateString = ad.getCustomMainClass();
-			updateArea = FieldContent.customMainClassString;
+			updateArea = BaseContent.customMainClassString;
         }
 break;	case "argsAppFilePath": {
 			if(!newContent.isEmpty())
 				ad.setArgumentsAppFile(newContent);
 			updateString = ad.getArgumentsAppFile().getAbsolutePath();
-			updateArea = FieldContent.argsAppFilePath;
+			updateArea = BaseContent.argsAppFilePath;
         }
 break;	case "argsVMFilePath": {
 			if(!newContent.isEmpty())
 				ad.setArgumentsVMFile(newContent);
 			updateString = ad.getArgumentsVMFile().getAbsolutePath();
-			updateArea = FieldContent.argsVMFilePath;
+			updateArea = BaseContent.argsVMFilePath;
 		}
 break;	case "constraintsFilePath": {
 			if(!newContent.isEmpty())
 				ad.setWorkingTaskListFile(newContent);
-			updateArea = FieldContent.constraintsFilePath;
+			updateArea = BaseContent.constraintsFilePath;
 			updateString = ad.getWorkingTaskListFile().getAbsolutePath();
 		}
 break;	case "guiStructureFilePath": {
 			if(!newContent.isEmpty())
 				ad.setWorkingGUIFile(newContent);
-			updateArea = FieldContent.guiStructureFilePath;
+			updateArea = BaseContent.guiStructureFilePath;
 			updateString = ad.getWorkingGUIFile().getAbsolutePath();
 		}
 break;	case "eventFlowGraphFilePath": {
 			if(!newContent.isEmpty())
 				ad.setWorkingEFGFile(newContent);
-			updateArea = FieldContent.eventFlowGraphFilePath;
+			updateArea = BaseContent.eventFlowGraphFilePath;
 			updateString = ad.getWorkingEFGFile().getAbsolutePath();
 		}
 break;	case "testCaseDirectoryPath": {
 			if(!newContent.isEmpty())
 				ad.setWorkingTestCaseDirectory(newContent);
-			updateArea = FieldContent.testCaseDirectoryPath;
+			updateArea = BaseContent.testCaseDirectoryPath;
 			updateString = ad.getWorkingTestCaseDirectory().getAbsolutePath();
 		}
 break;	case "ripConfigurationFilePath": {
 			if(!newContent.isEmpty())
 				ad.setRipConfigurationFile(newContent);
-			updateArea = FieldContent.ripConfigurationFilePath;
+			updateArea = BaseContent.ripConfigurationFilePath;
 			updateString = ad.getRipConfigurationFile().getAbsolutePath();
 		}}
 
@@ -786,7 +709,6 @@ break;	case "ripConfigurationFilePath": {
 	{
 		updateField(fieldName, "");
 	}
-
 	/**
 	 * These methods require that an ApplicationData be set in this eventflowslicer view first.
 	 * @param appFile
@@ -795,8 +717,8 @@ break;	case "ripConfigurationFilePath": {
 	{
 		final String pathText = ad.getAppFile().getAbsolutePath();
 		SwingUtilities.invokeLater(new Runnable(){public void run(){
-			FieldContent.appFilePath.setText(pathText);
-			FieldContent.appFilePath.setCaretPosition(pathText.length());
+			BaseContent.appFilePath.setText(pathText);
+			BaseContent.appFilePath.setCaretPosition(pathText.length());
 		}});
 	}
 	public static void updateOutputDirectory()
@@ -805,32 +727,32 @@ break;	case "ripConfigurationFilePath": {
 		String dFiller = ad.getSubdirectoryFiller();
 		final String pathText = outputText.replace(dFiller, "");
 		SwingUtilities.invokeLater(new Runnable(){public void run(){
-			FieldContent.outputDirectoryPath.setText(pathText);
-			FieldContent.outputDirectoryPath.setCaretPosition(pathText.length());
+			BaseContent.outputDirectoryPath.setText(pathText);
+			BaseContent.outputDirectoryPath.setCaretPosition(pathText.length());
 		}});
 	}
 	public static void updateCustomMainClass()
 	{
 		final String text = ad.getCustomMainClass();
 		SwingUtilities.invokeLater(new Runnable(){public void run(){
-			FieldContent.customMainClassString.setText(text);
-			FieldContent.customMainClassString.setCaretPosition(text.length());
+			BaseContent.customMainClassString.setText(text);
+			BaseContent.customMainClassString.setCaretPosition(text.length());
 		}});
 	}
 	public static void updateArgsAppFile()
 	{
 		final String pathText = ad.getArgumentsAppFile().getAbsolutePath();
 		SwingUtilities.invokeLater(new Runnable(){public void run(){
-			FieldContent.argsAppFilePath.setText(pathText);
-			FieldContent.argsAppFilePath.setCaretPosition(pathText.length());
+			BaseContent.argsAppFilePath.setText(pathText);
+			BaseContent.argsAppFilePath.setCaretPosition(pathText.length());
 		}});
 	}
 	public static void updateArgsVMFile()
 	{
 		final String pathText = ad.getArgumentsVMFile().getAbsolutePath();
 		SwingUtilities.invokeLater(new Runnable(){public void run(){
-			FieldContent.argsVMFilePath.setText(pathText);
-			FieldContent.argsVMFilePath.setCaretPosition(pathText.length());
+			BaseContent.argsVMFilePath.setText(pathText);
+			BaseContent.argsVMFilePath.setCaretPosition(pathText.length());
 		}});
 
 	}
@@ -838,40 +760,40 @@ break;	case "ripConfigurationFilePath": {
 	{
 		final String pathText = ad.getWorkingTaskListFile().getAbsolutePath();
 		SwingUtilities.invokeLater(new Runnable(){public void run(){
-			FieldContent.constraintsFilePath.setText(pathText);
-			FieldContent.constraintsFilePath.setCaretPosition(pathText.length());
+			BaseContent.constraintsFilePath.setText(pathText);
+			BaseContent.constraintsFilePath.setCaretPosition(pathText.length());
 		}});
 	}
 	public static void updateGUIFile()
 	{
 		final String pathText = ad.getWorkingGUIFile().getAbsolutePath();
 		SwingUtilities.invokeLater(new Runnable(){public void run(){
-			FieldContent.guiStructureFilePath.setText(pathText);
-			FieldContent.guiStructureFilePath.setCaretPosition(pathText.length());
+			BaseContent.guiStructureFilePath.setText(pathText);
+			BaseContent.guiStructureFilePath.setCaretPosition(pathText.length());
 		}});
 	}
 	public static void updateEFGFile()
 	{
 		final String pathText = ad.getWorkingEFGFile().getAbsolutePath();
 		SwingUtilities.invokeLater(new Runnable(){public void run(){
-			FieldContent.eventFlowGraphFilePath.setText(pathText);
-			FieldContent.eventFlowGraphFilePath.setCaretPosition(pathText.length());
+			BaseContent.eventFlowGraphFilePath.setText(pathText);
+			BaseContent.eventFlowGraphFilePath.setCaretPosition(pathText.length());
 		}});
 	}
 	public static void updateTestCaseDirectory()
 	{
 		final String pathText = ad.getWorkingTestCaseDirectory().getAbsolutePath();
 		SwingUtilities.invokeLater(new Runnable(){public void run(){
-			FieldContent.testCaseDirectoryPath.setText(pathText);
-			FieldContent.testCaseDirectoryPath.setCaretPosition(pathText.length());
+			BaseContent.testCaseDirectoryPath.setText(pathText);
+			BaseContent.testCaseDirectoryPath.setCaretPosition(pathText.length());
 		}});
 	}
 	public static void updateRipConfigurationFile()
 	{
 		final String pathText = ad.getRipConfigurationFile().getAbsolutePath();
 		SwingUtilities.invokeLater(new Runnable(){public void run(){
-			FieldContent.ripConfigurationFilePath.setText(pathText);
-			FieldContent.ripConfigurationFilePath.setCaretPosition(pathText.length());
+			BaseContent.ripConfigurationFilePath.setText(pathText);
+			BaseContent.ripConfigurationFilePath.setCaretPosition(pathText.length());
 		}});
 	}
 
@@ -886,64 +808,63 @@ break;	case "ripConfigurationFilePath": {
 	public static class CaptureAction implements ActionListener
 	{
 		EventFlowSlicerController control;
-		static JFrame headFrame;
+		JFrame headFrame;
 		boolean start;
 		public CaptureAction(JFrame headFrame, boolean start)
 		{
-
+			this.headFrame = headFrame;
 			this.start = start;
 		}
-		static void startButtonEvents()
+		public void startButtonEvents()
 		{
-
-			File setDir = new File(FieldContent.outputDirectoryPath.getText());
-			ad.setOutputDirectory(FieldContent.outputDirectoryPath.getText());
+			ad.setOutputDirectory(BaseContent.outputDirectoryPath.getText());
+			File setDir = new File(ad.getOutputDirectoryProvided());
 			if(!ad.hasOutputDirectory()) {
-				JOptionPane.showMessageDialog(frameInUse,
+				JOptionPane.showMessageDialog(headFrame,
 						"<html>Please provide a path to an output directory in the<br>"
 						+ "<b>Output Directory</b> field.");
 				return;
 			}
 			if(!setDir.exists()) {
-				JOptionPane.showMessageDialog(frameInUse,
+				JOptionPane.showMessageDialog(headFrame,
 						"<html>Directory provided in<br>"
 						+ "<b>Output Directory</b> field is invalid or cannot be found on the file system.<br>"
 						+ "Please provide a valid path to a directory where output can be stored.");
 				return;
 			}
 			// assign variables.
-			ad.setAppFilePath(FieldContent.appFilePath.getText());
+			ad.setAppFilePath(BaseContent.appFilePath.getText());
 			if(!ad.hasAppFile()) {
-				JOptionPane.showMessageDialog(frameInUse,
+				JOptionPane.showMessageDialog(headFrame,
 						"<html>Please provide a path to an application in the<br><b>Application File Path</b><br>Field</html>");
 				return;
 			}
 			if(!ad.applicationFileExists()) {
-				JOptionPane.showMessageDialog(frameInUse,
+				JOptionPane.showMessageDialog(headFrame,
 						"<html>File provided in<br>"
 						+ "<b>Application File</b> field is invalid or cannot be found on the file system.<br>"
 						+ "Please provide a valid path to an application file.</html>");
 				return;
 			}
 
-			ad.setArgumentsAppFile(FieldContent.argsAppFilePath.getText());
+			ad.setArgumentsAppFile(BaseContent.argsAppFilePath.getText());
 			if(ad.hasArgumentsAppFile() && !ad.argumentsAppFileExists()) {
-				JOptionPane.showMessageDialog(frameInUse,
+				JOptionPane.showMessageDialog(headFrame,
 						"<html>File specified in<br>"
 						+ "<b>App Arguments File Path</b><br>"
 						+ "field, could not be found on the file system");
 				return;
 			}
 
-			ad.setArgumentsVMFile(FieldContent.argsVMFilePath.getText());
+			ad.setArgumentsVMFile(BaseContent.argsVMFilePath.getText());
 			if(ad.hasArgumentsVMFile() && !ad.argumentsVMFileExists()) {
-				JOptionPane.showMessageDialog(frameInUse,
+				JOptionPane.showMessageDialog(headFrame,
 						"<html>File specified in<br>"
 						+ "<b>VM Arguments File Path</b><br>"
 						+ "field, could not be found on the file system<br>");
 				return;
 			}
-			ad.setCustomMainClass(FieldContent.customMainClassString.getText());
+			ad.setCustomMainClass(BaseContent.customMainClassString.getText());
 
 
 			String fileStem = ad.getAppFile().getName();
@@ -956,26 +877,21 @@ break;	case "ripConfigurationFilePath": {
 					fileStem = fileStem.substring(0, jarPt);
 			}
 
-			ad.setWorkingTaskListFile(FieldContent.constraintsFilePath.getText());
+			ad.setWorkingTaskListFile(BaseContent.constraintsFilePath.getText());
 			if(ad.hasWorkingTaskListFile()) {
 				if(ad.workingTaskListFileExists()) { // provided does exist
-					int confirmation = JOptionPane.showConfirmDialog(frameInUse,
+					int confirmation = JOptionPane.showConfirmDialog(headFrame,
 							new String[]{"<html>A file was provided in the <b>Constraints File</b> field that<br>"
 								+ "exists on the file system.</html>",
 								"<html>Would you like to overwrite this file at the end of the capture operation?</html>"},
 							"Overwrite File?",
-							JOptionPane.YES_NO_CANCEL_OPTION);
-					if(confirmation == JOptionPane.NO_OPTION) {
-						// set the new file.
-						ad.setDefaultWorkingTaskListFile();
-						// populate the GUI
-						updateConstraintsFile();
-					}
-					else if(confirmation != JOptionPane.YES_OPTION)
+							JOptionPane.YES_NO_OPTION);
+					if(confirmation != JOptionPane.YES_OPTION) {
 						return;
+					} // else just continue.
 				}
 				else { // provided does not exist
-					int confirmation = JOptionPane.showConfirmDialog(frameInUse,
+					int confirmation = JOptionPane.showConfirmDialog(headFrame,
 							new String[]{"<html>The file provided in the <b>Constraints File</b> field<br>"
 								+ "does <b>not</b> exist on the file system.</html>",
 								"<html>A new file \"constraints.xml\" will be written to the<br>"
@@ -983,10 +899,14 @@ break;	case "ripConfigurationFilePath": {
 								"<html>Would you like to continue?</html>"},
 							"Continue with Capture?",
 							JOptionPane.YES_NO_OPTION);
-					if(confirmation != JOptionPane.YES_OPTION)
+					if(confirmation != JOptionPane.YES_OPTION) {
 						return;
+					}
 					else {
 						// set the new file.
+
+//						String newFile = ad.getOutputDirectory().getAbsolutePath() + File.separator + ad.getConstraintsFileAppend() + ".xml";
+//						ad.setWorkingTaskListFile(newFile);
 						ad.setDefaultWorkingTaskListFile();
 						// populate the GUI
 						updateConstraintsFile();
@@ -1007,7 +927,7 @@ break;	case "ripConfigurationFilePath": {
 			// start capture sequence.
 			ac.startCapture(ld);
 		}
-		public static void stopButtonEvents()
+		public void stopButtonEvents()
 		{
 			// Disable stop button, re-enable start button.
 			TopContent.startB.setEnabled(true);
@@ -1016,7 +936,7 @@ break;	case "ripConfigurationFilePath": {
 			// stop the capture sequence
 			ac.stopCapture();
 			// reset the look and feel
-			try {UIManager.setLookAndFeel(EventFlowSlicer.lookAndFeel);}
+			try {UIManager.setLookAndFeel(lookAndFeel);}
 			catch(UnsupportedLookAndFeelException e)
 			{
 				System.err.println("EventFlowSlicerView: Could not reset look and feel.\n"
@@ -1041,11 +961,11 @@ break;	case "ripConfigurationFilePath": {
 					printString += check;
 					left += limit;
 				}
+				//printString += file.substring(left, right) + "<br>";
 			}
 
 			printString += file.substring(left);
-
-			JOptionPane.showMessageDialog(frameInUse,
+			JOptionPane.showMessageDialog(headFrame,
 					new String[]{"<html>Constraints file output was written to:</html>",
 						"<html><b>" + printString + "</b></html>"}
 					);
@@ -1054,73 +974,6 @@ break;	case "ripConfigurationFilePath": {
 		{
 			if(start) 	startButtonEvents();
 			else   		stopButtonEvents();
-		}
-	}
-	public static boolean step2Prepared(JFrame headFrame)
-	{
-		// output directory
-		File setDir = new File(FieldContent.outputDirectoryPath.getText());
-		ad.setOutputDirectory(FieldContent.outputDirectoryPath.getText());
-		if(!ad.hasOutputDirectory()) {
-			JOptionPane.showMessageDialog(headFrame,
-					"<html>Please provide a path to an output directory in the<br>"
-					+ "<b>Output Directory</b> field.");
-			return false;
-		}
-		if(!setDir.exists() || !setDir.isDirectory()) {
-			JOptionPane.showMessageDialog(headFrame,
-					"<html>Directory provided in<br>"
-					+ "<b>Output Directory</b> field is invalid or cannot be found on the file system.<br>"
-					+ "Please provide a valid path to a directory where output can be stored.");
-			return false;
-		}
-		String workingText = FieldContent.constraintsFilePath.getText();
-		ad.setWorkingTaskListFile(workingText);
-		if(!ad.hasWorkingTaskListFile())
-			JOptionPane.showMessageDialog(headFrame, "<html>Please provide a valid constraints file in the <br><b>Constraints File</b><br> field</html>");
-		else if(!ad.workingTaskListFileExists())
-			JOptionPane.showMessageDialog(headFrame, "Constraints File\n\'" + workingText + "\'\ndoes not exist on the file system");
-		else {
-			// Validate via JAXB
-			try {
-				JAXBContext context = JAXBContext.newInstance(TaskList.class);
-				Unmarshaller um = context.createUnmarshaller();
-	    		Object myFile = JAXBIntrospector.getValue(um.unmarshal(ad.getWorkingTaskListFile()));
-	    		if(!(myFile instanceof TaskList)) {
-	    			JOptionPane.showMessageDialog(headFrame,
-	    					"<html>File provided in<br>"
-	    					+ "<b>Constraints File</b><br>"
-	    					+ "field is a " + myFile.getClass() + " file.</html>");
-	    			return false;
-	    		}
-	    		ac.setWorkingTaskList((TaskList)myFile);
-			}
-			catch(JAXBException e) {
-				JOptionPane.showMessageDialog(headFrame, new String[]{
-    					"<html>Invalid file passed to<br>"
-    					+ "<b>Constraints File</b> Field:<br>"
-						+ "Errors found in XML syntax or structure. See below for a message<br><br></html>",
-						e.getLinkedException() == null ? e.getMessage() : e.getLinkedException().getMessage()});
-				return false;
-			}
-		}
-		return true;
-	}
-	public static class SelectorAction implements ActionListener
-	{
-		private final JFrame headFrame;
-		public SelectorAction(JFrame headFrame)
-		{
-			this.headFrame = headFrame;
-		}
-		public void actionPerformed(ActionEvent ae)
-		{
-			if(step2Prepared(headFrame)) {
-				ad.setDefaultWorkingTaskListFile();
-				ac.writeTaskListFile();
-				ac.startSelectorDialog(headFrame);
-				updateConstraintsFile();
-			}
 		}
 	}
 	public static class ConstraintsAction implements ActionListener
@@ -1132,7 +985,51 @@ break;	case "ripConfigurationFilePath": {
 		}
 		public void actionPerformed(ActionEvent ae)
 		{
-			if(step2Prepared(headFrame)) {
+			// output directory
+			ad.setOutputDirectory(BaseContent.outputDirectoryPath.getText());
+			File setDir = new File(ad.getOutputDirectoryProvided());
+			if(!ad.hasOutputDirectory()) {
+				JOptionPane.showMessageDialog(headFrame,
+						"<html>Please provide a path to an output directory in the<br>"
+						+ "<b>Output Directory</b> field.");
+				return;
+			}
+			if(!setDir.exists() || !setDir.isDirectory()) {
+				JOptionPane.showMessageDialog(headFrame,
+						"<html>Directory provided in<br>"
+						+ "<b>Output Directory</b> field is invalid or cannot be found on the file system.<br>"
+						+ "Please provide a valid path to a directory where output can be stored.");
+				return;
+			}
+			String workingText = BaseContent.constraintsFilePath.getText();
+			ad.setWorkingTaskListFile(workingText);
+			if(!ad.hasWorkingTaskListFile())
+				JOptionPane.showMessageDialog(headFrame, "<html>Please provide a valid constraints file in the <br><b>Constraints File</b><br> field</html>");
+			else if(!ad.workingTaskListFileExists())
+				JOptionPane.showMessageDialog(headFrame, "Constraints File\n\'" + workingText + "\'\ndoes not exist on the file system");
+			else {
+				// Validate via JAXB
+				try {
+					JAXBContext context = JAXBContext.newInstance(TaskList.class);
+					Unmarshaller um = context.createUnmarshaller();
+		    		Object myFile = JAXBIntrospector.getValue(um.unmarshal(ad.getWorkingTaskListFile()));
+		    		if(!(myFile instanceof TaskList)) {
+		    			JOptionPane.showMessageDialog(headFrame,
+		    					"<html>File provided in<br>"
+		    					+ "<b>Constraints File</b><br>"
+		    					+ "field is a " + myFile.getClass() + " file.</html>");
+		    			return;
+		    		}
+		    		ac.setWorkingTaskList((TaskList)myFile);
+				}
+				catch(JAXBException e) {
+					JOptionPane.showMessageDialog(headFrame, new String[]{
+	    					"<html>Invalid file passed to<br>"
+	    					+ "<b>Constraints File</b> Field:<br>"
+							+ "Errors found in XML syntax or structure. See below for a message<br><br></html>",
+							e.getLinkedException() == null ? e.getMessage() : e.getLinkedException().getMessage()});
+					return;
+				}
 				ad.setDefaultWorkingTaskListFile();
 				ac.writeTaskListFile();
 				ac.startFittingDialog(headFrame);
@@ -1151,8 +1048,8 @@ break;	case "ripConfigurationFilePath": {
 		public void actionPerformed(ActionEvent ae)
 		{
 			// output directory
-			File setDir = new File(FieldContent.outputDirectoryPath.getText());
-			ad.setOutputDirectory(FieldContent.outputDirectoryPath.getText());
+			ad.setOutputDirectory(BaseContent.outputDirectoryPath.getText());
+			File setDir = new File(ad.getOutputDirectoryProvided());
 			if(!ad.hasOutputDirectory()) {
 				JOptionPane.showMessageDialog(headFrame,
 						"<html>Please provide a path to an output directory in the<br>"
@@ -1166,10 +1063,9 @@ break;	case "ripConfigurationFilePath": {
 						+ "Please provide a valid path to a directory where output can be stored.");
 				return;
 			}
-
 			// app file path and custom main class.
-			// output directory
-			ad.setAppFilePath(FieldContent.appFilePath.getText());
+			ad.setAppFilePath(BaseContent.appFilePath.getText());
+			// check and report methods.
 			if(!ad.hasAppFile()) {
 				JOptionPane.showMessageDialog(headFrame,
 						"<html>Please provide a path to an application in the<br><b>Application File</b> field</html>");
@@ -1182,12 +1078,8 @@ break;	case "ripConfigurationFilePath": {
 						+ "Please provide a valid path to an application file.</html>");
 				return;
 			}
+			ad.setCustomMainClass(BaseContent.customMainClassString.getText());
 
-			// custom main class
-			ad.setCustomMainClass(FieldContent.customMainClassString.getText());
-
-			// default Working GUI File
-			// default Working EFG File
 			ad.setDefaultWorkingGUIFile();
 			ad.setDefaultWorkingEFGFile();
 
@@ -1195,7 +1087,7 @@ break;	case "ripConfigurationFilePath": {
 
 			// need tasklist file, need main class, need GUI file.
 			// Task List File
-			ad.setWorkingTaskListFile(FieldContent.constraintsFilePath.getText());
+			ad.setWorkingTaskListFile(BaseContent.constraintsFilePath.getText());
 			if(!ad.hasWorkingTaskListFile()) {
 				JOptionPane.showMessageDialog(headFrame,
 						"<html>Please provide a path to a constraints file in the<br>"
@@ -1231,7 +1123,7 @@ break;	case "ripConfigurationFilePath": {
 				return;
 			}
 
-			ad.setRipConfigurationFile(FieldContent.ripConfigurationFilePath.getText());
+			ad.setRipConfigurationFile(BaseContent.ripConfigurationFilePath.getText());
 			if(ad.hasRipConfigurationFile() && !ad.ripConfigurationFileExists()) {
 				JOptionPane.showMessageDialog(headFrame,
 						"<html>File provided in <br>"
@@ -1239,75 +1131,45 @@ break;	case "ripConfigurationFilePath": {
 						+ "Please provide a valid path to a rip configuration file");
 				return;
 			}
-			minimizeFrame();
-			if(ld.sendsToRMI()) {
-				SecondaryLoop waitLoop = Toolkit.getDefaultToolkit().getSystemEventQueue().createSecondaryLoop();
-				ac.ripOutsideVM(waitLoop);
-				waitLoop.enter();
+			// set all ripper configuration variables.
+
+			JFCRipperConfigurationEFS.MAIN_CLASS = ad.getAppFile().getAbsolutePath();
+			if(JavaLaunchApplication.launchesJar(JFCRipperConfigurationEFS.MAIN_CLASS))
+				JFCRipperConfiguration.USE_JAR = true;
+
+			JFCRipperConfigurationEFS.RULES_FILE = ad.getWorkingTaskListFile().getAbsolutePath();
+			String pSensitivePath;
+			if(!ad.hasCustomMainClass()) {
+				JFCRipperConfigurationEFS.MAIN_CLASS = ad.getAppFile().getAbsolutePath();
 			}
 			else {
-				ArrayList<String> ripArgsInit = new ArrayList<>(Arrays.asList(ReadArguments.asRipperArgsArray(ad, ld)));
-				ripArgsInit.add("-noressubdir");
-				String[] argsArray = ripArgsInit.toArray(new String[0]);
-				JFCRipperConfigurationEFS config = ReadArguments.ripperConfiguration(argsArray, ad);
-				ld.setRipperConfiguration(config);
-				ac.startRip();
-				GUIStructure ripperArtifact = ac.getRipperArtifact();
-				if(ripperArtifact != null) {
-					System.out.println(ac.modifyWorkingTasklistAfterRip());
-					System.out.println("Done ripping.");
-					ad.setDefaultWorkingTaskListFile();
-					System.out.println("Writing TaskList file to...\n" + ad.getWorkingTaskListFile().getPath());
-					ac.writeTaskListFile();
-
-					// create the EFG file.
-					EFG efgOutput = null;
-					boolean efgError = false;
-					try {
-						// use this code to rip the EFG.
-
-						EFSEFGConverter converter = new EFSEFGConverter("JFC");
-						try {efgOutput = (EFG)converter.generate(ripperArtifact);
-						} catch(InstantiationException e) {/*cannot happen.*/}
-						ad.setDefaultWorkingEFGFile();
-						System.out.println("EVENTFLOWSLICER: Writing completed EFG File to:\n\t" + ad.getWorkingEFGFile().getPath());
-						handler.writeObjToFile(efgOutput, ad.getWorkingEFGFile().getAbsolutePath());
-						ac.setWorkingEventFlow(efgOutput);
-					}
-					catch(Exception e) {
-						System.err.println("EFG Creation failed after ripping process was completed.");
-						efgError = true;
-					}
-					if(!efgError) {
-						try{
-							// bookmarking
-							System.out.println("Completing Rip process...");
-							EFG bookmarkedEFG = EFGPacifier.copyOf(efgOutput);
-							EFGBookmarking bkmk = new EFGBookmarking(bookmarkedEFG, ripperArtifact);
-							bookmarkedEFG = bkmk.getBookmarked(true);
-							System.out.println("EVENTFLOWSLICER: Bookmarking test successful.");
-							System.out.println("EVENTFLOWSLICER: Done.");
-							ac.modifyEFGInitials(bookmarkedEFG);
-						}
-						catch(Exception e) {
-							System.err.println("Failed Bookmarking test.");
-						}
-					}
-				}
+				JFCRipperConfigurationEFS.MAIN_CLASS = ad.getCustomMainClass();
+				pSensitivePath = PathConformance.packageSensitiveApplicationLocation(ad.getAppFile(), ad.getCustomMainClass());
+				JFCRipperConfigurationEFS.URL_LIST = pSensitivePath;
 			}
+			JFCRipperConfigurationEFS.INFER_WIDGETS = true;
+			JFCRipperConfigurationEFS.INITIAL_WAITING_TIME = ApplicationData.openWaitTime;
+			JFCRipperConfigurationEFS.CONFIG_FILE = ad.hasRipConfigurationFile() ? ad.getRipConfigurationFile().getAbsolutePath() : "";
+			String colonArgs;
+			colonArgs = "";
+			if(ad.hasArgumentsAppFile())
+				JFCRipperConfigurationEFS.ARGUMENT_LIST = ReadArguments.colonDelimAppArgumentsFrom(colonArgs);
+			JFCRipperConfigurationEFS.GUI_FILE = ad.getWorkingGUIFile().getAbsolutePath();
 
-			// update the GUI
+			minimizeFrame();
+
+			SecondaryLoop waitLoop = Toolkit.getDefaultToolkit().getSystemEventQueue().createSecondaryLoop();
+			ac.ripOutsideVM(waitLoop);
+			waitLoop.enter();
+
+			String message = ac.setRipTasklist();
+
 			updateConstraintsFile();
 			updateGUIFile();
 			updateEFGFile();
 
-			String message = ac.setRipTasklist();
-			JOptionPane.showMessageDialog(headFrame, message);
-			// set up a message about ripped tasklists.
-
-			// maximize frame and display message
 			maximizeFrame();
-
+			JOptionPane.showMessageDialog(headFrame, message);
 		}
 	}
 
@@ -1321,8 +1183,8 @@ break;	case "ripConfigurationFilePath": {
 		public void actionPerformed(ActionEvent ae)
 		{
 			// start generation process.
-			File setDir = new File(FieldContent.outputDirectoryPath.getText());
-			ad.setOutputDirectory(FieldContent.outputDirectoryPath.getText());
+			ad.setOutputDirectory(BaseContent.outputDirectoryPath.getText());
+			File setDir = new File(ad.getOutputDirectoryProvided());
 			if(!ad.hasOutputDirectory()) {
 				JOptionPane.showMessageDialog(headFrame,
 						"<html>Please provide a path to an output directory in the<br>"
@@ -1339,7 +1201,7 @@ break;	case "ripConfigurationFilePath": {
 
 			// Constraints File
 			{
-				ad.setWorkingTaskListFile(FieldContent.constraintsFilePath.getText());
+				ad.setWorkingTaskListFile(BaseContent.constraintsFilePath.getText());
 				if(!ad.hasWorkingTaskListFile()) {
 					JOptionPane.showMessageDialog(headFrame,
 							"<html>Please provide a path to a constraints file in the<br>"
@@ -1379,7 +1241,7 @@ break;	case "ripConfigurationFilePath": {
 			}
 			// GUI File
 			{
-				ad.setWorkingGUIFile(FieldContent.guiStructureFilePath.getText());
+				ad.setWorkingGUIFile(BaseContent.guiStructureFilePath.getText());
 				if(!ad.hasWorkingGUIFile()) {
 					JOptionPane.showMessageDialog(headFrame,
 							"<html>Please provide a path to an input GUI file in the<br>"
@@ -1419,7 +1281,7 @@ break;	case "ripConfigurationFilePath": {
 
 			// EFG File
 			{
-				ad.setWorkingEFGFile(FieldContent.eventFlowGraphFilePath.getText());
+				ad.setWorkingEFGFile(BaseContent.eventFlowGraphFilePath.getText());
 				if(!ad.hasWorkingEFGFile()) {
 					JOptionPane.showMessageDialog(headFrame,
 							"<html>Please provide a path to an input EFG file in the<br>"
@@ -1466,7 +1328,7 @@ break;	case "ripConfigurationFilePath": {
 			ac.relabelConstraintsWidgets(); // prepare the constraints
 			ac.setupGeneratorLogFile();
 			try {
-				int testCases = ac.startGeneratingTestCasesWithFacets(ld);
+				int testCases = ac.startGeneratingTestCases(ld);
 				JOptionPane.showMessageDialog(headFrame, "(" + testCases + ") Test Cases were generated successfully");
 			} catch(IOException e) {
 				JOptionPane.showMessageDialog(headFrame, e.getMessage());
@@ -1489,8 +1351,8 @@ break;	case "ripConfigurationFilePath": {
 		public void actionPerformed(ActionEvent ae)
 		{
 			// output directory
-			File setDir = new File(FieldContent.outputDirectoryPath.getText());
-			ad.setOutputDirectory(FieldContent.outputDirectoryPath.getText());
+			ad.setOutputDirectory(BaseContent.outputDirectoryPath.getText());
+			File setDir = new File(ad.getOutputDirectoryProvided());
 			if(!ad.hasOutputDirectory()) {
 				JOptionPane.showMessageDialog(headFrame,
 						"<html>Please provide a path to an output directory in the<br>"
@@ -1506,7 +1368,7 @@ break;	case "ripConfigurationFilePath": {
 			}
 
 			// Application File
-			ad.setAppFilePath(FieldContent.appFilePath.getText());
+			ad.setAppFilePath(BaseContent.appFilePath.getText());
 			if(!ad.hasAppFile()) {
 				JOptionPane.showMessageDialog(headFrame,
 						"<html>Please provide a path to an application in the<br><b>Application File Path</b><br>Field</html>");
@@ -1520,7 +1382,7 @@ break;	case "ripConfigurationFilePath": {
 				return;
 			}
 			// Arguments AppFile
-			ad.setArgumentsAppFile(FieldContent.argsAppFilePath.getText());
+			ad.setArgumentsAppFile(BaseContent.argsAppFilePath.getText());
 			if(ad.hasArgumentsAppFile() && !ad.argumentsAppFileExists()) {
 				JOptionPane.showMessageDialog(headFrame,
 						"<html>File specified in<br>"
@@ -1529,7 +1391,7 @@ break;	case "ripConfigurationFilePath": {
 				return;
 			}
 			// Arguments VMFile.
-			ad.setArgumentsVMFile(FieldContent.argsVMFilePath.getText());
+			ad.setArgumentsVMFile(BaseContent.argsVMFilePath.getText());
 			if(ad.hasArgumentsVMFile() && !ad.argumentsVMFileExists()) {
 				JOptionPane.showMessageDialog(headFrame,
 						"<html>File specified in<br>"
@@ -1538,12 +1400,12 @@ break;	case "ripConfigurationFilePath": {
 				return;
 			}
 			// custom main
-			ad.setCustomMainClass(FieldContent.customMainClassString.getText());
+			ad.setCustomMainClass(BaseContent.customMainClassString.getText());
 
 
 			// GUI File
 			{
-				ad.setWorkingGUIFile(FieldContent.guiStructureFilePath.getText());
+				ad.setWorkingGUIFile(BaseContent.guiStructureFilePath.getText());
 				if(!ad.hasWorkingGUIFile()) {
 					JOptionPane.showMessageDialog(headFrame,
 							"<html>Please provide a path to an input GUI file in the<br>"
@@ -1582,7 +1444,7 @@ break;	case "ripConfigurationFilePath": {
 			}
 			// EFG File
 			{
-				ad.setWorkingEFGFile(FieldContent.eventFlowGraphFilePath.getText());
+				ad.setWorkingEFGFile(BaseContent.eventFlowGraphFilePath.getText());
 				if(!ad.hasWorkingEFGFile()) {
 					JOptionPane.showMessageDialog(headFrame,
 							"<html>Please provide a path to an input EFG file in the<br>"
@@ -1621,7 +1483,7 @@ break;	case "ripConfigurationFilePath": {
 				}
 			}
 			// test case directory
-			ad.setWorkingTestCaseDirectory(FieldContent.testCaseDirectoryPath.getText());
+			ad.setWorkingTestCaseDirectory(BaseContent.testCaseDirectoryPath.getText());
 			if(!ad.hasWorkingTestCaseDirectory()) {
 				JOptionPane.showMessageDialog(headFrame,
 						"<html>Please provide a path to a test case directory in the<br>"
@@ -1684,53 +1546,5 @@ break;	case "ripConfigurationFilePath": {
 				Thread.currentThread().interrupt();
 			}
 		System.out.println("EventFlowSlicerView: EventFlowSlicer window was maximized.\n");
-	}
-
-	public class ViewVariables
-	{
-		public String appFile()
-		{
-			return FieldContent.appFilePath.getText().trim();
-		}
-		public String customMainClass()
-		{
-			return FieldContent.customMainClassString.getText().trim();
-		}
-		public String argsAppFile()
-		{
-			return FieldContent.argsAppFilePath.getText().trim();
-		}
-		public String argsVMFile()
-		{
-			return FieldContent.argsVMFilePath.getText().trim();
-		}
-		public String outputDirectory()
-		{
-			return FieldContent.outputDirectoryPath.getText().trim();
-		}
-		public String constraintsFile()
-		{
-			return FieldContent.constraintsFilePath.getText().trim();
-		}
-		public String eventFlowGraphFile()
-		{
-			return FieldContent.eventFlowGraphFilePath.getText().trim();
-		}
-		public String guiStructureFile()
-		{
-			return FieldContent.guiStructureFilePath.getText().trim();
-		}
-		public String ripConfigurationFile()
-		{
-			return FieldContent.ripConfigurationFilePath.getText().trim();
-		}
-		public String testCaseDirectory()
-		{
-			return FieldContent.testCaseDirectoryPath.getText().trim();
-		}
-		public String testCaseSelection()
-		{
-			return TopContent.selT.getText().trim();
-		}
 	}
 }

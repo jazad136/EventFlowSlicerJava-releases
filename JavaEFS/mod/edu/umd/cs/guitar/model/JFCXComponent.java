@@ -45,14 +45,14 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
+import java.util.StringTokenizer;
 
 import javax.accessibility.*;
 import javax.imageio.ImageIO;
-import javax.swing.JComponent;
 import javax.swing.JTabbedPane;
 //import javax.swing.SwingUtilities;
+
 
 import edu.umd.cs.guitar.event.ActionClass;
 import edu.umd.cs.guitar.event.EventManager;
@@ -64,21 +64,37 @@ import edu.umd.cs.guitar.model.data.ContentsType;
 import edu.umd.cs.guitar.model.data.PropertyType;
 import edu.umd.cs.guitar.model.wrapper.AttributesTypeWrapper;
 import edu.umd.cs.guitar.model.wrapper.ComponentTypeWrapper;
-import edu.umd.cs.guitar.model.wrapper.PropertyTypeWrapper;
+//import edu.umd.cs.guitar.model.wrapper.PropertyTypeWrapper;
 import edu.umd.cs.guitar.util.GUITARLog;
-import edu.unl.cse.guitarext.GUIEventModel;
 import edu.unl.cse.guitarext.HeadTable;
 import edu.unl.cse.guitarext.JavaTestInteractions;
 /**
- * Implementation for {@link GComponent} for Java Swing
+ * Implementation for {@link GWindow} for Java Swing
  */
 public class JFCXComponent extends GComponent {
 
 	final Component component;
+	public static final String noAction = "hasNoActionID";
+	public static final String noText = "hasNoTextID";
+	public static final String noParSelect = "hasNoParSelectID";
+	public static final String noHover = "hasNoHoverID";
 	public static boolean nowRipping = false;
-
+	// in this order
+		// booleans for actions
+		// booleans for text
+		// booleans for parSelect
+		
+//	public static class EventSupport
+//	{
+//		public static boolean[][] support;
+//		
+//		public static boolean[] supportForRole()
+//		{
+//			
+//		}
+//	}
+	public static final boolean[] actionComponents = new boolean[]{true};
 	private String storedCTHEventId;
-	private List<String> storedEventIDs;
 	/**
 	 * @param component
 	 */
@@ -87,7 +103,6 @@ public class JFCXComponent extends GComponent {
 		super(window);
 		this.component = component;
 		storedCTHEventId = "";
-		storedEventIDs = new ArrayList<String>();
 	}
 
 	public Window getWindow()
@@ -95,18 +110,18 @@ public class JFCXComponent extends GComponent {
 		JFCXWindow myWindow = (JFCXWindow)window;
 		return myWindow.getWindow();
 	}
-
+	
 	public AccessibleContext getAccessibleContext()
 	{
 		if(component == null)
 			return null;
-
+		
 		return component.getAccessibleContext();
 	}
-
+	
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see edu.umd.cs.guitar.model.GComponent#getGUIProperties()
 	 */
 	@Override
@@ -124,6 +139,7 @@ public class JFCXComponent extends GComponent {
 		if (sValue != null) {
 			p = factory.createPropertyType();
 			p.setName(JFCConstants.TITLE_TAG);
+//			p.getValue().add(sValue);
 			lPropertyValue = new ArrayList<String>();
 			lPropertyValue.add(sValue);
 			p.getValue().addAll(lPropertyValue);
@@ -136,6 +152,7 @@ public class JFCXComponent extends GComponent {
 		if (sValue != null) {
 			p = factory.createPropertyType();
 			p.setName(JFCConstants.ICON_TAG);
+//			p.getValue().add(sValue);
 			lPropertyValue = new ArrayList<String>();
 			lPropertyValue.add(sValue);
 			p.getValue().addAll(lPropertyValue);
@@ -178,7 +195,7 @@ public class JFCXComponent extends GComponent {
 
 	/**
 	 * Get component index in its parent
-	 *
+	 * 
 	 * @return
 	 */
 	private Integer getIndexInParent() {
@@ -192,9 +209,19 @@ public class JFCXComponent extends GComponent {
 		return 0;
 	}
 
+	private static boolean isSelectedByParent(Component component)
+	{
+		Container parent = ((Component) component).getParent();
+		if (parent == null)
+			return false;
+
+		if (parent instanceof JTabbedPane)
+			return true;
+		return false;	
+	}
 	/**
 	 * Check if the component is activated by an action in parent
-	 *
+	 * 
 	 * @return
 	 */
 	private boolean isSelectedByParent() {
@@ -212,7 +239,7 @@ public class JFCXComponent extends GComponent {
 
 	/**
 	 * Get all bean properties of the component
-	 *
+	 * 
 	 * @return
 	 */
 	private List<PropertyType> getGUIBeanProperties() {
@@ -264,31 +291,38 @@ public class JFCXComponent extends GComponent {
 
 	/**
 	 * Return the children of this JFCXComponent. Note that only
-	 * components that are containers can contain children.
+	 * components that are containers can contain children. 
 	 * Searches through two sources where children can be found:
 	 * the components returned from container.getComponent(), and if this
-	 * fails, from the the Components returned from
+	 * fails, from the the Components returned from 
 	 * container.getAccessibleContext().getAccessibleChild().
 	 * Each component found is converted to a GComponent, and returned
-	 * along with its siblings in the returned list.
-	 *
+	 * along with its siblings in the returned list. 
+	 * 
 	 * Preconditions: 	none
 	 * Postconditions: 	if component has children, they are returned as
 	 * 					newly instantiated GComponents. Else, an empty list
-	 * 					is returned.
+	 * 					is returned. 
 	 */
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see edu.umd.cs.guitar.model.GXComponent#getChildren()
 	 */
 	@Override
 	public List<GComponent> getChildren() {
+
+		// GUITARLog.log.debug(component.getClass().getName());
+
+		// GUITARLog.log.debug("ENTERING getChildren...");
 		List<GComponent> retList = new ArrayList<GComponent>();
 
 		if (component instanceof Container) {
 
 			Container container = (Container) component;
+			//
+			// GUITARLog.log.debug("\t Component Chidren: "
+			// + container.getComponentCount());
 
 			try {
 				int nChildren = 0;
@@ -329,7 +363,7 @@ public class JFCXComponent extends GComponent {
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see edu.umd.cs.guitar.model.GXComponent#getParent()
 	 */
 	@Override
@@ -341,14 +375,14 @@ public class JFCXComponent extends GComponent {
 
 	/**
 	 * jsaddler: Checks to see if this component has children, and returns
-	 * true if it does.
-	 *
-	 * Preconditions: 	component is not null.
+	 * true if it does. 
+	 * 
+	 * Preconditions: 	component is not null. 
 	 * Postconditions:	True is returned if this component has children.
 	 * 					False is returned otherwise.
 	 */
 	@Override
-	public boolean hasChildren()
+	public boolean hasChildren() 
 	{
 		AccessibleContext xContext = component.getAccessibleContext();
 
@@ -365,9 +399,28 @@ public class JFCXComponent extends GComponent {
 		}
 
 		return false;
+//		AccessibleContext xContext = component.getAccessibleContext();
+//
+//		if (xContext == null) 
+//			return false;
+//
+//		// TODO: Check this
+//		int nChildren = xContext.getAccessibleChildrenCount();
+//
+//		if (nChildren > 0)
+//			return true;
+//
+//		if (component instanceof Container) {
+//			Container container = (Container) component;
+//			
+//			if (container.getComponentCount() > 0)
+//				return true;
+//		}
+//
+//		return false;
 	}
-
-	public static boolean hasChildren(Component theComponent)
+	
+	public static boolean hasChildren(Component theComponent) 
 	{
 		AccessibleContext xContext = theComponent.getAccessibleContext();
 
@@ -382,7 +435,7 @@ public class JFCXComponent extends GComponent {
 
 		if (theComponent instanceof Container) {
 			Container container = (Container) theComponent;
-
+			
 			if (container.getComponentCount() > 0)
 				return true;
 		}
@@ -399,7 +452,7 @@ public class JFCXComponent extends GComponent {
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see java.lang.Object#hashCode()
 	 */
 	@Override
@@ -435,7 +488,7 @@ public class JFCXComponent extends GComponent {
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
 	@Override
@@ -458,19 +511,19 @@ public class JFCXComponent extends GComponent {
 	public static String getSimpleName(Component component)
 	{
 		String toReturn = "";
-		if(component != null) {
+		if(component != null) { 
 			toReturn = component.getClass().getSimpleName();
 			if(toReturn.isEmpty()) {
 				toReturn = component.getClass().getName();
 				int dotIndex = toReturn.lastIndexOf('.');
-				if(dotIndex != -1)
+				if(dotIndex != -1) 
 					toReturn = toReturn.substring(dotIndex+1);
 				toReturn = toReturn.replace("_", "");
 			}
 		}
 		return toReturn;
 	}
-
+	
 	public boolean isTabPageList()
 	{
 		if (component == null || component.getAccessibleContext() == null)
@@ -489,56 +542,6 @@ public class JFCXComponent extends GComponent {
 			return true;
 		return false;
 	}
-	public static String getDirectParentTitle(Component cWithParent)
-	{
-		Container component = cWithParent.getParent();
-		if (component == null || component.getAccessibleContext() == null)
-			return ""; // give up finding a title. This component has no title.
-		AccessibleContext aContext = component.getAccessibleContext();
-		// keep trying until we find the right name.
-
-		// accessible name?
-		String sName;
-		if(isTabPageList(component)) {
-
-			int childCount = aContext.getAccessibleChildrenCount();
-
-			if (childCount > 0) {
-				String firstCName = aContext.getAccessibleChild(0).getAccessibleContext().getAccessibleName();
-				return firstCName;
-			}
-			else
-				return aContext.getAccessibleName();
-		}
-
-		sName = aContext.getAccessibleName();
-		if (sName != null && !sName.isEmpty())
-			return sName;
-
-		// icon name?
-		sName = JFCXComponent.parseIconName(component);
-		if (sName != null && !sName.isEmpty())
-			return sName;
-
-		if(component.getAccessibleContext().getAccessibleRole().equals(AccessibleRole.COMBO_BOX))
-			return getSimpleName(component);
-
-		// name to the right of component?
-		sName = component.getName();
-		// Use the left sibling title instead
-		Container parent = component.getParent();
-		if (parent != null) {
-//					int index = getIndex(parent, component);
-			int index = parseIndex(parent, component);
-			if (index > 0) {
-				Component rightComponent = parent.getComponent(index - 1);
-				if(rightComponent.getAccessibleContext() != null)
-					sName = getTitle(rightComponent);
-			}
-		}
-		// the parent doesn't have a name or a left sibling with a name, return empty string.
-		return "";
-	}
 	/**
 	 * Public statically accessible method to return the name of the java component
 	 * passed in.
@@ -548,16 +551,16 @@ public class JFCXComponent extends GComponent {
 	{
 		if (component == null || component.getAccessibleContext() == null)
 			return ""; // give up finding a title. This component has no title.
-
+		
 		AccessibleContext aContext = component.getAccessibleContext();
 		// keep trying until we find the right name.
-
+		
 		// accessible name?
 		String sName;
 		if(isTabPageList(component)) {
-
+			
 			int childCount = aContext.getAccessibleChildrenCount();
-
+			
 			if (childCount > 0) {
 				String firstCName = aContext.getAccessibleChild(0).getAccessibleContext().getAccessibleName();
 				return firstCName;
@@ -569,15 +572,15 @@ public class JFCXComponent extends GComponent {
 		sName = aContext.getAccessibleName();
 		if (sName != null && !sName.isEmpty())
 			return sName;
-
-		// icon name?
+	
+		// icon name? 
 		sName = JFCXComponent.parseIconName(component);
 		if (sName != null && !sName.isEmpty())
 			return sName;
 
 		if(component.getAccessibleContext().getAccessibleRole().equals(AccessibleRole.COMBO_BOX))
 			return getSimpleName(component);
-
+		
 		// name to the right of component?
 		sName = component.getName();
 		// Use the left sibling title instead
@@ -590,49 +593,66 @@ public class JFCXComponent extends GComponent {
 				if(rightComponent.getAccessibleContext() != null)
 					sName = getTitle(rightComponent);
 			}
-			// jsaddle: if the component doesn't have a left sibling, then inherit its direct parent's title
-			if(sName == null || sName.isEmpty())
-				sName = getDirectParentTitle(component);
 		}
 
 		// In the worst case we must use the screen position
-		if (sName == null || sName.isEmpty()) {
-			sName = "Pos(" +
-					JFCXComponent.getGUITAROffsetXInWindow(component) + "," +
+		if (sName == null) {
+			sName = "Pos(" + 
+					JFCXComponent.getGUITAROffsetXInWindow(component) + "," + 
 					JFCXComponent.getGUITAROffsetYInWindow(component) + ")";
 		}
 		return sName;
+//		String toReturn;
+//		AccessibleContext aContext = component.getAccessibleContext();
+//		toReturn = aContext.getAccessibleName();
+//		if(toReturn == null || toReturn.isEmpty())
+//			toReturn = JFCXComponent.parseIconName(component);
+//		
+//		if (toReturn != null && !toReturn.isEmpty())
+//			return toReturn;
+//		
+//		if(component.getAccessibleContext().getAccessibleRole().equals(AccessibleRole.COMBO_BOX))
+//			return JFCXComponent.getSimpleName(component);
+//		
+//		toReturn = component.getName();
+//		// Use the left sibling title instead
+//		Container parent = component.getParent();
+//		if (parent != null) {
+//			int index = JFCXComponent.parseIndex(parent, component);
+//			if (index > 0) {
+//				Component rightComponent = parent.getComponent(index - 1);
+//				if(rightComponent.getAccessibleContext() != null)
+//					toReturn = getTitle(rightComponent);
+//			}
+//		}
+//
+//		// In the worst case we must use the screen position to
+//		// identify the widget		
+//		if (toReturn == null) {
+//			toReturn = "Pos(" + 
+//					JFCXComponent.getGUITAROffsetXInWindow(component) + "," + 
+//					JFCXComponent.getGUITAROffsetYInWindow(component) + ")";
+//		}
+//		return toReturn;
 	}
-
-	public String getTooltipText()
-	{
-		if(component == null || component.getAccessibleContext() == null)
-			return "";
-		if(!(component instanceof JComponent))
-			return "";
-		JComponent jC = (JComponent)component;
-		String s = jC.getToolTipText();
-		if(s == null)
-			return "";
-		return s;
-	}
+	
 	/**
-	 * Returns the name of this JFCXComponent.
+	 * Returns the name of this JFCXComponent. 
 	 */
 	@Override
-	public String getTitle()
+	public String getTitle() 
 	{
 		if (component == null || component.getAccessibleContext() == null)
 			return ""; // give up finding a title. This component has no title.
-
+		
 		AccessibleContext aContext = component.getAccessibleContext();
 		// keep trying until we find the right name.
-
+		
 		// accessible name?
 		String sName;
 		if(isTabPageList()) {
 			int childCount = aContext.getAccessibleChildrenCount();
-
+			
 			if (childCount > 0) {
 				String firstCName = aContext.getAccessibleChild(0).getAccessibleContext().getAccessibleName();
 				return firstCName;
@@ -641,19 +661,19 @@ public class JFCXComponent extends GComponent {
 				return aContext.getAccessibleName();
 		}
 
-
+		
 		sName = aContext.getAccessibleName();
 		if (sName != null && !sName.isEmpty())
 			return sName;
-
-		// icon name?
+	
+		// icon name? 
 		sName = getIconName();
 		if (sName != null && !sName.isEmpty())
 			return sName;
 
 		if(isCombo())
 			return getSimpleName(component);
-
+		
 		// name to the right of or above component?
 		sName = component.getName();
 		// Use the left sibling title instead
@@ -665,25 +685,19 @@ public class JFCXComponent extends GComponent {
 				JFCXComponent jfcRightComponent = new JFCXComponent(
 						rightComponent, window);
 				sName = jfcRightComponent.getTitle();
-				// jsaddle: if the component doesn't have a left sibling, then inherit its direct parent's title
-				if(sName == null || sName.isEmpty())
-					sName = getDirectParentTitle(component);
 			}
 		}
 
 		// In the worst case we must use the screen position
-		if (sName == null || sName.isEmpty()) {
-			sName = "Pos(" +
-					JFCXComponent.getGUITAROffsetXInWindow(component) + "," +
-					JFCXComponent.getGUITAROffsetYInWindow(component) + ")";
-		}
-
+		if (sName == null || sName.isEmpty()) 
+			sName = "Pos(" + this.getX() + "," + this.getY() + ")";
+		
 		return sName;
 	}
 
 	/**
-	 * Parse the index of this component within the parent container's children.
-	 *
+	 * Parse the index of this component within the parent container's children. 
+	 * 
 	 * Preconditions:	parent and javaComponent are not null
 	 * Postconditions:	If javaComponent is a child of parent, return the index of the child
 	 * 					Otherwise, return -1.
@@ -698,9 +712,9 @@ public class JFCXComponent extends GComponent {
 			if (javaComponent.equals(children[index]))
 				return index;
 		}
-		return -1;
+		return -1;	
 	}
-
+	
 	private static int getIndex(Container parent, Component component) {
 		Component[] children = parent.getComponents();
 		if (children == null)
@@ -715,13 +729,13 @@ public class JFCXComponent extends GComponent {
 
 	/**
 	 * Parse the icon name of a javaComponent from the resource's absolute path.
-	 *
+	 * 
 	 * Preconditions: 	javaComponent is not null
 	 * 					There are no java runtime permission issues that restrict
 	 * 					us from picking up resource information about images rendered for display within components
-	 * Postconditions: 	the simple filename (no path) of the image displayed in this component's icon is returned.
+	 * Postconditions: 	the simple filename (no path) of the image displayed in this component's icon is returned. 
 	 */
-	public static String parseIconName(Component javaComponent)
+	public static String parseIconName(Component javaComponent) 
 	{
 		String retIcon = null;
 //		return javaComponent.getAccessibleContext().getAccessibleIcon()[0].getAccessibleIconDescription();
@@ -749,10 +763,10 @@ public class JFCXComponent extends GComponent {
 
 			String[] sIconElements = sIconPath.split(File.separator);
 			retIcon = sIconElements[sIconElements.length - 1];
-			// remove periods from the name.
-			for(int dotPos = retIcon.lastIndexOf('.'); dotPos != -1; dotPos = retIcon.lastIndexOf('.'))
+			// remove periods from the name. 
+			for(int dotPos = retIcon.lastIndexOf('.'); dotPos != -1; dotPos = retIcon.lastIndexOf('.')) 
 				retIcon = retIcon.substring(0, dotPos);
-
+			
 
 		} catch (SecurityException e) {
 			// e.printStackTrace();
@@ -772,18 +786,18 @@ public class JFCXComponent extends GComponent {
 		}
 		return retIcon;
 	}
-
+	
 	public static String getGuitarIconName(Component c, GWindow w)
 	{
 		JFCXComponent myComp = new JFCXComponent(c, w);
 		return myComp.getIconName();
 	}
-
+	
 	/**
 	 * Parse the icon name of a widget from the resource's absolute path.
-	 *
+	 * 
 	 * <p>
-	 *
+	 * 
 	 * @param component
 	 * @return
 	 */
@@ -794,6 +808,11 @@ public class JFCXComponent extends GComponent {
 			Method m = component.getClass().getMethod("getIcon", partypes);
 
 			String sIconPath = null;
+			// if (m != null) {
+			// Object obj = (m.invoke(aComponent, new Object[0]));
+			// if (obj != null)
+			// sIconPath = obj.toString();
+			// }
 
 			if (m != null) {
 				Object obj = (m.invoke(component, new Object[0]));
@@ -808,9 +827,9 @@ public class JFCXComponent extends GComponent {
 
 			String[] sIconElements = sIconPath.split(File.separator);
 			retIcon = sIconElements[sIconElements.length - 1];
-			for(int dotPos = retIcon.lastIndexOf('.'); dotPos != -1; dotPos = retIcon.lastIndexOf('.'))
+			for(int dotPos = retIcon.lastIndexOf('.'); dotPos != -1; dotPos = retIcon.lastIndexOf('.')) 
 				retIcon = retIcon.substring(0, dotPos);
-
+			
 
 		} catch (SecurityException e) {
 			// e.printStackTrace();
@@ -863,7 +882,7 @@ public class JFCXComponent extends GComponent {
 		return ret;
 	}
 
-	// TODO: Move this variable to an external configuration file
+	// TODO: Move this one to an external configuration file
 	// Keeping it here because we don't want to interfere the current GUITAR
 	// structure
 	private static List<String> IGNORED_CLASS_EVENTS = Arrays.asList(
@@ -884,56 +903,9 @@ public class JFCXComponent extends GComponent {
 
 	);
 
-	public GComponent getFirstChild(List<PropertyTypeWrapper> lIDProperties) {
-
-		List<PropertyType> lProperties;
-		//ComponentType comp = extractIDProperties();
-		//List<PropertyType> lProperties = comp.getAttributes().getProperty();
-
-		lProperties = getIDProperties();
-		List<PropertyTypeWrapper> normalPropertyTypeAdapters = new ArrayList<PropertyTypeWrapper>();
-
-		//System.out.println("----");
-		List<PropertyTypeWrapper> eventIDAdapters = new ArrayList<PropertyTypeWrapper>();
-		for (PropertyTypeWrapper p : lIDProperties){
-			if(p.getProperty().getName().equals(GUITARConstants.CTH_EVENT_ID_NAME))
-				eventIDAdapters.add(p);
-			else
-				normalPropertyTypeAdapters.add(p);
-		}
-
-		// run a special check if there are any eventIDAdapters found, and run the check only by the first one.
-
-		if(!eventIDAdapters.isEmpty()) {
-			boolean idMatch = false;
-			for (PropertyType p : lProperties) {
-				if(p != null && p.getName() != null && p.getName().equals(GUITARConstants.CTH_EVENT_ID_NAME)) {
-					idMatch = GUIEventModel.checkCongruentEventIDValueLists(eventIDAdapters.get(0).getProperty(), p);
-					break;
-				}
-			}
-			if(idMatch)
-				return this;
-		}
-		else {
-			if (normalPropertyTypeAdapters.containsAll(lIDProperties))
-				return this;
-		}
-
-		List<GComponent> gChildren = getChildren();
-		GComponent result = null;
-
-		for (GComponent gChild : gChildren) {
-			result = gChild.getFirstChild(lIDProperties);
-			if (result != null)
-				return result;
-		}
-		return null;
-	}
-
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see edu.umd.cs.guitar.model.GXComponent#getEventList()
 	 */
 	@Override
@@ -957,32 +929,32 @@ public class JFCXComponent extends GComponent {
 
 	/**
 	 * jsaddler:
-	 *
+	 * 
 	 * Return the class value of this component, represented by
 	 * its accessible role.
-	 *
-	 * This class was modified so that it would only depend on the
-	 * Java Accessibility framework, rather than reflection, to get the
+	 * 
+	 * This class was modified so that it would only depend on the 
+	 * Java Accessibility framework, rather than reflection, to get the 
 	 * class name. OOXComponent does something exactly similar to what has been done here.
-	 * Instead of returning the name of the class, we return the name of the role.
-	 *
+	 * Instead of returning the name of the class, we return the name of the role. 
+	 * 
 	 * Preconditions: 	none
 	 * Postconditions: 	returns null if component has not been initialized, or has no accessible context.
 	 */
 	@Override
 	public String getClassVal() {
-		if(component == null)
+		if(component == null) 
 			return null;
 		if(component.getAccessibleContext() == null)
 			return null;
-		// jsaddle: modified to use Java Accessibility framework.
+		// jsaddle: modified to use Java Accessibility framework. 
 		return component.getAccessibleContext().getAccessibleRole().toDisplayString();
 		//return component.getClass().getName();
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see edu.umd.cs.guitar.model.GXComponent#getTypeVal()
 	 */
 	@Override
@@ -999,9 +971,9 @@ public class JFCXComponent extends GComponent {
 
 	/**
 	 * Check if this component is a terminal widget
-	 *
+	 * 
 	 * <p>
-	 *
+	 * 
 	 * @return
 	 */
 	@Override
@@ -1037,7 +1009,7 @@ public class JFCXComponent extends GComponent {
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see edu.umd.cs.guitar.model.GComponent#isEnable()
 	 */
 	@Override
@@ -1059,9 +1031,9 @@ public class JFCXComponent extends GComponent {
 	/**
 	 * Check if the component is activated by its parent. For example, a tab
 	 * panel is enable by a select item call from its parent JTabPanel
-	 *
+	 * 
 	 * <p>
-	 *
+	 * 
 	 * @return
 	 */
 	public boolean isActivatedByParent() {
@@ -1076,11 +1048,11 @@ public class JFCXComponent extends GComponent {
 	}
 
 
-
+	
 	/**
 	 * Hierarchically search "this" component for matching widget. The
 	 * search-item is provided as an image via a file name.
-	 *
+	 * 
 	 * @param sFilePath
 	 *            Search item's file path.
 	 */
@@ -1132,17 +1104,32 @@ public class JFCXComponent extends GComponent {
 
 		return null;
 	}
-
+	
 	public ComponentType extractProperties()
 	{
 		return extractCTHProperties();
 	}
-
+	
+	private boolean isMultiCTHEventIDRole(String myRole)
+	{
+		if(
+//		myRole.equals(AccessibleRole.PUSH_BUTTON.toDisplayString()) 
+//		|| myRole.equals(AccessibleRole.RADIO_BUTTON.toDisplayString())
+//		|| myRole.equals(AccessibleRole.MENU.toDisplayString()) 
+//		|| myRole.equals(AccessibleRole.MENU_ITEM.toDisplayString())
+//		|| myRole.equals(AccessibleRole.CHECK_BOX.toDisplayString())
+		myRole.equals(AccessibleRole.TOGGLE_BUTTON.toDisplayString())
+		|| myRole.equals(AccessibleRole.COMBO_BOX.toDisplayString())
+		|| myRole.equals(AccessibleRole.PAGE_TAB_LIST.toDisplayString())
+		|| myRole.equals(AccessibleRole.PANEL.toDisplayString()))
+			return true;
+		return false;
+	}
 	public ComponentType extractCTHProperties()
 	{
 		ComponentType retComp;
 
-		if (!hasChildren())
+		if (!hasChildren()) 
 			retComp = factory.createComponentType();
 		else {
 			retComp = factory.createContainerType();
@@ -1151,18 +1138,15 @@ public class JFCXComponent extends GComponent {
 		}
 
 		ComponentTypeWrapper retCompAdapter = new ComponentTypeWrapper(retComp);
-
+		
 		// Title
 		String sTitle = getTitle();
 		retCompAdapter.addValueByName("Title", sTitle);
 
-		String sTooltip = getTooltipText();
-		if(!sTooltip.isEmpty())
-			retCompAdapter.addValueByName(GUITARConstants.TOOLTIPTEXT_TAG_NAME, sTooltip);
 		// Class
 		String sClass = getClassVal();
 		retCompAdapter.addValueByName(GUITARConstants.CLASS_TAG_NAME, sClass);
-
+		
 		// Type
 		String sType = getTypeVal();
 		retCompAdapter.addValueByName(GUITARConstants.TYPE_TAG_NAME, sType);
@@ -1172,13 +1156,19 @@ public class JFCXComponent extends GComponent {
 		// y
 		int y = getY();
 		retCompAdapter.addValueByName(GUITARConstants.Y_TAG_NAME, Integer.toString(y));
-
-		if(sClass != null) {
-			List<String> theEids = getMultiEventID();
-			for(String id : theEids)
-				retCompAdapter.addValueByName(GUITARConstants.CTH_EVENT_ID_NAME, id);
+		
+//		if(sClass != null && 
+//				(sClass.equals(AccessibleRole.PANEL.toDisplayString()) ||
+//				sClass.equals(AccessibleRole.COMBO_BOX.toDisplayString())))
+		if(sClass != null && isMultiCTHEventIDRole(sClass)) 
+		{
+  			List<String> ctheids = getMultiCTHEventID();
+			for(String id : ctheids) 
+				retCompAdapter.addValueByName(GUITARConstants.CTH_EVENT_ID_NAME, id);	 
 		}
-		else
+		else if(sClass != null)
+			retCompAdapter.addValueByName(GUITARConstants.CTH_EVENT_ID_NAME, getCTHEventID());
+		else 
 			retCompAdapter.addValueByName(GUITARConstants.CTH_EVENT_ID_NAME, JavaTestInteractions.hasNoID);
 
 		// Events
@@ -1195,32 +1185,15 @@ public class JFCXComponent extends GComponent {
 		List<PropertyType> lGUIProperties = getGUIProperties();
 
 		// Update list
-		if (lGUIProperties != null) {
-			gpLoop:
-			for(PropertyType gp : lGUIProperties) {
-				// if a named property doesn't already belong here,
-				// add it to the new list of properties.
-				Iterator<PropertyType> lIt = new ArrayList<PropertyType>(lProperties).iterator();
-				while(lIt.hasNext())
-					if(lIt.next().getName().equals(gp.getName()))
-						continue gpLoop;
-				lProperties.add(gp);
-			}
-
-		}
-		/*
-		 * if (lGUIProperties != null) {
+		if (lGUIProperties != null)
 			lProperties.addAll(lGUIProperties);
-		}
-		 */
 		// return all attributes in a ComponentType object.
 		attributes.setProperty(lProperties);
-
 		retComp.setAttributes(attributes);
 
 		return retComp;
 	}
-
+	
 	@Override
 	public List<PropertyType> getIDProperties() {
 		ComponentType component = this.extractProperties();
@@ -1239,77 +1212,147 @@ public class JFCXComponent extends GComponent {
 		}
 		return retIDProperties;
 	}
-
+	
 	/**
 	 * Returns the CogToolHelper event IDs related to this JFCXComponent if it can support multiple id's.
-	 * This method can only handle roles that support more than one event ID.
-	 * Relies on HeadTable.allInteractions to work properly.
-	 *
-	 * Preconditions: 	HeadTable.allInteractions object has been instantiated
+	 * This method can only handle roles that support more than one event ID. 
+	 * Relies on HeadTable.allInteractions to work properly. 
+	 * 
+	 * Preconditions: 	HeadTable.allInteractions object has been instantiated  
 	 * 					component != null
-	 * Postconditions:	If component is a multi-type component capable of being represented as up to n types,
+	 * Postconditions:	If component is a multi-type component capable of being represented as up to n types, 
 	 * 					  0 - n strings are returned in a list corresponding to the names assigned to this component in the order
-	 * 					  "clickableId" then "typableId OR cselectableId".
-	 * 					One or both strings will be equivalent to JavaTestInteractions.hasNoId
+	 * 					  "clickableId" then "typableId OR cselectableId". 
+	 * 					One or both strings will be equivalent to JavaTestInteractions.hasNoId 
 	 * 					  if the component has no clickable and/or typeable/selectable eventId or is not a multi-type component.
 	 */
-	public List<String> getMultiEventID()
+	public List<String> getMultiCTHEventID()
 	{
-		if(!storedEventIDs.isEmpty())
-			return storedEventIDs;
-
 		AccessibleRole myRole = component.getAccessibleContext().getAccessibleRole();
+		ArrayList<String> toReturn = new ArrayList<String>();
+		toReturn.add(noAction);
+		toReturn.add(noText);
+		toReturn.add(noParSelect);
+		toReturn.add(noHover);
 		JavaTestInteractions myJTI = null;
-		boolean jtiFound = false;
-		for(JavaTestInteractions jti : HeadTable.allInteractions) {
-			for(Window w : jti.getWindowsScanned())
-				if(JavaTestInteractions.windowTitlesAreSame(window.getTitle(), JFCXWindow.getGUITARTitle(w))) {
-					myJTI = jti;
-					jtiFound = true;
-				}
-		}
-		if(!jtiFound) {
-			myJTI = new JavaTestInteractions();
-			myJTI.setCurrentWindow(((JFCXWindow)window).getWindow());
-			HeadTable.allInteractions.add(myJTI);
-		}
-		// can replace by method findJTI() and the code above to create JTI.
 		if(nowRipping) {
-			// since we're ripping, let's just get the names we need right now
-			String newIds = myJTI.assignNameByRole(component, JavaTestInteractions.W_HOVER);
-			String[] ordered = GUIEventModel.getOrderedIds(myRole, newIds, JavaTestInteractions.eventId_separator);
-			storedEventIDs.addAll(Arrays.asList(ordered));
-			return storedEventIDs;
+			boolean jtiFound = false;
+			// select window
+			for(JavaTestInteractions jti : HeadTable.allInteractions)
+				for(Window w : jti.getWindowsScanned()) {
+					GWindow gWin = new JFCXWindow(w);
+					if(window.getTitle().equals(gWin.getTitle())) {
+						myJTI = jti;
+						jtiFound = true;
+					}
+				}
+			
+			if(!jtiFound) {
+				myJTI = new JavaTestInteractions();
+				myJTI.setCurrentWindow(((JFCXWindow)window).getWindow());
+				HeadTable.allInteractions.add(myJTI);
+			}
+			String newID = myJTI.assignNameByRole(component, JavaTestInteractions.NO_HOVER);
+			StringTokenizer st = new StringTokenizer(newID, ""+JavaTestInteractions.eventId_separator);
+			if(myRole.equals(AccessibleRole.PANEL)) {
+				while(st.hasMoreTokens()) {
+					String nextName = st.nextToken();
+					if(!nextName.equals(JavaTestInteractions.hasNoID)) {
+						String beforeSep = nextName.substring(0, nextName.indexOf(JavaTestInteractions.name_part_separator));
+						if(beforeSep.contains(JavaTestInteractions.mouseSurname)) 
+							toReturn.set(0, nextName);
+						else if(beforeSep.contains(JavaTestInteractions.typingSurname))
+							toReturn.set(1, nextName);
+					}
+				}
+			}
+			else if(myRole.equals(AccessibleRole.COMBO_BOX)) {
+				while(st.hasMoreTokens()) {
+					String nextName = st.nextToken();
+					if(!nextName.equals(JavaTestInteractions.hasNoID)) {	
+						String beforeSep = nextName.substring(0, nextName.indexOf(JavaTestInteractions.name_part_separator));
+						if(beforeSep.contains(JavaTestInteractions.clickSurname)) 
+							toReturn.set(0, nextName);
+						else if(beforeSep.contains(JavaTestInteractions.selectSurname))
+							toReturn.set(2, nextName);
+					}
+				}
+			}
+			else if(myRole.equals(AccessibleRole.TOGGLE_BUTTON)) {
+				while(st.hasMoreTokens()) {
+					String nextName = st.nextToken();
+					if(!nextName.equals(JavaTestInteractions.hasNoID)) {
+						String beforeSep = nextName.substring(0, nextName.indexOf(JavaTestInteractions.name_part_separator));
+						if(beforeSep.contains(JavaTestInteractions.hoverSurname)) // this is the hover event.
+							toReturn.set(3, nextName); // set the 4th index
+						else // normal action. 
+							toReturn.set(0, nextName); // set the 1st index
+					}
+				}
+			}
+			return toReturn;
 		}
 		else {
-			// since we're not ripping, we have to look up the id amongst the events
-			String newIds = "";
-			String nextAct;
-			for(ActionClass actRole : GUIEventModel.getSupportedActionsFor(myRole)) {
-				// lookup the id
-				if(myRole.equals(AccessibleRole.LIST))
-					nextAct = myJTI.lookupLargeObjectID(component, window.getTitle(), actRole.actionName);
-				else
-					nextAct = myJTI.lookupID(component, window.getTitle(), actRole.actionName);
-				newIds += newIds.isEmpty() ? nextAct : JavaTestInteractions.eventId_separator + nextAct;
+			ArrayList<String> rolesAsActions = new ArrayList<String>();
+			
+			if(!(component instanceof Accessible))
+				return toReturn;
+			
+			
+			if(myRole.equals(AccessibleRole.PANEL)) {
+				if(hasListeners(component, "button"))
+					rolesAsActions.add(ActionClass.ACTION.actionName);
+				if(hasListeners(component, "textbox")) 
+					rolesAsActions.add(ActionClass.TEXT.actionName);
 			}
-			String[] ordered = GUIEventModel.getOrderedIds(myRole, newIds, JavaTestInteractions.eventId_separator);
-			storedEventIDs.addAll(Arrays.asList(ordered));
-			return storedEventIDs;
+			else if(myRole.equals(AccessibleRole.COMBO_BOX)) {
+				rolesAsActions.add(ActionClass.ACTION.actionName);
+				rolesAsActions.add(ActionClass.PARSELECT.actionName);
+			}
+			else if(myRole.equals(AccessibleRole.TOGGLE_BUTTON)) {
+				rolesAsActions.add(ActionClass.ACTION.actionName);
+				rolesAsActions.add(ActionClass.HOVER.actionName);
+			}
+
+			if(rolesAsActions.isEmpty()) return toReturn; // bad role passed to this method
+			
+			boolean jtiFound = false;
+			for(JavaTestInteractions jti : HeadTable.allInteractions)
+				for(Window w : jti.getWindowsScanned()) {
+					GWindow gWin = new JFCXWindow(w);
+					if(window.getTitle().equals(gWin.getTitle())) {
+						myJTI = jti;
+						jtiFound = true;
+					}
+				}
+			
+			if(!jtiFound) return toReturn;
+			for(String actRole : rolesAsActions) {
+				int index;
+				if(actRole.equals(ActionClass.ACTION.actionName)) // click 
+					index = 0;
+				else if(actRole.equals(ActionClass.TEXT.actionName)) // text 
+					index = 1;
+				else if(actRole.equals(ActionClass.PARSELECT.actionName)) // parental select
+					index = 2;
+				else  // hover
+					index = 3;
+				toReturn.set(index, myJTI.lookupID(component, window.getTitle(), actRole));
+			}
+			return toReturn;
 		}
 	}
-
 	/**
 	 * Returns the CogToolHelper event ID related to this JFCXComponent. Relies on HeadTable.allInteractions
 	 * to work properly.
-	 *
+	 * 	
 	 * Preconditions: 	HeadTable.allInteractions object has been instantiated
 	 * 					component != null
-	 * Postconditions:	CogToolHelper EventID is returned from this function as a string.
+	 * Postconditions:	CogToolHelper EventID is returned from this function as a string. 
 	 */
 	public String getCTHEventID()
 	{
-		if(!storedCTHEventId.isEmpty())
+		if(!storedCTHEventId.isEmpty()) 
 			return storedCTHEventId;
 		if(nowRipping) {
 			boolean jtiFound = false;
@@ -1333,11 +1376,11 @@ public class JFCXComponent extends GComponent {
 //			return myJTI.assignNameByRole(component);
 		}
 		else {
-			// obtain the action.
+			// obtain the action. 
 			String roleAsAction;
 			if(!(component instanceof Accessible))
 				return JavaTestInteractions.hasNoID;
-
+			
 			AccessibleRole myRole = component.getAccessibleContext().getAccessibleRole();
 			if(myRole.equals(AccessibleRole.TEXT))
 				roleAsAction = ActionClass.TEXT.actionName;
@@ -1352,25 +1395,25 @@ public class JFCXComponent extends GComponent {
 			}
 			else if(myRole.equals(AccessibleRole.COMBO_BOX))
 				roleAsAction = ActionClass.PARSELECT.actionName;
-
+			
 			else if(myRole.equals(AccessibleRole.PAGE_TAB_LIST)) {
 				if(hasChildren())
 					roleAsAction = ActionClass.PARSELECT.actionName; // selectable
 				else
 					roleAsAction = ActionClass.ACTION.actionName; // clickable
 			}
-
-			else if(myRole.equals(AccessibleRole.PANEL))
+			
+			else if(myRole.equals(AccessibleRole.PANEL)) 
 				roleAsAction = ActionClass.ACTION.actionName;
-
+			
 			else if(myRole.equals(AccessibleRole.LIST))
 				roleAsAction = ActionClass.SELECTION.actionName;
 			else
 				roleAsAction = "no assigned role";
-
+			
 			String CTHEventID;
 			JavaTestInteractions myJTI = null;
-
+			
 			boolean jtiFound = false;
 			// select window
 			if(HeadTable.allInteractions == null)
@@ -1383,29 +1426,29 @@ public class JFCXComponent extends GComponent {
 						jtiFound = true;
 					}
 				}
-
+			
 			boolean idIsNonexistent = roleAsAction.equals("no assigned role") || !jtiFound;
-
-			if(idIsNonexistent)
+			
+			if(idIsNonexistent) 
 				return JavaTestInteractions.hasNoID;
-
-			 // select correct id lookup method
+			
+			 // select correct id lookup method 
 			if(myRole.equals(AccessibleRole.LIST))
-				CTHEventID = myJTI.lookupLargeObjectID(component, window.getTitle(), roleAsAction);
+				CTHEventID = myJTI.lookupLargeObjectID(component, window.getTitle(), roleAsAction);	
 			else
 				CTHEventID = myJTI.lookupID(component, window.getTitle(), roleAsAction);
 			storedCTHEventId = CTHEventID;
 			return CTHEventID;
-		}
+		}	
 	}
-
+	
 	/**
-	 * Determines whether the component has listeners attached to it that are typically
-	 * used in detecting input for the role specified by treatAs. For instance, if
+	 * Determines whether the component has listeners attached to it that are typically 
+	 * used in detecting input for the role specified by treatAs. For instance, if 
 	 * treatAs.equals("button"), then the component is checked for mouseListeners.
 	 * Returns false if the component does not contain listeners that correspond to this role,
 	 * and otherwise return true.
-	 *
+	 * 
 	 * Preconditions: 	component is not null
 	 * 					treatAs matches the strings "button" and "text".
 	 * Postconditions: 	If the component has listeners that likely correspond to the role specified by treatAs
@@ -1422,14 +1465,14 @@ public class JFCXComponent extends GComponent {
 		}
 		else if(treatAs.toLowerCase().equals("textbox")) {
 			KeyListener[] keyListeners = component.getKeyListeners();
-			if(keyListeners.length == 0)
+			if(keyListeners.length == 0) 
 				return false;
 			return true;
 		}
-		else
+		else 
 			throw new RuntimeException("JavaCaptureMonitor: hasListeners method was passed an invalid listenersUse parameter: " + treatAs);
 	}
-
+	
 	//
 	// IDENTITY METHODS
 	//
@@ -1447,7 +1490,7 @@ public class JFCXComponent extends GComponent {
 		String classVal = getClassVal();
 		if(classVal == null)
 			return false;
-
+		
 		if(classVal.equals(AccessibleRole.COMBO_BOX.toDisplayString()))
 			return true;
 		return false;
@@ -1455,12 +1498,12 @@ public class JFCXComponent extends GComponent {
 
 	/**
 	 * jsaddler: Returns true if this component is a menu.
-	 *
+	 * 
 	 *  Preconditions: (none)
-	 *  Postconditions: true is returned if component is a menu. False is returned otherwise.
+	 *  Postconditions: true is returned if component is a menu. False is returned otherwise. 
 	 */
 	@Override
-	public boolean isMenu()
+	public boolean isMenu() 
 	{
 		String classVal = getClassVal();
 		if(classVal == null)
@@ -1470,15 +1513,15 @@ public class JFCXComponent extends GComponent {
 		return false;
 	}
 
-
+	
 	/**
-	 * jsaddler: Returns true if this component is a list.
-	 *
-	 * Preconditions: (none)
-	 * Postconditions: True is returned if component is a list. False is returned otherwise.
+	 * jsaddler: Returns true if this component is a list. 
+	 * 
+	 * Preconditions: (none) 
+	 * Postconditions: True is returned if component is a list. False is returned otherwise. 
 	 */
 	@Override
-	public boolean isList()
+	public boolean isList() 
 	{
 		// check role
 		String classVal = getClassVal();
@@ -1486,15 +1529,15 @@ public class JFCXComponent extends GComponent {
 			return true;
 		return false;
 	}
-
+	
 	/**
 	 * jsaddler: Returns true if this component is a separator.
-	 *
+	 * 
 	 * Preconditions: (none)
-	 * Postconditions: True is returned if component is a separator. False is returned otherwise.
+	 * Postconditions: True is returned if component is a separator. False is returned otherwise. 
 	 */
 	@Override
-	public boolean isSeparator()
+	public boolean isSeparator() 
 	{
 		// check role
 		String classVal = getClassVal();
@@ -1502,35 +1545,35 @@ public class JFCXComponent extends GComponent {
 			return true;
 		return false;
 	}
-
-	//
+	
+	// 
 	// STATE METHODS
 	//
 	@Override
 	/**
 	 * jsaddler:
 	 * This method returns true if component is currently "visible".
-	 *
+	 * 
 	 * Preconditions: 	(none)
-	 * Postconditions: 	The visible state of the component is checked. If it is visible,
-	 * 					true is returned. False otherwise.
+	 * Postconditions: 	The visible state of the component is checked. If it is visible, 
+	 * 					true is returned. False otherwise. 
 	 */
-	public boolean isVisible()
+	public boolean isVisible() 
 	{
 		// check for null information
 		if(component == null)
 			return false;
 		if(component.getAccessibleContext() == null)
 			return false;
-		AccessibleStateSet componentStates =
+		AccessibleStateSet componentStates = 
 				component.getAccessibleContext().getAccessibleStateSet();
-
+		
 		// check for visibility
 		if(componentStates.contains(AccessibleState.VISIBLE))
 			return true;
 		return false;
 	}
-
+	
 	public static boolean isVisible(Accessible javaComponent)
 	{
 		if(javaComponent != null) {
@@ -1540,15 +1583,15 @@ public class JFCXComponent extends GComponent {
 		}
 		return false;
 	}
-
+	
 	/**
 	 * jsaddler:
 	 * This method returns true if the component is a check box or toggle button.
 	 * False otherwise.
-	 *
+	 * 
 	 * Preconditions: 	(none)
 	 * Postconditions: 	If component is a check box or toggle button, this method returns true.
-	 * 					False is returned otherwise.
+	 * 					False is returned otherwise.  
 	 */
 	@Override
 	public boolean isToggleable() {
@@ -1557,23 +1600,23 @@ public class JFCXComponent extends GComponent {
 		if(component.getAccessibleContext() ==  null)
 			return false;
 		AccessibleRole componentRole = component.getAccessibleContext().getAccessibleRole();
-		if( componentRole.equals(AccessibleRole.TOGGLE_BUTTON)
-		|| 	componentRole.equals(AccessibleRole.CHECK_BOX)
+		if( componentRole.equals(AccessibleRole.TOGGLE_BUTTON) 
+		|| 	componentRole.equals(AccessibleRole.CHECK_BOX) 
 		||  componentRole.equals(AccessibleRole.PAGE_TAB))
 			return true;
 		return false;
 	}
-
+	
 	public static boolean isToggleable(Accessible component) {
 		if(component == null)
 			return false;
-
+		
 		if(component.getAccessibleContext() == null)
 			return false;
-
+		
 		AccessibleRole componentRole = component.getAccessibleContext().getAccessibleRole();
-		if( componentRole.equals(AccessibleRole.TOGGLE_BUTTON)
-		||	componentRole.equals(AccessibleRole.CHECK_BOX)
+		if( componentRole.equals(AccessibleRole.TOGGLE_BUTTON) 
+		||	componentRole.equals(AccessibleRole.CHECK_BOX)  
 		||	componentRole.equals(AccessibleRole.PAGE_TAB)) {
 			return true;
 		}
@@ -1582,29 +1625,29 @@ public class JFCXComponent extends GComponent {
 	/**
 	 * jsaddler:
 	 * Returns true if this object is currently checked. False otherwise.
-	 *
+	 * 
 	 * Preconditions: (none)
 	 * Postconditions: if object's current state can be described as "checked", true is returned.
 	 * 				   false otherwise.
 	 */
 	@Override
-	public boolean isChecked()
+	public boolean isChecked() 
 	{
 		// check for null information.
 		if(component == null)
 			return false;
 		if(component.getAccessibleContext() == null)
 			return false;
-
+		
 		// if this object is currently "checked", return true.
-		AccessibleStateSet componentStates =
+		AccessibleStateSet componentStates = 
 				component.getAccessibleContext().getAccessibleStateSet();
 		if(componentStates.contains(AccessibleState.CHECKED))
 			return true;
 		return false;
 	}
-
-
+	
+	
 	public boolean isSelected()
 	{
 		// check for null information.
@@ -1612,34 +1655,34 @@ public class JFCXComponent extends GComponent {
 			return false;
 		if(component.getAccessibleContext() == null)
 			return false;
-
+		
 		// if this object is currently "checked", return true.
-		AccessibleStateSet componentStates =
+		AccessibleStateSet componentStates = 
 				component.getAccessibleContext().getAccessibleStateSet();
 		if(componentStates.contains(AccessibleState.SELECTED))
 			return true;
-
+		
 		return false;
 	}
-
+	
 	/**
-	 * jsaddler: Returns the name of the child item of component that has been selected.
+	 * jsaddler: Returns the name of the child item of component that has been selected. 
 	 * Preconditions: 	(none)
 	 * Postconditions: 	if component or its accessible context is null, returns empty string.
-	 * 					otherwise, if the component has at least one selected component,
+	 * 					otherwise, if the component has at least one selected component, 
 	 * 					the first selected component found in order among component's accessible
-	 * 					children is returned.
+	 * 					children is returned. 
 	 */
 	@Override
-	public String getSelectedItem()
+	public String getSelectedItem() 
 	{
 		// check for nullity
-		if(component == null)
+		if(component == null) 
 			return "";
 		AccessibleContext aContext = component.getAccessibleContext();
 		if(aContext == null)
 			return "";
-
+		
 		if(isCombo()) {
 			AccessibleSelection theSelection = aContext.getAccessibleSelection();
 			Accessible child = theSelection.getAccessibleSelection(0);
@@ -1649,7 +1692,7 @@ public class JFCXComponent extends GComponent {
 				return "";
 		}
 		// get the accessible name of the selected child.
-
+		
 		int childCount = aContext.getAccessibleChildrenCount();
 		for (int i = 0; i < childCount; i++) {
 			try {
@@ -1661,21 +1704,21 @@ public class JFCXComponent extends GComponent {
 				e.printStackTrace();
 			}
 		}
-
-		return "";
+		
+		return "";		
 	}
-
+	
 	/**
 	 * Returns the x-component of component's location
-	 * on the screen.
-	 *
+	 * on the screen. 
+	 * 
 	 * Preconditions: 	(none)
-	 * Postconditions: 	If component is null, 0 is returned.
+	 * Postconditions: 	If component is null, 0 is returned. 
 	 * 					Otherwise, the x component of the location of this
-	 * 					component, relative to its parent, is returned.
+	 * 					component, relative to its parent, is returned. 
 	 */
 	@Override
-	public int getXRelative()
+	public int getXRelative() 
 	{
 		if(component==null)
 			return 0;
@@ -1684,31 +1727,31 @@ public class JFCXComponent extends GComponent {
 
 
 	/**
-	 * Returns the y-component of component's location on the screen.
-	 *
+	 * Returns the y-component of component's location on the screen. 
+	 * 
 	 * Preconditions: 	(none)
-	 * Postconditions:	If component is null, 0 is returned.
+	 * Postconditions:	If component is null, 0 is returned. 
 	 * 					Otherwise, the y component of the location of this
-	 * 					component, relative to its parent, is returned.
+	 * 					component, relative to its parent, is returned. 
 	 */
 	@Override
-	public int getYRelative()
+	public int getYRelative() 
 	{
 		if(component==null)
 			return 0;
 		return component.getY();
 	}
-
+	
 	@Override
 	/**
 	 * jsaddler:
-	 * Returns the width of this component.
-	 *
+	 * Returns the width of this component. 
+	 * 
 	 * Preconditions: 	(none)
-	 * Postconditions: 	Width of this component is returned.
+	 * Postconditions: 	Width of this component is returned. 
 	 * 					0 returned if component is null.
 	 */
-	public int getWidth()
+	public int getWidth() 
 	{
 		if(component == null)
 			return 0;
@@ -1720,18 +1763,18 @@ public class JFCXComponent extends GComponent {
 	/**
 	 * jsaddler:
 	 * Returns the height of this component.
-	 *
+	 * 
 	 * Preconditions: 	(none)
-	 * Postconditions:  Height of this component is returned.
+	 * Postconditions:  Height of this component is returned. 
 	 * 					0 is returned if component is null.
 	 */
-	public int getHeight()
+	public int getHeight() 
 	{
 		if(component == null)
 			return 0;
 		return component.getHeight();
 	}
-
+	
 	@Override
 	public int getX() {
 		Component pointer = component;
@@ -1748,12 +1791,12 @@ public class JFCXComponent extends GComponent {
 				break;
 		}
 
-		// account for being in a dialog box.
-		if(pointer != null)
+		// account for being in a dialog box. 
+		if(pointer != null) 
 			if(pointer instanceof Dialog) {
 				try {
 					x += pointer.getLocationOnScreen().x;
-				}
+				} 
 				catch(IllegalComponentStateException e) {
 					throw new RuntimeException("Could not retrieve location of component.\n"
 					+ "Component might not be showing on the screen.", e);
@@ -1764,30 +1807,30 @@ public class JFCXComponent extends GComponent {
 				Window w = ((Window)pointer);
 				Insets insets = w.getInsets();
 				x += insets.left;
+				
 
-
-
+				
 				try{x += pointer.getLocationOnScreen().x;}
 				catch(IllegalComponentStateException e) {
 					throw new RuntimeException("Could not retrieve location of component.\n"
 					+ "Component might not be showing on the screen.", e);
 				}
-
+				
 				Insets screenInsets = java.awt.Toolkit.getDefaultToolkit().getScreenInsets(w.getGraphicsConfiguration());
 				x -= screenInsets.left;
 			}
-
-
+		
+		
 		return x;
 	}
-
+	
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see edu.umd.cs.guitar.model.GComponent#getY()
 	 */
 	@Override
-	public int getY()
+	public int getY() 
 	{
 		Component pointer = component;
 
@@ -1802,11 +1845,11 @@ public class JFCXComponent extends GComponent {
 			if (pointer == null)
 				break;
 		}
-
+		
 		// account for being in a dialog box
-		if(pointer != null)
+		if(pointer != null) 
 			if(pointer instanceof Dialog) {
-				try {y += pointer.getLocationOnScreen().y;}
+				try {y += pointer.getLocationOnScreen().y;} 
 				catch(IllegalComponentStateException e) {
 					throw new RuntimeException("Could not retrieve location of component.\n"
 						+ "Component might not be showing on the screen.", e);
@@ -1817,31 +1860,31 @@ public class JFCXComponent extends GComponent {
 				Window w = (Window)pointer;
 				Insets insets = w.getInsets();
 				y += insets.top;
+				
 
-
-
+				
 				try {y += pointer.getLocationOnScreen().y;}
 				catch(IllegalComponentStateException e) {
 					throw new RuntimeException("Could not retrieve location of component.\n"
 					+ "Component might not be showing on the screen.", e);
 				}
-
+				
 				Insets screenInsets = java.awt.Toolkit.getDefaultToolkit().getScreenInsets(w.getGraphicsConfiguration());
 				y -= screenInsets.top;
 			}
 
 		return y;
 	}
-
+	
 	public static int getGUITAROffsetXInWindow(Component javaComponent)
 	{
 		Component pointer = javaComponent;
-
-		if(pointer == null || pointer instanceof Window)
+		
+		if(pointer == null || pointer instanceof Window) 
 			return 0;
-
+		
 		int x = 0;
-
+		
 		while(!(pointer instanceof Window)) {
 			x += pointer.getX();
 			pointer = pointer.getParent();
@@ -1855,7 +1898,7 @@ public class JFCXComponent extends GComponent {
 		}
 		return x;
 	}
-
+		
 	public static int getGUITAROffsetYInWindow(Component javaComponent)
 	{
 		Component pointer = javaComponent;
@@ -1870,7 +1913,7 @@ public class JFCXComponent extends GComponent {
 			if (pointer == null)
 				break;
 		}
-
+		
 		if(pointer != null && !(pointer instanceof Dialog)) {
 			Window w = (Window)pointer;
 			Insets insets = w.getInsets();
@@ -1881,9 +1924,9 @@ public class JFCXComponent extends GComponent {
 	/**
 	 * Returns the offset x value of this component: the 'X' value of this component + relative position
 	 * of the component within all its parental containers.
-	 *
+	 * 
 	 * Preconditions: 	(none)
-	 * Postconditions:	The offset x value of javaComponent is returned.
+	 * Postconditions:	The offset x value of javaComponent is returned. 
 	 */
 	public static int getGUITAROffsetX(Component javaComponent)
 	{
@@ -1900,12 +1943,12 @@ public class JFCXComponent extends GComponent {
 			if (pointer == null)
 				break;
 		}
-
-
+		
+		
 		// account for being in a dialog box
 		if(pointer != null)
 			if(pointer instanceof Dialog) {
-				try {x += pointer.getLocationOnScreen().x;}
+				try {x += pointer.getLocationOnScreen().x;} 
 				catch(IllegalComponentStateException e) {
 					throw new RuntimeException("Could not retrieve location of component.\n"
 							+ "Component might not be showing on the screen.");
@@ -1916,25 +1959,25 @@ public class JFCXComponent extends GComponent {
 				Window w = ((Window)pointer);
 				Insets insets = w.getInsets();
 				x += insets.left;
-
+				
 				try{x += pointer.getLocationOnScreen().x;}
 				catch(IllegalComponentStateException e) {
 					throw new RuntimeException("Could not retrieve location of component.\n"
 					+ "Component might not be showing on the screen.", e);
 				}
-
+				
 				Insets screenInsets = java.awt.Toolkit.getDefaultToolkit().getScreenInsets(w.getGraphicsConfiguration());
 				x -= screenInsets.left;
 			}
 		return x;
 	}
-
+	
 	/**
 	 * Returns the offset y value of this component: the 'Y' value of this component + relative position
 	 * of the component within all its parental containers.
-	 *
+	 * 
 	 * Preconditions: 	(none)
-	 * Postconditions:	The offset y value of javaComponent is returned.
+	 * Postconditions:	The offset y value of javaComponent is returned. 
 	 */
 	public static int getGUITAROffsetY(Component javaComponent)
 	{
@@ -1955,7 +1998,7 @@ public class JFCXComponent extends GComponent {
 		// account for being in a dialog box
 		if(pointer != null)
 			if(pointer instanceof Dialog) {
-				try {y += pointer.getLocationOnScreen().y;}
+				try {y += pointer.getLocationOnScreen().y;} 
 				catch(IllegalComponentStateException e) {
 					throw new RuntimeException("Could not retrieve location of component.\n"
 					+ "Component might not be showing on the screen.", e);
@@ -1966,47 +2009,47 @@ public class JFCXComponent extends GComponent {
 				Window w = (Window)pointer;
 				Insets insets = w.getInsets();
 				y += insets.top;
+				
 
-
-
+				
 				try{y += pointer.getLocationOnScreen().y;}
 				catch(IllegalComponentStateException e) {
 					throw new RuntimeException("Could not retrieve location of component.\n"
 					+ "Component might not be showing on the screen.", e);
 				}
-
+				
 				Insets screenInsets = java.awt.Toolkit.getDefaultToolkit().getScreenInsets(w.getGraphicsConfiguration());
 				y -= screenInsets.top;
 			}
 		return y;
 	}
-
-
+	
+	
 	/**
 	 * Returns the offset y value of this accessible using parent accessibleComponents:
 	 * the 'Y' value of this component + relative position
-	 * of the component within all its parental containers.
+	 * of the component within all its parental containers. 
 	 */
 	public static int getGUITAROffsetX(Accessible javaComponent)
 	{
 		Accessible pointer = javaComponent;
-
-		if(pointer == null || pointer instanceof Window)
+		
+		if(pointer == null || pointer instanceof Window) 
 			return 0;
-
-		int x = 0;
-
+		
+		int x = 0; 
+		
 		while(!(pointer instanceof Window)) {
 			x += pointer.getAccessibleContext().getAccessibleComponent().getBounds().x;
 			pointer = pointer.getAccessibleContext().getAccessibleParent();
 			if(pointer == null)
 				break;
 		}
-
+		
 		// account for being in a dialog box
-		if(pointer != null)
+		if(pointer != null) 
 			if(pointer instanceof Dialog) {
-				try {x += pointer.getAccessibleContext().getAccessibleComponent().getLocationOnScreen().x;}
+				try {x += pointer.getAccessibleContext().getAccessibleComponent().getLocationOnScreen().x;} 
 				catch(IllegalComponentStateException e) {
 					throw new RuntimeException("Could not retrieve location of component.\n"
 							+ "Component might not be showing on the screen.");
@@ -2017,37 +2060,37 @@ public class JFCXComponent extends GComponent {
 				Window w = ((Window)pointer);
 				Insets insets = w.getInsets();
 				x += insets.left;
-
+				
 				try {x += pointer.getAccessibleContext().getAccessibleComponent().getLocationOnScreen().x;}
 				catch(IllegalComponentStateException e) {
 					throw new RuntimeException("Could not retrieve location of component.\n"
 							+ "Component might not be showing on the screen.");
 				}
-
+				
 				Insets screenInsets = java.awt.Toolkit.getDefaultToolkit().getScreenInsets(w.getGraphicsConfiguration());
 				x -= screenInsets.left;
 			}
 		return x;
 	}
-
+	
 	/**
 	 * Returns the offset y value of this accessible using parent accessibleComponents:
 	 * the 'Y' value of this component + relative position
 	 * of the component within all its parental containers. Accounts for components
 	 * shown in dialog boxes, and also frames which may have insets
-	 *
+	 * 
 	 * Preconditions: none
-	 * Postconditions:
+	 * Postconditions: 
 	 */
 	public static int getGUITAROffsetY(Accessible javaComponent)
 	{
 		Accessible pointer = javaComponent;
-
-		if(pointer == null || pointer instanceof Window)
+		
+		if(pointer == null || pointer instanceof Window) 
 			return 0;
-
-		int y = 0;
-
+		
+		int y = 0; 
+		
 		while(!(pointer instanceof Window)) {
 			y += pointer.getAccessibleContext().getAccessibleComponent().getBounds().y;
 			pointer = pointer.getAccessibleContext().getAccessibleParent();
@@ -2055,13 +2098,13 @@ public class JFCXComponent extends GComponent {
 				break;
 		}
 
-		// account for being in a dialog box.
-		if(pointer != null)
+		// account for being in a dialog box. 
+		if(pointer != null) 
 			if(pointer instanceof Dialog) {
-
+				
 				try {y += pointer.getAccessibleContext().getAccessibleComponent().getLocationOnScreen().y;}
 				catch(IllegalComponentStateException e) {
-					throw new RuntimeException("Could not retrieve location of component.\n"
+					throw new RuntimeException("Could not retrieve location of component.\n" 
 						+ "Component might not be showing on the screen.");
 				}
 			}
@@ -2070,7 +2113,7 @@ public class JFCXComponent extends GComponent {
 				Window w = (Window)pointer;
 				Insets insets = w.getInsets();
 				y += insets.top;
-
+				
 				Insets screenInsets = java.awt.Toolkit.getDefaultToolkit().getScreenInsets(w.getGraphicsConfiguration());
 				y -= screenInsets.top;
 				try {y += pointer.getAccessibleContext().getAccessibleComponent().getLocationOnScreen().y;}
@@ -2082,16 +2125,16 @@ public class JFCXComponent extends GComponent {
 		return y;
 	}
 	/**
-	 * Returns the rectangle that bounds the component represented by the accessible provided.
+	 * Returns the rectangle that bounds the component represented by the accessible provided. 
 	 */
 	public static Rectangle accessibleBounds(Accessible javaAcc)
 	{
 		AccessibleComponent jComp = javaAcc.getAccessibleContext().getAccessibleComponent();
 		return jComp.getBounds();
 	}
-
+	
 	/**
-	 * Attempts to locate the combo box in the parent hierarchy of this widget.
+	 * Attempts to locate the combo box in the parent hierarchy of this widget. 
 	 */
 	public static boolean isInCombo(Accessible first)
 	{
@@ -2099,8 +2142,8 @@ public class JFCXComponent extends GComponent {
 		if(firstRole.equals(AccessibleRole.COMBO_BOX))
 			return false; // combo boxes cannot be in combo boxes.
 		if(firstRole.equals(AccessibleRole.WINDOW))
-			return false; // windows cannot be in combo boxes.
-
+			return false; // windows cannot be in combo boxes. 
+		
 		Accessible upstream = first.getAccessibleContext().getAccessibleParent();
 		while(upstream != null) {
 			if(upstream.getAccessibleContext().getAccessibleRole().equals(AccessibleRole.COMBO_BOX))

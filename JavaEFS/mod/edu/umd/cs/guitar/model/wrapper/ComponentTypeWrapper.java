@@ -50,21 +50,21 @@ import edu.umd.cs.guitar.exception.PropertyInconsistentException;
 
 /**
  * Adapter class to process ComponentType.
- *
- * jsaddler: This class is useful for defining components that we can't see
+ * 
+ * jsaddler: This class is useful for defining components that we can't see 
  * on the interface, but which we still wish to associate with component properties.
  * (such as keyboard shortcuts) And generally useful for helping to rip information
  * from properties within attributes quickly
- *
+ * 
  * jsaddler: Note that this class doesn't necessarily need to utilize data from interface
  * components that are actually available on the screen. After analysis, I found
- * that this class and all its data can be constructed without ever ripping any
- * interface, but instead through the aid of using a GUI xml file.
- *
+ * that this class and all its data can be constructed without ever ripping any 
+ * interface, but instead through the aid of using a GUI xml file. 
+ * 
  * <p>
- *
+ * 
  * @author <a href="mailto:baonn@cs.umd.edu"> Bao Nguyen </a>
- *
+ * 
  */
 public class ComponentTypeWrapper {
 
@@ -102,11 +102,11 @@ public class ComponentTypeWrapper {
 	List<ComponentTypeWrapper> children;
 
 	/**
-	 *
+	 * 
 	 * A lazy method to parse data
-	 *
+	 * 
 	 * <p>
-	 *
+	 * 
 	 * @param dGUIStructure
 	 * @param wGUIStructure
 	 */
@@ -276,12 +276,11 @@ public class ComponentTypeWrapper {
 		return null;
 	}
 
-
 	/**
 	 * Obtain the first value of a property.
-	 *
+	 * 
 	 * Returns the first value of a specified property.
-	 *
+	 * 
 	 * @param sName
 	 *            String name of the property to look for.
 	 * @return The first attribute value only
@@ -298,7 +297,7 @@ public class ComponentTypeWrapper {
 
 	/**
 	 * Get a list of property by name
-	 *
+	 * 
 	 * @param sName
 	 * @return list of property values
 	 */
@@ -343,7 +342,7 @@ public class ComponentTypeWrapper {
 
 	/**
 	 * Set a property of child object
-	 *
+	 * 
 	 * @param sTitle
 	 * @param sName
 	 * @param sValue
@@ -388,18 +387,18 @@ public class ComponentTypeWrapper {
 	}
 
 	/**
-	 *
+	 * 
 	 * Add an attribute value to the current ComponentType
 	 * jsaddler: This method is used to initialize properties. Via
 	 * this method, whenever values are added to component type "by name"
 	 * they are created and immediately stored in this component type object.
 	 * If the previously set values do not contain the value needing to be set,
-	 * it is added to the property that will be returned.
+	 * it is added to the property that will be returned. 
 	 * If the requested property was already present, its value is removed from
 	 * the attributes, set with new values as stated above, then re-added to the this
 	 * componentTypeWrapper's attributes
 	 * <p>
-	 *
+	 * 
 	 * @param sName
 	 * @param sValue
 	 */
@@ -439,7 +438,7 @@ public class ComponentTypeWrapper {
 		// }
 		//
 		// attributes.getProperty().add(property);
-		// set the property gotten or created with the new value.
+		// set the property gotten or created with the new value. 
 		property.setValue(lValue);
 		lProperty.add(property);
 		attributes.setProperty(lProperty);
@@ -447,9 +446,9 @@ public class ComponentTypeWrapper {
 	}
 
 	/**
-	 *
+	 * 
 	 * Add an attribute value to the child ComponentType having name Title
-	 *
+	 * 
 	 * @param sTitle
 	 * @param sName
 	 * @param sValue
@@ -494,7 +493,7 @@ public class ComponentTypeWrapper {
 
 	/**
 	 * Remove a property by name
-	 *
+	 * 
 	 * @param sName
 	 */
 	public void removeProperty(String sName) {
@@ -516,11 +515,11 @@ public class ComponentTypeWrapper {
 	}
 
 	/**
-	 *
+	 * 
 	 * Search component by id
-	 *
+	 * 
 	 * <p>
-	 *
+	 * 
 	 * @param ID
 	 * @return the component found
 	 */
@@ -545,6 +544,7 @@ public class ComponentTypeWrapper {
 					lChildrenWrapper.add(childAdapter);
 
 				}
+
 			}
 			for (ComponentTypeWrapper childAdapter : lChildrenWrapper) {
 				ComponentTypeWrapper retComp = childAdapter.getChildByID(ID);
@@ -573,7 +573,7 @@ public class ComponentTypeWrapper {
 
 	/**
 	 * Check if the component has a child
-	 *
+	 * 
 	 * @return <code>true</code> if it has a child
 	 */
 	public boolean hasChild() {
@@ -621,7 +621,7 @@ public class ComponentTypeWrapper {
 	/**
 	 * Check if a component matches with a signature
 	 * <p>
-	 *
+	 * 
 	 * @param signature
 	 * @return <code>true </code> if the component match the signature
 	 */
@@ -645,8 +645,8 @@ public class ComponentTypeWrapper {
 	 * jsaddle: Complement method for the getComponentBySignature method. This method rather than creating
 	 * a new ComponentTypeWrapper each time we want to search a componentTypeWrapper child of this component
 	 * type, uses the children of this component type previously set by parseData to search
-	 * the GUI tree for the ComponentTypeWrapper in question.
-	 *
+	 * the GUI tree for the ComponentTypeWrapper in question. 
+	 * 
 	 * The componentTypeWrapper returned by this method should contain all the data that a call to parseData put
 	 * into it previously, the parent and the child data alongside data about the widget's XML properties
 	 * (unlike the getComponentBySignature method, whose return value contains no parent or child data)
@@ -654,16 +654,16 @@ public class ComponentTypeWrapper {
 	 */
 	public ComponentTypeWrapper getComponentBySignaturePreserveTree(AttributesType signature)
 	{
-		if (isMatchSignature(signature))
+		if (isMatchSignature(signature)) 
 			return this;
-
+		
 		else if (dComponentType instanceof ContainerType) {
 			ContainerType container = (ContainerType) dComponentType;
 			ContentsType contents = container.getContents();
 			if (contents == null)
 				return null;
 
-			// search depth first for the child in question.
+			// search depth first for the child in question. 
 			ComponentTypeWrapper result = null;
 			if(children != null)
 				for (ComponentTypeWrapper child : children) {
@@ -689,13 +689,13 @@ public class ComponentTypeWrapper {
 			if (contents == null)
 				return null;
 
-
+			
 			List<ComponentType> lChildren = contents.getWidgetOrContainer();
 			ComponentTypeWrapper result = null;
 
 			for (ComponentType child : lChildren) {
 				ComponentTypeWrapper childA = new ComponentTypeWrapper(child);
-
+				
 				result = childA.getComponentBySignature(signature);
 				if (result != null)
 					return result;
@@ -708,7 +708,7 @@ public class ComponentTypeWrapper {
 	/**
 	 * Generate a signature of component
 	 * <p>
-	 *
+	 * 
 	 * @param lPropertyName
 	 *            List of input property names
 	 * @return the component signature
@@ -800,7 +800,7 @@ public class ComponentTypeWrapper {
 
 	/**
 	 * Get max ID in the tree rooted from this node
-	 *
+	 * 
 	 * @return max id
 	 */
 	public int getMaxID() {
@@ -915,7 +915,7 @@ public class ComponentTypeWrapper {
 
 	/**
 	 * Get the list of event ID from widget
-	 *
+	 * 
 	 * @return the list of event supported by the component
 	 */
 	public List<EventType> getEventList() {
@@ -950,7 +950,7 @@ public class ComponentTypeWrapper {
 
 	/**
 	 * Add a property with one value to the component.
-	 *
+	 * 
 	 * @param strName
 	 *            Name of the property.
 	 * @param strValue
@@ -978,9 +978,9 @@ public class ComponentTypeWrapper {
 	 * differences between the two. The objects being compared may be a derived
 	 * class of ComponentType. That is acceptable. The diff is done only for the
 	 * ComponentType members.
-	 *
+	 * 
 	 * Currently this does not compare the 'optional' AttributesType.
-	 *
+	 * 
 	 * @return Returns a List of two Objects. The first Object is a boolean:
 	 *         false=match, true=mismatch The second Object is a ComponentType
 	 *         with match/mismatch
@@ -1062,7 +1062,7 @@ public class ComponentTypeWrapper {
 
 	/**
 	 * Get all sub-components of the object
-	 *
+	 * 
 	 * @return
 	 */
 	public List<ComponentType> getAllComponents() {
@@ -1082,14 +1082,14 @@ public class ComponentTypeWrapper {
 		}
 		return allComponents;
 	}
-
+	
 	public static AttributesType trimToSignatureQuality(AttributesType origOptional)
 	{
 		ArrayList<PropertyType> newProps = new ArrayList<PropertyType>();
 		for(PropertyType oldProp : origOptional.getProperty()) {
 			boolean containsSomething = true;
-			if(!oldProp.getValue().isEmpty()) {
-				for(String value : oldProp.getValue())
+			if(!oldProp.getValue().isEmpty()) { 
+				for(String value : oldProp.getValue()) 
 					if(value != null && !value.isEmpty()) {
 						containsSomething = false;
 						break;
