@@ -1,4 +1,4 @@
-# EventFlowSlicer for Java.
+﻿# EventFlowSlicer for Java.
 
 Maintainer email: saddler@huskers.unl.edu
 
@@ -11,6 +11,14 @@ This is the repository for the Java EventFlowSlicer application, dependent only 
 In Jonathan Saddler's 2016 Thesis, _EventFlowSlicer: A Goal-based Test Case Generation Strategy for Graphical User Interfaces_, a thorough treatment of RE-based GUI testing is covered in detail. There are a number of "constraints" defined in this thesis that when applied give the tester power to express boundaries on the scope of test cases desired. Underlying all this is an algorithm that involves depth first traversal to discover test cases in a CSP-like manner. The plan is at this time, that this software will support all constraints defined in this thesis at its release time on GitHub and forward.
  
 If you are interested in the technique and a walkthrough of this tools use and its larger impact in the community, see below: 
+## Appeal and Audience
+EventFlowSlicer is an application built to help and support the GUI testing and Human Computer Interaction research communities. Often times there are few alternative methods available allowing researchers in this field a clean-cut compromise between creating GUI tests for study, and specifying the ones that truthfully mimic real human users.
+### EventFlowSlicer is a tool that trades of directly specifying every executable scenario via point and click...
+### with specifying only the widgets point and click, and leaving the rest to a search algorithm.
+
+ EFS trades off the ability to directly click to capture for an *algorithm*-based perspective that relies on *search.* Using EFS, real human GUI scenarios are "found" for a specific application the researcher chooses, amongst all available human-accessible scenarios amongst the widgets the researcher specifies. As proof of workmanship, these *scenarios* or **test cases** are executable on the GUI itself. You can use **constraints** to bound the search algorithm to look for certain widget patterns and output those test cases matching the criteria. 
+
+Search is done using some of the constraints defined contained in [Swearngin's 2013 Thesis (University of Nebraska, Lincoln)](Software%20Engineering%20%28ICSE%29,%202013%2035th%20International%20Conference%20on%20Year:%202013%20Pages:%20152%20-%20161,%20DOI:%2010.1109/ICSE.2013.6606561). More constraints were defined as more uses became pertinent.
 
 ## Published Papers (for walkthroughs and background)
 We have published for the community two copies of this paper in top-tier Software Engineering conferences. 
