@@ -13,8 +13,8 @@ In Jonathan Saddler's 2016 Thesis, _EventFlowSlicer: A Goal-based Test Case Gene
 If you are interested in the technique and a walkthrough of this tools use and its larger impact in the community, see below: 
 ## Appeal and Audience
 EventFlowSlicer is an application built to help and support the GUI testing and Human Computer Interaction research communities. Often times there are few alternative methods available allowing researchers in this field a clean-cut compromise between creating GUI tests for study, and specifying the ones that truthfully mimic real human users.
-### EventFlowSlicer is a tool that trades of directly specifying every executable scenario via point and click...
-### with specifying only the widgets point and click, and leaving the rest to a search algorithm.
+### EventFlowSlicer is a tool that trades of directly specifying every executable scenario via point-and-click...
+### with specifying just the clickable widgets via point-and-click, and leaving the rest to a search algorithm.
 
  EFS trades off the ability to directly click to capture for an *algorithm*-based perspective that relies on *search.* Using EFS, real human GUI scenarios are "found" for a specific application the researcher chooses, amongst all available human-accessible scenarios amongst the widgets the researcher specifies. As proof of workmanship, these *scenarios* or **test cases** are executable on the GUI itself. You can use **constraints** to bound the search algorithm to look for certain widget patterns and output those test cases matching the criteria. 
 
