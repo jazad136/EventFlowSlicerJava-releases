@@ -1,5 +1,7 @@
 # EventFlowSlicer for Java.
-email: saddler@huskers.unl.edu
+
+Maintainer email: saddler@huskers.unl.edu
+
 Release repository for EventFlowSlicer tool, created for the Java Swing GUI Architecture.
 The EventFlowSlicer applied technique helps developers test C# and Java GUI's with confidence, using scientific advances in state of the art model-and-constraint-your-task-based, GUI-RE generation - the term "RE" denoting the art of "reverse-engineering" a running GUI app on your desktop to extract precisely the controls that are available to the user plus user-accessible actions, for the purpose of test case generation.
 
