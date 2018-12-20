@@ -1,5 +1,5 @@
 # EventFlowSlicer for Java.
-
+email: saddler@huskers.unl.edu
 Release repository for EventFlowSlicer tool, created for the Java Swing GUI Architecture.
 The EventFlowSlicer applied technique helps developers test C# and Java GUI's with confidence, using scientific advances in state of the art model-and-constraint-your-task-based, GUI-RE generation - the term "RE" denoting the art of "reverse-engineering" a running GUI app on your desktop to extract precisely the controls that are available to the user plus user-accessible actions, for the purpose of test case generation.
 
@@ -25,4 +25,6 @@ by Jonathan A. Saddler and Myra B. Cohen.
 
 ## Artifacts
 
-You may also be interested in artifacts for use with testing EventFlowSlicer. EventFlowSlicer has 5 steps in which at least 2 make use of human-readable XML files called EFG files and GUI files and Rules files. You can learn about how these files are created from the published papers. For a limited time, the artifacts themselves for various kinds of GUI tasks you can execute yourself will be posted to the following website: cse.unl.edu/~myra/artifacts/EventFlowSlicer 
+You may also be interested in artifacts for use with testing EventFlowSlicer. EventFlowSlicer has 5 steps in which at least 2 make use of human-readable XML files called EFG files and GUI files and Rules files. You can learn about how these files are created from the published papers. For a limited time, the artifacts themselves for various kinds of GUI tasks you can execute yourself will be posted to the following website: [cse.unl.edu/~myra/artifacts/EventFlowSlicer](cse.unl.edu/~myra/artifacts/EventFlowSlicer)
+
+email the maintainer Jonathan Saddler @ saddler@huskers.unl.edu
