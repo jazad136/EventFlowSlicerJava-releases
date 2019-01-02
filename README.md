@@ -40,12 +40,17 @@ Check back soon for more details.
 ## Appeal and Audience
 
 EventFlowSlicer is an application built to help and support the GUI testing and Human Computer Interaction research communities. Often times there are few alternative methods available allowing researchers in this field a clean-cut compromise between creating GUI tests for study, and specifying the ones that truthfully mimic real human users.
-#### EventFlowSlicer is a tool that trades of directly specifying every executable scenario via point-and-click...
+#### EventFlowSlicer is a tool that trades directly specifying all executable GUI scenarios via point-and-click...
 #### with specifying just the clickable widgets via point-and-click, and leaving the rest to a search algorithm.
 
  EFS trades off the ability to directly click to capture for an *algorithm*-based perspective that relies on *search.* Using EFS, real human GUI scenarios are "found" for a specific application the researcher chooses, amongst all available human-accessible scenarios amongst the widgets the researcher specifies. As proof of workmanship, these *scenarios* or **test cases** are executable on the GUI itself. You can use **constraints** to bound the search algorithm to look for certain widget patterns and output those test cases matching the criteria. 
 
 Search is done using some of the constraints defined contained in [Swearngin's 2013 Conference Paper (affiliation: University of Nebraska, Lincoln)](http://digitalcommons.unl.edu/cseconfwork/260/)[1]. More constraints were defined as more uses became pertinent.
+
+
+## Artifacts
+
+You may also be interested in artifacts for use with testing EventFlowSlicer. EventFlowSlicer has 5 steps in which at least 2 make use of human-readable XML files called EFG files and GUI files and Rules files. You can learn about how these files are created from the published papers. For a limited time, the artifacts themselves for various kinds of GUI tasks you can execute yourself will be posted to the following website: [http://cse.unl.edu/~myra/artifacts/EventFlowSlicer](http://cse.unl.edu/~myra/artifacts/EventFlowSlicer)
 
 email the maintainer Jonathan Saddler @ saddler@huskers.unl.edu
 
