@@ -48,3 +48,5 @@ EventFlowSlicer is an application built to help and support the GUI testing and 
 Search is done using some of the constraints defined contained in [Swearngin's 2013 Conference Paper (affiliation: University of Nebraska, Lincoln)](http://digitalcommons.unl.edu/cseconfwork/260/)[1]. More constraints were defined as more uses became pertinent.
 
 email the maintainer Jonathan Saddler @ saddler@huskers.unl.edu
+
+*[1] Swearngin, A, Cohen, Myra B., John, B. E., and Bellamy, R. K. E. "Human Performance Regression Testing." Software Engineering (ICSE), 2013 35th International Conference on Year: 2013 Pages: 152 - 161, DOI: 10.1109/ICSE.2013.6606561*
