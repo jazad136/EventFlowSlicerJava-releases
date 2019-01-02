@@ -31,7 +31,7 @@ You may also be interested in artifacts for use with testing EventFlowSlicer. Ev
 
 #### UPDATE: You may also be interested in downloading this tool as a dependency!
 
-Today (Jan. 2019), we're announcing that we will soon host the ability to check out this project via Gradle and Maven. 
+[Jan. 2019] Today we're announcing that we will soon host the ability to check out this project via Gradle and Maven. 
 
 This will make it simple for you to run scripts and automate setup of the tool and its dependencies in a few keystrokes and small downloads. 
 
