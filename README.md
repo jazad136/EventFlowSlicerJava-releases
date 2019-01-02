@@ -27,7 +27,7 @@ by Jonathan A. Saddler and Myra B. Cohen.
 
 ## Artifacts
 
-You may also be interested in artifacts for use with testing EventFlowSlicer. EventFlowSlicer has 5 steps in which at least 2 make use of human-readable XML files called EFG files and GUI files and Rules files. You can learn about how these files are created from the published papers. For a limited time, the artifacts themselves for various kinds of GUI tasks you can execute yourself will be posted to the following website: [cse.unl.edu/~myra/artifacts/EventFlowSlicer](cse.unl.edu/~myra/artifacts/EventFlowSlicer)
+You may also be interested in artifacts for use with testing EventFlowSlicer. EventFlowSlicer has 5 steps in which at least 2 make use of human-readable XML files called EFG files and GUI files and Rules files. You can learn about how these files are created from the published papers. For a limited time, the artifacts themselves for various kinds of GUI tasks you can execute yourself will be posted to the following website: [http://cse.unl.edu/~myra/artifacts/EventFlowSlicer](http://cse.unl.edu/~myra/artifacts/EventFlowSlicer)
 
 #### UPDATE: You may also be interested in downloading this tool as a dependency!
 
