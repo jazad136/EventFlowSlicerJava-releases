@@ -27,8 +27,6 @@ by Jonathan A. Saddler and Myra B. Cohen.
 
 ## Artifacts
 
-You may also be interested in artifacts for use with testing EventFlowSlicer. EventFlowSlicer has 5 steps in which at least 2 make use of human-readable XML files called EFG files and GUI files and Rules files. You can learn about how these files are created from the published papers. For a limited time, the artifacts themselves for various kinds of GUI tasks you can execute yourself will be posted to the following website: [cse.unl.edu/~myra/artifacts/EventFlowSlicer](cse.unl.edu/~myra/artifacts/EventFlowSlicer)
-
 #### UPDATE: You may also be interested in downloading this tool as a dependency!
 
 [Jan. 2019] Today we're announcing that we will soon host the ability to check out this project via Gradle and Maven. 
@@ -46,7 +44,6 @@ EventFlowSlicer is an application built to help and support the GUI testing and 
 EFS trades off the ability to directly click to capture for an *algorithm*-based perspective that relies on *search.* Using EFS, real human GUI scenarios are "found" for a specific application the researcher chooses, amongst all available human-accessible scenarios amongst the widgets the researcher specifies. As proof of workmanship, these *scenarios* or **test cases** are executable on the GUI itself. You can use **constraints** to bound the search algorithm to look for certain widget patterns and output those test cases matching the criteria. 
 
 Search is done using some of the constraints defined contained in [Swearngin's 2013 Conference Paper (affiliation: University of Nebraska, Lincoln)](http://digitalcommons.unl.edu/cseconfwork/260/)[1]. More constraints were defined as more uses became pertinent.
-
 
 ## Artifacts
 
