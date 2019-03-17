@@ -1,3 +1,6 @@
+<<<<<<< HEAD:JavaEFS/src/edu/unl/cse/efs/tools/RepeatList.java
+package edu.unl.cse.efs.tools;
+=======
 /*******************************************************************************
  *    Copyright (c) 2018 Jonathan A. Saddler
  *
@@ -16,30 +19,27 @@
  *    Contributors:
  *     Jonathan A. Saddler - initial API and implementation
  *******************************************************************************/
-package edu.unl.cse.jontools.string;
+package edu.unl.cse.jontools.widget;
+>>>>>>> master:JavaEFS/src/edu/unl/cse/jontools/widget/RepeatList.java
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.TimeZone;
+import java.util.LinkedList;
 
-public class TimeFormats {
-	public static final String MILITARY_TIME_FORMAT = "MMM-dd-yyyy-kkmm";
-	
-	/**
-	 * Taken from CogTool-Helper.
-	 * @return
-	 */
-	public static String nowMilitary() 
+import edu.umd.cs.guitar.model.data.Repeat;
+import edu.umd.cs.guitar.model.data.Widget;
+
+public class RepeatList extends HyperList<Widget>{
+	LinkedList<String> minSettings;
+	LinkedList<String> maxSettings;
+	public RepeatList()
 	{
-		Calendar cal = Calendar.getInstance();
-		SimpleDateFormat sdf = new SimpleDateFormat(MILITARY_TIME_FORMAT);
-		return sdf.format(cal.getTime());
+		minSettings = new LinkedList<>();
+		maxSettings = new LinkedList<>();
 	}
-	public static String ymdhsTimeStamp() {
-        DateFormat df = new SimpleDateFormat("yyyyMMddhhmmss");
-        df.setTimeZone(TimeZone.getTimeZone("GMT"));
-        return df.format(new Date());
-    }
+	
+	public boolean add(Widget element)
+	{
+		minSettings.add(Repeat.UNBOUNDED_SETTING);
+		maxSettings.add(Repeat.UNBOUNDED_SETTING);
+		return super.add(element);
+	}
 }

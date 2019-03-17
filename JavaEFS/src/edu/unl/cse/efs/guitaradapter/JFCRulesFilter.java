@@ -57,6 +57,7 @@ import edu.umd.cs.guitar.ripper.adapter.IgnoreSignExpandFilter;
 import edu.umd.cs.guitar.ripper.adapter.JFCTabFilter;
 import edu.umd.cs.guitar.util.GUITARLog;
 import edu.unl.cse.efs.ripper.JFCRipperConfigurationEFS;
+import edu.unl.cse.efs.tools.TaskListConformance;
 import edu.unl.cse.guitarext.JavaTestInteractions;
 
 

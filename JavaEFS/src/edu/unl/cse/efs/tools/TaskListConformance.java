@@ -1,4 +1,4 @@
-package edu.unl.cse.jontools.widget;
+package edu.unl.cse.efs.tools;
 
 
 import java.util.ArrayList;
@@ -11,15 +11,15 @@ import javax.accessibility.AccessibleRole;
 
 import edu.umd.cs.guitar.awb.ActionTypeProvider;
 import edu.umd.cs.guitar.awb.JavaActionTypeProvider;
-import edu.umd.cs.guitar.graph.converter.EFG2GraphvizFixString;
+import edu.umd.cs.guitar.graph.converter.EFG2GraphvizEFS;
 import edu.umd.cs.guitar.model.GUITARConstants;
 import edu.umd.cs.guitar.model.data.*;
 import edu.umd.cs.guitar.model.wrapper.AttributesTypeWrapper;
 import edu.umd.cs.guitar.model.wrapper.ComponentTypeWrapper;
 import edu.umd.cs.guitar.model.wrapper.GUIStructureWrapper;
 import edu.umd.cs.guitar.model.wrapper.GUITypeWrapper;
+import edu.unl.cse.efs.tools.StringTools;
 import edu.unl.cse.guitarext.JavaTestInteractions;
-import edu.unl.cse.jontools.string.StringTools;
 
 /**
  * This class is designed to assist in making TaskList widgets correspond to the contents of EFG files.
@@ -82,13 +82,13 @@ public class TaskListConformance {
 
 	public static String parseCoreName(String eventId)
 	{
-		int bookmarkColon = eventId.indexOf(EFG2GraphvizFixString.NAME_VERSION_SEPARATOR);
+		int bookmarkColon = eventId.indexOf(EFG2GraphvizEFS.NAME_VERSION_SEPARATOR);
 		String core;
 		if(bookmarkColon == -1)
-			core = eventId.substring(0, eventId.indexOf(EFG2GraphvizFixString.EVENT_ID_SPLITTER_CHAR));
+			core = eventId.substring(0, eventId.indexOf(EFG2GraphvizEFS.EVENT_ID_SPLITTER_CHAR));
 		else {
 			String toConsider = eventId.substring(bookmarkColon+1);
-			core = toConsider.substring(0, toConsider.indexOf(EFG2GraphvizFixString.EVENT_ID_SPLITTER_CHAR));
+			core = toConsider.substring(0, toConsider.indexOf(EFG2GraphvizEFS.EVENT_ID_SPLITTER_CHAR));
 		}
 		return core;
 	}
@@ -428,7 +428,7 @@ public class TaskListConformance {
 			ComponentTypeWrapper wXML = guiStructureAdapter.getComponentBySignaturePreserveTree(idAt);
 			// action handler.
 			String actionHandler = "";
-			String[] tokens = e.getEventId().split(EFG2GraphvizFixString.NAME_VERSION_SEPARATOR);
+			String[] tokens = e.getEventId().split(EFG2GraphvizEFS.NAME_VERSION_SEPARATOR);
 			tokens = tokens[0].split(GUITARConstants.NAME_SEPARATOR);
 			int eventInd = -1;
 			if(tokens.length > 1)

@@ -33,8 +33,8 @@ import edu.unl.cse.efs.generate.FocusOnPack;
 import edu.unl.cse.efs.generate.SearchOptions;
 import edu.unl.cse.efs.generate.SearchPack;
 import edu.unl.cse.efs.generate.SelectorPack;
-import edu.unl.cse.efs.generate.test.TestCaseGenerate_TestAbby;
-import edu.unl.cse.efs.generate.test.TestCaseGenerate_TestTim;
+import edu.unl.cse.efs.generate.test.TestCaseGenerate_Test;
+import edu.unl.cse.efs.tools.TaskListConformance;
 
 import static edu.unl.cse.efs.view.DecorationsRunner.*;
 
@@ -42,7 +42,6 @@ import edu.unl.cse.efs.view.EventFlowSlicerView;
 import edu.unl.cse.efs.view.TestCaseSelector.MidContent;
 import edu.unl.cse.efs.view.ft.DisplayIcon;
 import edu.unl.cse.efs.view.ft.DisplayingWidgetsModel;
-import edu.unl.cse.jontools.widget.TaskListConformance;
 
 public class IPSelectorDisplay {
 
@@ -68,11 +67,7 @@ public class IPSelectorDisplay {
 	public static int isGreen, isMagenta, isCyan, isOrange, isYellow;
 	public static boolean doTooltipRip;
 	public static List<Integer> tooltipModify;
-	public static void main(String[] args)
-	{
-		new IPSelectorDisplay(TestCaseGenerate_TestAbby.testTasklistJEditLSAbbyAuto().getWidget());
-		show();
-	}
+
 
 	public IPSelectorDisplay(Collection<Widget> list)
 	{

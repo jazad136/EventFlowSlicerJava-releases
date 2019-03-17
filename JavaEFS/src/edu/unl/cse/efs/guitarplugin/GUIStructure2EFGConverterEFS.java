@@ -27,8 +27,12 @@ import edu.umd.cs.guitar.model.XMLHandler;
 import edu.umd.cs.guitar.model.data.EFG;
 import edu.umd.cs.guitar.model.data.GUIMap;
 import edu.umd.cs.guitar.model.data.GUIStructure;
+<<<<<<< HEAD
+import edu.unl.cse.efs.tools.PathConformance;
+=======
 import edu.umd.cs.guitar.ripper.plugin.GraphConverter;
 import edu.umd.cs.guitar.util.GUITARLog;
+>>>>>>> master
 import edu.unl.cse.efs.view.EventFlowSlicerErrors;
 
 /**

@@ -22,6 +22,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import edu.umd.cs.guitar.awb.ActionTypeProvider;
+<<<<<<< HEAD
+import edu.umd.cs.guitar.event.ActionClass;
+=======
+>>>>>>> master
 import edu.umd.cs.guitar.model.GUITARConstants;
 import edu.umd.cs.guitar.model.data.EFG;
 import edu.umd.cs.guitar.model.data.EventGraphType;

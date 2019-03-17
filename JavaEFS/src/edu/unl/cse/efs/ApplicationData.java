@@ -20,7 +20,7 @@ package edu.unl.cse.efs;
 
 import java.io.File;
 
-import edu.unl.cse.jontools.string.TimeFormats;
+import edu.unl.cse.efs.tools.TimeFormats;
 
 /**
  * Source for the ApplicationData class.

@@ -60,7 +60,11 @@ import edu.umd.cs.guitar.util.GUITARLog;
 import edu.unl.cse.efs.guitaradapter.JFCRulesFilter;
 import edu.unl.cse.efs.guitarplugin.JFCIDGeneratorEFS;
 import edu.unl.cse.efs.guitarplugin.JavaTestInteractionsInstantiator;
+<<<<<<< HEAD
+import edu.unl.cse.efs.tools.TaskListConformance;
+=======
 import edu.unl.cse.jontools.paths.TaskListConformance;
+>>>>>>> master
 
 /**
  * 

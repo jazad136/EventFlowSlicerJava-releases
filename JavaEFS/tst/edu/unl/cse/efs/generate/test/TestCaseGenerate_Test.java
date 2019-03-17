@@ -1,3 +1,5 @@
+package edu.unl.cse.efs.generate.test;
+
 
 
 import java.io.ByteArrayOutputStream;
@@ -367,11 +369,11 @@ public class TestCaseGenerate_Test {
 	}
 	public static FocusOnPack testStopPackJEditLS()
 	{
-		FocusOnPack fp = new FocusOnPack(Arrays.asList(
-			testWidgetComment(),
-			testWidgetShift())
+		FocusOnPack fp = new FocusOnPack(
+				Arrays.asList(
+						testWidgetComment(),
+						testWidgetShift())
 		);
-		
 		return fp;
 	}
 }

@@ -16,26 +16,30 @@
  *    Contributors:
  *     Jonathan A. Saddler - initial API and implementation
  *******************************************************************************/
-package edu.unl.cse.jontools.widget;
+package edu.unl.cse.efs.tools;
 
-import java.util.LinkedList;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.TimeZone;
 
-import edu.umd.cs.guitar.model.data.Repeat;
-import edu.umd.cs.guitar.model.data.Widget;
-
-public class RepeatList extends HyperList<Widget>{
-	LinkedList<String> minSettings;
-	LinkedList<String> maxSettings;
-	public RepeatList()
-	{
-		minSettings = new LinkedList<>();
-		maxSettings = new LinkedList<>();
-	}
+public class TimeFormats {
+	public static final String MILITARY_TIME_FORMAT = "MMM-dd-yyyy-kkmm";
 	
-	public boolean add(Widget element)
+	/**
+	 * Taken from CogTool-Helper.
+	 * @return
+	 */
+	public static String nowMilitary() 
 	{
-		minSettings.add(Repeat.UNBOUNDED_SETTING);
-		maxSettings.add(Repeat.UNBOUNDED_SETTING);
-		return super.add(element);
+		Calendar cal = Calendar.getInstance();
+		SimpleDateFormat sdf = new SimpleDateFormat(MILITARY_TIME_FORMAT);
+		return sdf.format(cal.getTime());
 	}
+	public static String ymdhsTimeStamp() {
+        DateFormat df = new SimpleDateFormat("yyyyMMddhhmmss");
+        df.setTimeZone(TimeZone.getTimeZone("GMT"));
+        return df.format(new Date());
+    }
 }

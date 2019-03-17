@@ -9,7 +9,7 @@ import edu.umd.cs.guitar.model.GUITARConstants;
 import edu.umd.cs.guitar.model.data.*;
 import edu.umd.cs.guitar.model.wrapper.ComponentTypeWrapper;
 import edu.umd.cs.guitar.model.wrapper.GUIStructureWrapper;
-import edu.unl.cse.jontools.widget.TaskListConformance;
+import edu.unl.cse.efs.tools.TaskListConformance;
 
 /**
  * This class is responsible for creating EFG graphs with events that

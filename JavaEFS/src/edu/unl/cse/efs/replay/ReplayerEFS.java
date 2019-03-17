@@ -67,6 +67,10 @@ import edu.unl.cse.efs.bkmktools.EFGBookmarking;
 import edu.unl.cse.efs.generate.EFGPacifier;
 import edu.unl.cse.efs.java.JavaReplayerController;
 import edu.unl.cse.efs.tools.StringTools;
+<<<<<<< ours
+import edu.unl.cse.guitarext.GUIEventModel;
+=======
+>>>>>>> theirs
 import edu.unl.cse.guitarext.HeadTable;
 import edu.unl.cse.guitarext.JavaTestInteractions;
 
