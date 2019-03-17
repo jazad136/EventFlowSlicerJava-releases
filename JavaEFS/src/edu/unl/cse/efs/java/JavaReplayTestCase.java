@@ -1,10 +1,27 @@
+/*******************************************************************************
+ *    Copyright (c) 2018 Jonathan A. Saddler
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ *    
+ *    Contributors:
+ *     Jonathan A. Saddler - initial API and implementation
+ *******************************************************************************/
 package edu.unl.cse.efs.java;
 
 import static edu.unl.cse.efs.view.EventFlowSlicerErrors.errorOut;
 
 import java.awt.AWTEvent;
 import java.io.File;
-import java.io.FileFilter;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -14,7 +31,6 @@ import java.util.concurrent.Semaphore;
 
 import edu.umd.cs.guitar.model.XMLHandler;
 import edu.umd.cs.guitar.model.data.Task;
-import edu.umd.cs.guitar.model.data.TestCase;
 import edu.umd.cs.guitar.replayer.JFCReplayerConfiguration;
 import edu.unl.cse.efs.ReplayerLauncher.AlphaOrderComparator;
 import edu.unl.cse.efs.app.EventFlowSlicer;
@@ -176,22 +192,19 @@ public class JavaReplayTestCase extends Thread implements NetCommunication
 			System.out.println("\n>\t Now starting the application, please wait up to 10 seconds for application to settle...");
 		}
 		else {
-			Thread.currentThread().setUncaughtExceptionHandler(new ReplayExceptions());
 			if(replayBack)
 				networkStub = EventFlowSlicer.beginRMISession(false, replayBackPort);
 
 			//obtain a list of all the test cases in the directory
 
-//			File dir = new File(this.tcDirectory);
-//			File[] children = dir.listFiles();
-//			// if output directory does not exist
-//			if(children==null) {
-//				System.err.println("Output directory does not exist....Exiting task analysis...");
-//				return;
-//			}
-
 			File dir = new File(this.tcDirectory);
 			File[] children = dir.listFiles();
+
+			// if output directory does not exist
+			if(children==null) {
+				System.err.println("Output directory does not exist....Exiting task analysis...");
+				return;
+			}
 			ArrayList<File> childArr = new ArrayList<File>(Arrays.asList(children));
 			// sort these into alphabetical order
 			Collections.sort(childArr, new AlphaOrderComparator());
@@ -199,98 +212,77 @@ public class JavaReplayTestCase extends Thread implements NetCommunication
 			childArr.add(0, dir);
 			// create an array of all these directories.
 			children = childArr.toArray(new File[0]);
-			// if output directory does not exist
-			if(children==null) {
-				System.err.println("Output directory does not exist....Exiting task analysis...");
-				return;
-			}
-			else{
-				// jsaddler: at this point in this method:
-				// 1) the application was started
-				// 2) the model factory is loaded with a saved copy of the menu widgets
-				// 3) the application is about to be restarted.
-//
-//			OLD
-//			ArrayList<File> childArr = new ArrayList<File>(Arrays.asList(children));
-//			// sort these into alphabetical order
-//			Collections.sort(childArr, new AlphaOrderComparator());
-//			// add dir at the beginning
-//			childArr.add(0, dir);
-//			// create an array of all these directories.
-//			children = childArr.toArray(new File[0]);
-//			// create a new replayer controller. This starts a new instance of the application.
-			// NEW
-				Arrays.sort(children, new AlphaOrderComparator());
-				int taskCounter = 1;
-				File[] taskChildren = null;
-				int i;
-				for(i = 0; i<children.length; i++) {
-					if(!children[i].isDirectory())
-						continue;
-					taskChildren = children[i].listFiles(
-						new FileFilter(){public boolean accept(File f) {return f.isFile() && f.getName().endsWith(".tst") // is this a normal file created by a java application?}
-					;}});
-					if(taskChildren==null || taskChildren.length == 0)
-						continue;
+			// create a new replayer controller. This starts a new instance of the application.
+			repController = new JavaReplayerController(monitor);
+			repController.initializeWindows();
+			// jsaddler: at this point in this method:
+			// 1) the application was started
+			// 2) the model factory is loaded with a saved copy of the menu widgets
+			// 3) the application is about to be restarted.
 
-					Arrays.sort(taskChildren, new AlphaOrderComparator());
-					for(int j = 0; j < taskChildren.length; j++) {
-						replayTask(children[i], taskCounter, taskChildren[j], j+1);
-						activated.release();
-						initiateCoolDown();
-					}
+			for(int i=0; i<children.length; i++){
+				File[] taskChildren = children[i].listFiles();
+				if(taskChildren==null){
+					continue;
 				}
-				// end multiple task files in one folder loop
+				repController.setTaskName(children[i].getName());
+
+				for(int j=0; j<taskChildren.length; j++){
+
+					String fileName = this.tcDirectory +  File.separator + children[i].getName() + File.separator + taskChildren[j].getName();
+					taskName = fileName;
+					//extract the file extension (make sure it is  a tst file)
+					int mid= fileName.lastIndexOf(".");
+					String ext=fileName.substring(mid+1,fileName.length());
+
+					// get the test case from this test case directory
+					if(ext.equals("tst")){
+						//create a directory for the image results
+//							File resultsDir = new File(fileName + "_images");
+//							resultsDir.mkdir();
+//							String results = fileName + "_images" + File.separator;
+						String parentDir = outputDirectory + File.separator + children[i].getName() + "_images";
+						File resultsDir = new File(parentDir, taskChildren[i].getName() + "_images");
+						resultsDir.mkdirs();
+						System.out.println("Restarting the application...");
+						guiLauncher.restart();
+
+
+						monitor.restart(); //restart the application monitor
+						repController.setApplicationMonitor(monitor);
+
+						// reads a the task file and test case file from the results folder.
+						// to their global variables.
+						Object taskObj = null;
+						XMLHandler handler= new XMLHandler();
+						try{
+							taskObj = handler.readObjFromFile(fileName,
+									Task.class);
+							currentTask = (Task)taskObj;
+						}
+						catch(Exception e){
+							System.err.println("Task file ould not be loaded to task object. \n" +
+									e.getCause() + "\n" + e.getMessage());
+						}
+
+						repController.setImageDir(resultsDir.getAbsolutePath() + File.separator);
+						// LAUNCH THE REPLAYER
+						launchReplayer(j+1);
+						if(j == 0)
+							activated.release();
+					}// end detect .tst
+				}// end multiple task files in one folder loop
+
 				//infer additional methods
+				if(inferMethodsOn)
+					System.out.println("Running Inferred methods algorithm...");
+
 			}// end multiple task folders in demonstration loop
-			if(inferMethodsOn)
-				System.out.println("Running Inferred methods algorithm...");
+			initiateCoolDown();
 
 		}// end run in vm
 	}
 
-public void replayTask(File parentTask, int realTaskNumber, File childMethod, int realMethodNumber)
-{
-	String fileName = this.tcDirectory +  File.separator + parentTask.getName() + File.separator + childMethod.getName();
-	System.out.println("JavaReplayTestCase: Replaying file: " + childMethod.getName());
-	taskName = fileName;
-	//extract the file extension (make sure it is  a tst file)
-	int mid= fileName.lastIndexOf(".");
-	String ext=fileName.substring(mid+1,fileName.length());
-
-	// get the test case from this test case directory
-	if(ext.equals("tst")){
-		//create a directory for the image results
-//		File resultsDir = new File(fileName + "_images");
-		String parentDir = outputDirectory + File.separator + parentTask.getName() + "_images";
-		File resultsDir = new File(parentDir, childMethod.getName() + "_images");
-		resultsDir.mkdirs();
-		repController = new JavaReplayerController(monitor);
-		repController.setApplicationMonitor(monitor);
-
-//		String results = fileName + "_images" + File.separator;
-		repController.setImageDir(parentDir + File.separator + childMethod.getName() + "_images" + File.separator);
-		// reads a the task file and test case file from the results folder.
-		// to their global variables.
-		Object taskObj = null;
-		XMLHandler handler= new XMLHandler();
-		try{
-			taskObj = handler.readObjFromFile(fileName, Task.class);
-			if(taskObj instanceof TestCase) {
-				TestCase ourTC = (TestCase)taskObj;
-				taskObj = JFCReplayerEFS.mapTestCaseToTask(ourTC);
-			}
-			currentTask = (Task)taskObj;
-		}
-		catch(Exception e){
-			System.err.println("\nTask file ould not be loaded to task object. \n" +
-					e.getClass() + ":" + e.getMessage());
-		}
-		repController.initializeWindows();
-		launchReplayer(realTaskNumber);
-
-	}// end detect .tst
-}
 	/**
 	 * Close the instances of the application still open. This method is meant to be called after the replayer
 	 * finishes its final task.
@@ -379,17 +371,8 @@ public void replayTask(File parentTask, int realTaskNumber, File childMethod, in
 			System.err.println("JavaReplayTestCase: App Replay may still be in session.");
 		else
 			System.out.println("JavaReplayTestCase: Other app shutdown is fully complete.");
-	}
-	@Override
-	public void gotHoverEvent(String componentID, String componentRoleName, String windowName) {
-		// TODO Auto-generated method stub
-
+		System.exit(0);
 	}
 
-	@Override
-	public void gotWindowCloseEvent(String componentID, String windowName) throws RemoteException {
-		// TODO Auto-generated method stub
-
-	}
 
 }

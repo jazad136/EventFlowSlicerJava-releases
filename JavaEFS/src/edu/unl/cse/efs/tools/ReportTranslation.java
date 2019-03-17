@@ -1,5 +1,23 @@
-package edu.unl.cse.efs.tools;
+/*******************************************************************************
+ *    Copyright (c) 2018 Jonathan A. Saddler
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ *    
+ *    Contributors:
+ *     Jonathan A. Saddler - initial API and implementation
+ *******************************************************************************/
 
+package edu.unl.cse.efs.tools;
 import java.util.List;
 
 import edu.umd.cs.guitar.model.data.*;
@@ -8,10 +26,10 @@ public class ReportTranslation {
 
 
 	/**
-	 * Prints out all the elements of the Repeat rules in reportList
+	 * Prints out all the elements of the Repeat rules in reportList 
 	 * with the right connector and the right number of the rule. The default connector between widgets is comma (,)
 	 * between rules is newline.
-	 *
+	 * 
 	 * Preconditions: none.
 	 * Postconditions: A String containing all the Repeat rules in the TaskList reportList
 	 * is returned from the function.
@@ -19,68 +37,84 @@ public class ReportTranslation {
 	public static String repeatReport(TaskList reportList)
 	{
 		String toReturn = "";
-		if(reportList == null || reportList.getRepeat().isEmpty())
+		if(reportList == null || reportList.getRepeat().isEmpty()) 
 			return toReturn;
 		List<Repeat> ruleList = reportList.getRepeat();
 		for(int i = 0; i < ruleList.size(); i++)
 			toReturn += combine(toReturn, "Rule " + widgetReport(ruleList.get(i).getWidget(), i+1, ","));
 		return toReturn;
 	}
-
+	
 	/**
-	 * Prints out all the elements of the Required rules in reportList
+	 * Prints out all the elements of the Stop rules in reportList 
+	 * with the right connector and the right number of the rule. 
+	 * The default connector between widgets is comma (,) between rules is newline.
+	 */
+	public static String stopReport(TaskList reportList)
+	{
+		String toReturn = "";
+		if(reportList == null || reportList.getStop().isEmpty())
+			return toReturn;
+		List<Stop> ruleList = reportList.getStop();
+		for(int i = 0; i < ruleList.size(); i++)
+			toReturn += combine(toReturn, "Rule " + widgetReport(ruleList.get(i).getWidget(), i+1, ","));
+		return toReturn;
+	}
+	
+	/**
+	 * Prints out all the elements of the Required rules in reportList 
 	 * with the right connector and the right number of the rule. The default connector between widgets is comma (,)
 	 * between rules is newline.
-	 *
+	 * 
 	 * Preconditions: none.
-	 * Postconditions: A String containing all the Required rules in the TaskList reportList
+	 * Postconditions: A String containing all the Required rules in the TaskList reportList 
 	 * is returned from the function.
 	 */
 	public static String requiresReport(TaskList reportList)
 	{
 		String toReturn = "";
-		if(reportList == null || reportList.getRequired().isEmpty())
+		if(reportList == null || reportList.getRequired().isEmpty()) 
 			return toReturn;
 		List<Required> ruleList = reportList.getRequired();
 		for(int i = 0; i < ruleList.size(); i++)
 			toReturn += combine(toReturn, "Rule " + widgetReport(ruleList.get(i).getWidget(), i+1, ","));
 		return toReturn;
 	}
-
+	
 	/**
-	 * Prints out all the elements of the Exclusion rules in reportList
+	 * Prints out all the elements of the Exclusion rules in reportList 
 	 * with the right connector and the right number of the rule. The default connector between widgets is comma (,)
 	 * between rules is newline.
-	 *
+	 * 
 	 * Preconditions: none.
-	 * Postconditions: A String containing all the Exclusion rules in the TaskList reportList
+	 * Postconditions: A String containing all the Exclusion rules in the TaskList reportList 
 	 * is returned from the function.
 	 */
 	public static String exclusionReport(TaskList reportList)
 	{
 		String toReturn = "";
-		if(reportList == null || reportList.getExclusion().isEmpty())
+		if(reportList == null || reportList.getExclusion().isEmpty()) 
 			return toReturn;
 		List<Exclusion> ruleList = reportList.getExclusion();
 		for(int i = 0; i < ruleList.size(); i++)
 			toReturn += combine(toReturn, "Rule " + widgetReport(ruleList.get(i).getWidget(), i+1, ","));
 		return toReturn;
 	}
-
+	
 	/**
-	 * Prints out all the elements of the Atomic rules in reportList
-	 * with the right connector and the right number of the rule.
-	 * The default connector between widgets is comma (,), between atomic groups is newline,
+	 * Prints out all the elements of the Atomic rules in reportList 
+	 * with the right connector and the right number of the rule. 
+	 * The default connector between widgets is comma (,), between atomic groups is newline, 
 	 * between rules is newline//newline.
-	 *
+	 * 
 	 * Preconditions: none.
-	 * Postconditions: A String containing all the atomic rules in the TaskList reportList
+	 * Postconditions: A String containing all the atomic rules in the TaskList reportList 
 	 * is returned from the function.
 	 */
 	public static String atomicReport(TaskList reportList)
 	{
 		String toReturn = "";
-		if(reportList == null || reportList.getAtomic().isEmpty())
+		if(reportList == null || reportList.getAtomic().isEmpty()) 
 			return toReturn;
 		List<Order> ruleList = reportList.getOrder();
 		OrderGroup next;
@@ -95,25 +129,25 @@ public class ReportTranslation {
 		return toReturn;
 	}
 	/**
-	 * Prints out all the elements of the Order rules in reportList
-	 * with the right connector and the right number of the rule.
-	 * The default connector between widgets is comma (,), between order groups is newline,
+	 * Prints out all the elements of the Order rules in reportList 
+	 * with the right connector and the right number of the rule. 
+	 * The default connector between widgets is comma (,), between order groups is newline, 
 	 * between rules is newline//newline.
-	 *
+	 * 
 	 * Preconditions: none.
-	 * Postconditions: A String containing all the order rules in the TaskList reportList
+	 * Postconditions: A String containing all the order rules in the TaskList reportList 
 	 * is returned from the function.
 	 */
 	public static String orderReport(TaskList reportList)
 	{
 		String toReturn = "";
-		if(reportList == null || reportList.getOrder().isEmpty())
+		if(reportList == null || reportList.getOrder().isEmpty()) 
 			return toReturn;
 		List<Atomic> ruleList = reportList.getAtomic();
 		AtomicGroup next;
 		for(int i = 0; i < ruleList.size(); i++) {
 			toReturn += "Rule " + (i+1);
-
+			
 			for(int j = 0; j < ruleList.get(i).getAtomicGroup().size(); j++) {
 				next = ruleList.get(i).getAtomicGroup().get(j);
 				toReturn = combine(toReturn, "Group " + widgetReport(next.getWidget(), i+1, ","));
@@ -122,7 +156,7 @@ public class ReportTranslation {
 		}
 		return toReturn;
 	}
-
+	
 	/**
 	 * Combine two parts of a report with a special delimiter
 	 * @param prefix
@@ -133,7 +167,7 @@ public class ReportTranslation {
 	{
 		return prefix + "\n" + newFix;
 	}
-
+	
 	/**
 	 * Append a special large delimiter to the end of a smaller report.
 	 * @param infix
@@ -143,13 +177,13 @@ public class ReportTranslation {
 	{
 		return infix + "\n//\n";
 	}
-
+	
 	public static String widgetReport(List<Widget> widgets, int number, String widgetDelimiter)
 	{
 		String toReturn = "" + number + ": ";
 		for(int i = 0; i < widgets.size(); i++)
 			toReturn += widgets.get(i) + widgetDelimiter;
-
+		
 		return toReturn;
 	}
 }

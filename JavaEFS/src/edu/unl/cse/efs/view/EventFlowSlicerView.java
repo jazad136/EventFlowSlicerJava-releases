@@ -1,4 +1,23 @@
+/*******************************************************************************
+ *    Copyright (c) 2018 Jonathan A. Saddler
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ *    
+ *    Contributors:
+ *     Jonathan A. Saddler - initial API and implementation
+ *******************************************************************************/
 package edu.unl.cse.efs.view;
+
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.FocusTraversalPolicy;
@@ -272,7 +291,7 @@ public class EventFlowSlicerView
 		public static JPanel topPanel;
 		public static JLabel banner;
 		public static JButton startB, stopB;
-		public static JButton facetConsB, editConsB, ripB;
+		public static JButton editConsB, ripB;
 		public static JButton genTB, startRB;
 		public static JButton selHelp;
 		public static JTextField selT;
@@ -301,7 +320,6 @@ public class EventFlowSlicerView
 			startB = new JButton("Start");
 			stopB = new JButton("Stop");
 			editConsB = new JButton("Edit Constraints");
-			facetConsB = new JButton("Facet Constraints");
 			ripB = new JButton("Rip Application");
 			genTB = new JButton("Generate Test Cases");
 			startRB = new JButton("Start");
@@ -339,7 +357,6 @@ public class EventFlowSlicerView
 			ripGroup.add(ripB);
 			rulGroup.setLayout(new BoxLayout(rulGroup, BoxLayout.PAGE_AXIS));
 			rulGroup.add(editConsB);
-			rulGroup.add(facetConsB);
 			// layout
 			twoGroups.add(rulGroup);
 			twoGroups.add(Box.createVerticalStrut(20));
@@ -386,7 +403,7 @@ public class EventFlowSlicerView
 		TopContent.startB.addActionListener(new CaptureAction(frame, true));
 		TopContent.stopB.addActionListener(new CaptureAction(frame, false));
 		TopContent.editConsB.addActionListener(new ConstraintsAction(frame));
-		TopContent.facetConsB.addActionListener(new SelectorAction(frame));
+//		TopContent.facetConsB.addActionListener(new SelectorAction(frame));
 		TopContent.ripB.addActionListener(new RipAction(frame));
 		TopContent.genTB.addActionListener(new GenerateAction(frame));
 		TopContent.startRB.addActionListener(new ReplayAction(frame));
@@ -1106,23 +1123,23 @@ break;	case "ripConfigurationFilePath": {
 		}
 		return true;
 	}
-	public static class SelectorAction implements ActionListener
-	{
-		private final JFrame headFrame;
-		public SelectorAction(JFrame headFrame)
-		{
-			this.headFrame = headFrame;
-		}
-		public void actionPerformed(ActionEvent ae)
-		{
-			if(step2Prepared(headFrame)) {
-				ad.setDefaultWorkingTaskListFile();
-				ac.writeTaskListFile();
-				ac.startSelectorDialog(headFrame);
-				updateConstraintsFile();
-			}
-		}
-	}
+//	public static class SelectorAction implements ActionListener
+//	{
+//		private final JFrame headFrame;
+//		public SelectorAction(JFrame headFrame)
+//		{
+//			this.headFrame = headFrame;
+//		}
+//		public void actionPerformed(ActionEvent ae)
+//		{
+//			if(step2Prepared(headFrame)) {
+//				ad.setDefaultWorkingTaskListFile();
+//				ac.writeTaskListFile();
+//				ac.startSelectorDialog(headFrame);
+//				updateConstraintsFile();
+//			}
+//		}
+//	}
 	public static class ConstraintsAction implements ActionListener
 	{
 		private final JFrame headFrame;
@@ -1287,7 +1304,7 @@ break;	case "ripConfigurationFilePath": {
 							bookmarkedEFG = bkmk.getBookmarked(true);
 							System.out.println("EVENTFLOWSLICER: Bookmarking test successful.");
 							System.out.println("EVENTFLOWSLICER: Done.");
-							ac.modifyEFGInitials(bookmarkedEFG);
+//							ac.modifyEFGInitials(bookmarkedEFG);
 						}
 						catch(Exception e) {
 							System.err.println("Failed Bookmarking test.");
@@ -1466,7 +1483,7 @@ break;	case "ripConfigurationFilePath": {
 			ac.relabelConstraintsWidgets(); // prepare the constraints
 			ac.setupGeneratorLogFile();
 			try {
-				int testCases = ac.startGeneratingTestCasesWithFacets(ld);
+				int testCases = ac.startGeneratingTestCases(ld);
 				JOptionPane.showMessageDialog(headFrame, "(" + testCases + ") Test Cases were generated successfully");
 			} catch(IOException e) {
 				JOptionPane.showMessageDialog(headFrame, e.getMessage());

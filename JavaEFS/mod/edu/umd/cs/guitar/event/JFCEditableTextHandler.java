@@ -1,21 +1,21 @@
-/*
+/*	
  *  Copyright (c) 2009-@year@. The GUITAR group at the University of Maryland. Names of owners of this group may
  *  be obtained by sending an e-mail to atif@cs.umd.edu
- *
- *  Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
- *  documentation files (the "Software"), to deal in the Software without restriction, including without
+ * 
+ *  Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated 
+ *  documentation files (the "Software"), to deal in the Software without restriction, including without 
  *  limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- *	the Software, and to permit persons to whom the Software is furnished to do so, subject to the following
+ *	the Software, and to permit persons to whom the Software is furnished to do so, subject to the following 
  *	conditions:
- *
- *	The above copyright notice and this permission notice shall be included in all copies or substantial
+ * 
+ *	The above copyright notice and this permission notice shall be included in all copies or substantial 
  *	portions of the Software.
  *
- *	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT
- *	LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO
- *	EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- *	IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
- *	THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT 
+ *	LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO 
+ *	EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER 
+ *	IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR 
+ *	THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
  */
 package edu.umd.cs.guitar.event;
 
@@ -39,23 +39,22 @@ import edu.umd.cs.guitar.model.JFCXComponent;
 
 /**
  * @author <a href="mailto:baonn@cs.umd.edu"> Bao Nguyen </a>
- *
+ * 
  * @author Jonathan Saddler
  */
 public class JFCEditableTextHandler extends JFCEventHandler {
 
 	public static long giveAnAdditionalTime = 500;
 	public static long keyPressTime = 60;
-	public static String textInsertionCommand = "TextInsert";
-	public static String textReplacementCommand = "TextInsert";
+	
 	/**
-     *
+     * 
      */
 	public JFCEditableTextHandler() {
 	}
 
 	/**
-     *
+     * 
      */
 	private static String GUITAR_DEFAULT_TEXT = "GUITAR DEFAULT TEXT: "
 			+ "!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
@@ -77,7 +76,7 @@ public class JFCEditableTextHandler extends JFCEventHandler {
 			System.err.println("JFCEditableTextHandler: PerformImpl was passed a null component.");
 			return;
 		}
-
+		
 		if (parameters instanceof List) {
 			 // set the text to be edited.
 			List<String> lParameter = (List<String>) parameters;
@@ -95,15 +94,15 @@ public class JFCEditableTextHandler extends JFCEventHandler {
 					}
 					nParam[i] = pComponents;
 				}
-			}
+			}			
 			final Component component = getComponent(gComponent);
 			long sleepTime = eventPerformWaitTime;
 			final AccessibleContext aContext = component.getAccessibleContext();
-
+			
 			for(String[] set : nParam) {
 				final String command = set[0];
 				final String finalSInput = set[1];
-
+				
 				if(command.equals("Cursor"))
 					continue;
 				 // check for compatibility
@@ -112,75 +111,75 @@ public class JFCEditableTextHandler extends JFCEventHandler {
 					javax.swing.SwingUtilities.invokeAndWait(new Runnable() {public void run() {
 						component.requestFocus();
 					}});
-
-					// Step 2: wait some time.
+					
+					// Step 2: wait some time. 
 					setWaitTime(eventPerformWaitTime + 500);
 					headThread.interrupt();
 					Thread.interrupted();
-					Thread.sleep(sleepTime); // wait some time.
-
+					Thread.sleep(sleepTime); // wait some time. 
+					
 					// Step 3: then continue to insert the text
 					if(command.equals("Command")) {
 						String delimString = GUITARConstants.CMD_ARGUMENT_SEPARATOR;
 						delimString += "[]";
 						StringTokenizer st = new StringTokenizer(finalSInput, delimString);
-
+						
 						Component source = component;
 						int idReleased = KeyEvent.KEY_RELEASED;
 						int idPressed = KeyEvent.KEY_PRESSED;
 						int idTyped = KeyEvent.KEY_TYPED;
-
+						
 						int modifiers = 0;
 						while(st.hasMoreTokens()) {
 							String nextI = st.nextToken();
 							long when = System.currentTimeMillis(); // get the now time;
-
+							
 							switch(nextI.toUpperCase()) {
 								case "ENTER": case "SPACE": {
 									int llKeyCode = KeyEvent.VK_UNDEFINED; // default value.
 									char tyKeyChar = KeyEvent.CHAR_UNDEFINED; // default value.
 									switch(nextI.toUpperCase()) {
-									case "ENTER" : llKeyCode = KeyEvent.VK_ENTER; tyKeyChar = '\n'; break;
-									case "SPACE" : llKeyCode = KeyEvent.VK_SPACE; tyKeyChar = ' '; break;
+									case "ENTER" : llKeyCode = KeyEvent.VK_ENTER; tyKeyChar = '\n';
+									case "SPACE" : llKeyCode = KeyEvent.VK_SPACE; tyKeyChar = ' ';
 									}
 									int tyKeyCode = KeyEvent.VK_UNDEFINED;
 									char llKeyChar = KeyEvent.CHAR_UNDEFINED;
-
+									
 									final KeyEvent myKeyEventP = new KeyEvent(source, idPressed, when, modifiers, llKeyCode, llKeyChar);
 									final KeyEvent myKeyEventT = new KeyEvent(source, idTyped, when, modifiers, tyKeyCode, tyKeyChar);
 									final KeyEvent myKeyEventR = new KeyEvent(source, idReleased, when+60, modifiers, llKeyCode, llKeyChar);
-
+									
 									javax.swing.SwingUtilities.invokeLater(new Runnable() {public void run() {
 										Toolkit.getDefaultToolkit().getSystemEventQueue().postEvent(myKeyEventP);
 										Toolkit.getDefaultToolkit().getSystemEventQueue().postEvent(myKeyEventT);
 										Toolkit.getDefaultToolkit().getSystemEventQueue().postEvent(myKeyEventR);
 									}});
 								}
-								case "RIGHT": case "LEFT": case "UP": case "DOWN":
+								case "RIGHT": case "LEFT": case "UP": case "DOWN":  
 									int llKeyCode = KeyEvent.VK_UNDEFINED;
-									switch(nextI.toUpperCase()) {
+									switch(nextI.toUpperCase()) {								
 									case "RIGHT": llKeyCode = KeyEvent.VK_RIGHT; break;
-									case "LEFT":  llKeyCode = KeyEvent.VK_LEFT; break;
+									case "LEFT":  llKeyCode = KeyEvent.VK_LEFT; break; 
 									case "UP":    llKeyCode = KeyEvent.VK_UP; break;
 									case "DOWN":  llKeyCode = KeyEvent.VK_DOWN; break;
 									}
 									char llKeyChar = KeyEvent.CHAR_UNDEFINED;
 									int location = KeyEvent.KEY_LOCATION_STANDARD;
-
+									
 									final KeyEvent myKeyEventP = new KeyEvent(source, idPressed, when, modifiers, llKeyCode, llKeyChar, location);
 									final KeyEvent myKeyEventR = new KeyEvent(source, idReleased, when+keyPressTime, modifiers, llKeyCode, llKeyChar, location);
 									javax.swing.SwingUtilities.invokeLater(new Runnable() {public void run() {
 										Toolkit.getDefaultToolkit().getSystemEventQueue().postEvent(myKeyEventP);
 										Toolkit.getDefaultToolkit().getSystemEventQueue().postEvent(myKeyEventR);
 									}}); break;
-								default: // unsupported keystroke.
+								default: // unsupported keystroke. 
 							}
 							headThread.interrupt();
 							Thread.interrupted();
 							Thread.sleep(sleepTime); // wait some time.
-						}
+						}	
 					}
-					else if(command.equals(textInsertionCommand) || command.equals(textReplacementCommand)) {
+					else if(command.equals("TextInsert")) {
 						final AccessibleEditableText aTextEvent = aContext.getAccessibleEditableText();
 						if(aTextEvent == null) { // type the keys "manually" without Accessibility API.
 							Component source = component;
@@ -196,20 +195,20 @@ public class JFCEditableTextHandler extends JFCEventHandler {
 								Thread.sleep(keyPressTime);
 							}
 						}
-						else { // use accessibility api.
+						else { // use accessibility api. 
 							javax.swing.SwingUtilities.invokeLater(new Runnable() {public void run() {
-//								String currentText = aTextEvent.getTextRange(0, aTextEvent.getCharCount());
-//								if(currentText == null || command.equals("TextReplace"))
+								String currentText = aTextEvent.getTextRange(0, aTextEvent.getCharCount());
+								if(currentText == null)
 									aTextEvent.setTextContents(finalSInput);
-//								else
-//									aTextEvent.setTextContents(currentText + finalSInput);
+								else
+									aTextEvent.setTextContents(currentText + finalSInput);
 								aTextEvent.selectText(aTextEvent.getCharCount(), aTextEvent.getCharCount()); // replace the cursor
 							}});
 						}
-					} // end text insert clause
+					} // end text insert clause 
 				}// end try.
 				catch (	SecurityException | IllegalArgumentException | InvocationTargetException | InterruptedException e) {
-					// this thread should never be interrupted.
+					// this thread should never be interrupted. 
 					System.err.println("Error caused by " + e.getClass().getName() + ": " + e.getLocalizedMessage());
 					throw new EventPerformException();
 				}
@@ -230,7 +229,7 @@ public class JFCEditableTextHandler extends JFCEventHandler {
 		JFCXComponent jComponent = (JFCXComponent) gComponent;
 		Component component = jComponent.getComponent();
 		AccessibleContext aContext = component.getAccessibleContext();
-
+		
 		if (aContext == null)
 			return false;
 
@@ -241,12 +240,66 @@ public class JFCEditableTextHandler extends JFCEventHandler {
 		if (event != null) {
 			return true;
 		}
-		else if(aContext.getAccessibleRole().equals(AccessibleRole.PANEL)
-		&& JFCXComponent.hasListeners(component, "textbox")
+		else if(aContext.getAccessibleRole().equals(AccessibleRole.PANEL) 
+		&& JFCXComponent.hasListeners(component, "textbox") 
 		&& JFCXComponent.hasListeners(component, "button"))
 		{
 			return true; // if we're a panel with both listeners, we're a typing panel.
 		}
 		return false;
 	}
+/*
+	public static class Algorithms
+	{
+		public void focusListenerPerform(final Component component, final String command)
+		{
+			 // perform the task or bail
+			try {
+				component.addFocusListener(new FocusListener()  {
+				public void focusGained(FocusEvent fe) 
+				{
+					long sleepTime = eventPerformWaitTime/2;
+					setWaitTime(1500);
+					headThread.interrupt();
+					Thread.interrupted();
+					// wait some time
+					try {Thread.sleep(sleepTime);}
+					catch(InterruptedException e) {
+						System.err.println(e.getLocalizedMessage());
+						throw new EventPerformException();
+					}
+					
+					String currentText = aTextEvent.getTextRange(0, aTextEvent.getCharCount());
+					String inputText = finalSInput;
+					if(command.equals("TextInsert")) {
+						if(currentText == null)
+							aTextEvent.setTextContents(inputText);
+						else
+							aTextEvent.setTextContents(currentText + inputText);
+						aTextEvent.selectText(aTextEvent.getCharCount(), aTextEvent.getCharCount());
+					}
+					resetWaitTime();
+					component.removeFocusListener(this);
+				}
+
+				public void focusLost(FocusEvent e) {}
+			});
+				javax.swing.SwingUtilities.invokeAndWait(new Runnable() {public void run() {
+						component.requestFocus();
+				}});
+			}
+			catch (	SecurityException | 
+					IllegalArgumentException | 
+					InvocationTargetException | 
+					InterruptedException e2) {
+				// this thread should never be interrupted. 
+				System.err.println(e2.getLocalizedMessage());
+				throw new EventPerformException();
+			}
+			
+			// reset the wait time before joining. 
+			resetWaitTime();
+		}
+	}
+*/
 }

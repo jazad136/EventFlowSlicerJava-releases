@@ -1,21 +1,3 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- * 
- *   http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
- */
 package edu.unl.cse.efs.bkmktools;
 
 import java.io.File;
@@ -34,82 +16,79 @@ import edu.umd.cs.guitar.model.data.StepType;
 import edu.umd.cs.guitar.model.data.TestCase;
 import edu.unl.cse.efs.tools.PathConformance;
 
-/**
- * @author Jonathan A. Saddler
- */
 public class TSTBookmarking {
-
-
+	
+	
 	private ObjectFactory fact;
 	private XMLHandler handler;
-
+	
 	private EFG backingEFG;
 	private TestCase backingTST;
 	private List<EventType> allEvents;
 	private List<StepType> allSteps;
 	private static String NAME_VERSION_SEPARATOR = ":";
 	private static char NAME_VERSION_SEPARATOR_CHAR = ':';
-
+	
 	public static void main(String[] args)
 	{
-		if(args.length == 3) {
-			String efgFile = args[0];
-			String tstFile = args[1];
-			String outputDirectory = args[2];
-
-			try {doBookmark(outputDirectory, efgFile, tstFile);}
-			catch(FileNotFoundException e) {
-				throw new RuntimeException(e);
-			}
-			System.out.println("Done.");
+		String efgFile = args[0];
+		String tstFile = args[1];
+		String outputDirectory = PathConformance.parseApplicationPath(tstFile);
+		if(outputDirectory.equals("")) 
+			outputDirectory = System.getProperty("user.dir") + File.separator;
+		
+		try {doBookmark(outputDirectory, efgFile, tstFile);}
+		catch(FileNotFoundException e) {
+			throw new RuntimeException(e);
 		}
+		System.out.println("Done.");
 	}
-
+	
 	public TSTBookmarking(String TSTFilename, String EFGFilename) throws FileNotFoundException
 	{
 		File EFGFile = new File(EFGFilename);
-		if(!EFGFile.exists())
+		if(!EFGFile.exists()) 
 			throw new FileNotFoundException(EFGFilename);
-
+		
 		File TSTFile = new File(TSTFilename);
-		if(!TSTFile.exists())
+		if(!TSTFile.exists()) 
 			throw new FileNotFoundException(TSTFilename);
 		handler = new XMLHandler();
 		fact = new ObjectFactory();
-		backingEFG = (EFG)handler.readObjFromFile(EFGFile, EFG.class);
+		backingEFG = (EFG)handler.readObjFromFile(EFGFile, EFG.class);	
 		allEvents = backingEFG.getEvents().getEvent();
 		backingTST = (TestCase)handler.readObjFromFile(TSTFile, TestCase.class);
 		allSteps = backingTST.getStep();
-
+		
 	}
-
+	
 	public TSTBookmarking(TestCase testCase, EFG efg) throws FileNotFoundException
 	{
 		handler = new XMLHandler();
 		fact = new ObjectFactory();
-		if(efg == null
-		|| efg.getEvents() == null
-		|| efg.getEvents().getEvent() == null
+		if(efg == null 
+		|| efg.getEvents() == null 
+		|| efg.getEvents().getEvent() == null 
 		|| efg.getEvents().getEvent().isEmpty())
 			throw new IllegalArgumentException("A null EFG or EFG with a null or empty set of events was passed to TSTBookmarking constructor.");
-
+		
 		backingEFG = efg;
 		if(testCase == null)
 			throw new IllegalArgumentException("A null TestCase was passed to TSTBookmarking constructor.");
-
+		
 		allEvents = backingEFG.getEvents().getEvent();
 		backingTST = testCase;
 		allSteps = backingTST != null ? backingTST.getStep() : new LinkedList<StepType>();
 	}
-
-
+	
+	
 	public static class TSTUnBookmarking
 	{
 		private TestCase backingTST;
 		private List<StepType> allSteps;
 		private XMLHandler handler;
 		private ObjectFactory fact;
-
+		
 		public TSTUnBookmarking(String TSTFilename) throws FileNotFoundException
 		{
 			File TSTFile = new File(TSTFilename);
@@ -118,18 +97,18 @@ public class TSTBookmarking {
 				throw new FileNotFoundException(TSTFile.getAbsolutePath());
 			handler = new XMLHandler();
 			fact = new ObjectFactory();
-			backingTST = (TestCase)handler.readObjFromFile(TSTFile, TestCase.class);
+			backingTST = (TestCase)handler.readObjFromFile(TSTFile, TestCase.class);	
 			allSteps = backingTST.getStep();
 		}
-
-		public TSTUnBookmarking(TestCase TSTObject)
+		
+		public TSTUnBookmarking(TestCase TSTObject) 
 		{
 			handler = new XMLHandler();
 			fact = new ObjectFactory();
-			backingTST = TSTObject;
+			backingTST = TSTObject;	
 			allSteps = backingTST.getStep();
 		}
-
+		
 		public TestCase getUnBookmarked()
 		{
 			ArrayList<StepType> newSteps = new ArrayList<StepType>();
@@ -141,7 +120,7 @@ public class TSTBookmarking {
 				int colonPos;
 				colonPos = oldEventId.indexOf(':');
 				String newEventId;
-				if(colonPos != -1)
+				if(colonPos != -1) 
 					newEventId = oldEventId.substring(0, colonPos);
 				else
 					newEventId = oldEventId;
@@ -161,15 +140,15 @@ public class TSTBookmarking {
 				}
 				newSteps.add(newStep);
 			}
-
+			
 			TestCase toReturn = fact.createTestCase();
 			toReturn.getStep().addAll(newSteps);
 			return toReturn;
-		}
+		}	
 	}
 	public static void doUnBookmark(String outputDirectory, String inputTSTFilename)
 	{
-
+		
 	}
 	public static void doBookmark(String outputDirectory, String inputEFGFilename, String inputTSTFilename) throws FileNotFoundException
 	{
@@ -177,11 +156,11 @@ public class TSTBookmarking {
 		TestCase out = marker.getBookmarkedViaBookmarkedEFG();
 		XMLHandler handler = new XMLHandler();
 		String newFileName = PathConformance.parseApplicationName(inputTSTFilename) + "_BKMK.tst";
-		newFileName = outputDirectory + File.separator + newFileName;
+		newFileName = outputDirectory + newFileName;
 		System.out.println("Writing file to \n\"" + newFileName + "\"");
 		handler.writeObjToFile(out, newFileName);
 	}
-
+	
 	/**
 	 * Return a test case object containing information useful to actually replay or visualize
 	 * the test case, using the bookmarked EFG provided
@@ -192,7 +171,7 @@ public class TSTBookmarking {
 	{
 		TSTBookmarking marker = new TSTBookmarking(testCase, bookmarkedEFG);
 	}
-
+	
 	/*
 	 * Incomplete
 	 * @return
@@ -200,25 +179,25 @@ public class TSTBookmarking {
 	public TestCase getBookmarkedViaGUIAndEFG()
 	{
 		return fact.createTestCase();
-	}
-
+	}	
+	
 	public TestCase getBookmarkedViaBookmarkedEFG()
 	{
-		ArrayList<StepType> newSteps = new ArrayList<StepType>();
-
+		ArrayList<StepType> newSteps = new ArrayList<StepType>(); 
+		
 		for(int i = 0; i < allSteps.size(); i++) {
 			StepType oldStep = allSteps.get(i);
 			StepType newStep = appendStepInfoFromEvent(oldStep);
 			newSteps.add(newStep);
 		}
-
+	
 		TestCase toReturn = fact.createTestCase();
 		toReturn.setStep(newSteps);
 		return toReturn;
 	}
-
+	
 	/**
-	 * Find the event in the events list with the matching event id.
+	 * Find the event in the events list with the matching event id. 
 	 * @param eventId
 	 * @return
 	 */
@@ -232,7 +211,7 @@ public class TSTBookmarking {
 		}
 		return -1;
 	}
-
+	
 	private String unbookmarkedEventId(String rawEName)
 	{
 		if(rawEName != null && rawEName.contains(NAME_VERSION_SEPARATOR)) {
@@ -241,15 +220,15 @@ public class TSTBookmarking {
 		}
 		return rawEName;
 	}
-
-
+	
+	
 	private StepType appendStepInfoFromEvent(StepType oldStep)
-	{
+	{	
 		int eventNum = findEvent(oldStep.getEventId());
 		String newName;
-		if(eventNum != -1)
+		if(eventNum != -1) 
 			newName = allEvents.get(eventNum).getEventId();
-
+		
 		else
 			newName = oldStep.getEventId();
 		StepType newStep = fact.createStepType();

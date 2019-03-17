@@ -1,3 +1,21 @@
+/*******************************************************************************
+ *    Copyright (c) 2018 Jonathan A. Saddler
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ *    
+ *    Contributors:
+ *     Jonathan A. Saddler - initial API and implementation
+ *******************************************************************************/
 package edu.unl.cse.efs.java;
 
 import static edu.unl.cse.efs.view.EventFlowSlicerErrors.errorOut;
@@ -5,6 +23,7 @@ import static edu.unl.cse.efs.view.EventFlowSlicerErrors.errorOut;
 import java.awt.AWTEvent;
 import java.io.File;
 import java.io.FileFilter;
+import java.io.FilenameFilter;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -250,18 +269,18 @@ public class JavaReplayerLauncher extends ReplayerLauncher implements NetCommuni
 				replayerController = javaRepController;
 				replaySupervisor.setReplayerController(javaRepController);
 				// for every child directory.
-				// int count = 0;
-				// Iterator<File> taskIt = childArr.iterator()
+				int count = 0;
+				Iterator<File> taskIt = childArr.iterator();
 
-				// while(taskIt.hasNext()) {
-				// 	File[] taskChildren = taskIt.next().listFiles(new TestCaseFilter());
-				// 	if(taskChildren==null)
-				//		taskIt.remove()
-				//	else
-				//		count += taskChildren.size()
-				// }
-				// replayMax = count
-				// children = childArr.toArray(new File[0]);
+				while(taskIt.hasNext()) {
+					File[] taskChildren = taskIt.next().listFiles(new TestCaseFilter());
+					if(taskChildren==null)
+						taskIt.remove();
+					else
+						count += taskChildren.length;
+				}
+				replayMax = count;
+				children = childArr.toArray(new File[0]);
 				for(int i=0; i<children.length; i++) {
 					File[] taskChildren = children[i].listFiles(new TestCaseFilter());
 					if(taskChildren==null)
@@ -547,25 +566,16 @@ public class JavaReplayerLauncher extends ReplayerLauncher implements NetCommuni
 	}
 	public void shutMeDown() throws java.rmi.RemoteException
 	{
+		try {
 		replaySupervisor.shutMeDown();
+		}catch(Exception e) {
+
+		}
 	}
 
 	@Override
 	public void gotKeyEvent(String[] keyData, char keyChar, String eventID, String windowName, String componentRoleName)
 			throws RemoteException {
 		// TODO Auto-generated method stub
-	}
-
-
-	@Override
-	public void gotHoverEvent(String componentID, String componentRoleName, String windowName) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void gotWindowCloseEvent(String componentID, String windowName) throws RemoteException {
-		// TODO Auto-generated method stub
-
 	}
 }

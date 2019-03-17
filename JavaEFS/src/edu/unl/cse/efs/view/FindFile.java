@@ -1,3 +1,21 @@
+/*******************************************************************************
+ *    Copyright (c) 2018 Jonathan A. Saddler
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ *    
+ *    Contributors:
+ *     Jonathan A. Saddler - initial API and implementation
+ *******************************************************************************/
 package edu.unl.cse.efs.view;
 
 import java.awt.Component;
@@ -26,17 +44,12 @@ import edu.unl.cse.efs.util.OSDetector;
 
 /**
  *
- * Source for the CogToolHelperSelectFile class. This class aids the user in selecting a file when promted to by
- * cogtool helper.
+ * Source for the CogToolHelperSelectFile class. This class aids the user in selecting a file when promted to by 
+ * cogtool helper. 
  */
 public class FindFile extends javax.swing.JPanel {
 
-	private javax.swing.JFileChooser chooseFile;
-	public static class ViewFrame
-	{
-		public static JFrame window;
-//		public static
-	}
+	private javax.swing.JFileChooser chooseFile;    	
 	public static void main(String[] args)
 	{
 		JFrame myFrame = new JFrame("The Title");
@@ -44,16 +57,16 @@ public class FindFile extends javax.swing.JPanel {
 		myFrame.setPreferredSize(w);
 		myFrame.pack();
 		myFrame.setVisible(true);
-		new FindFile().launch(false, myFrame);
+		new FindFile().launch(true, myFrame);
 	}
 	private static final long serialVersionUID = 1L;
 
-
+	
     public FindFile() {
         initComponents(new File(System.getProperty("user.dir")));
         setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
     }
-
+    
     public FindFile(File defaultDirectory) {
         initComponents(defaultDirectory);
         setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
@@ -72,6 +85,7 @@ public class FindFile extends javax.swing.JPanel {
     private void initComponents(File defaultDirectory) {
     	chooseFile = new JFileChooser(defaultDirectory);
         chooseFile.setName("File_Chooser");
+//        chooseFile.setName("chooseFile"); // NOI18N
         chooseFile.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 chooseFileMouseClicked(evt);
@@ -83,16 +97,16 @@ public class FindFile extends javax.swing.JPanel {
             }
         });
         add(chooseFile);
-    }
+    }// </editor-fold>//GEN-END:initComponents
 
     private void chooseFileActionPerformed(java.awt.event.ActionEvent evt){}
 
     private void chooseFileMouseClicked(java.awt.event.MouseEvent evt) {}
 
-
+    
 
     /**
-     * Launches the file chooser.
+     * Launches the file chooser. 
      * @param file - true if selections are limited to files only, false if selections are limited to folders only
      */
     public String launch(boolean file, final Component parent) {
@@ -107,15 +121,13 @@ public class FindFile extends javax.swing.JPanel {
            label = "Select File";
        }
 
-//        int res = chooseFile.showDialog(parent, label); // blocks
-       chooseFile.setApproveButtonText(label);
-       int res = chooseFile.showOpenDialog(parent);
-       	if(res==JFileChooser.APPROVE_OPTION) {
+        int res = chooseFile.showDialog(parent, label); // blocks
+        if(res==JFileChooser.APPROVE_OPTION) {
             File fileName = chooseFile.getSelectedFile();
             return fileName.getAbsolutePath();
         }
         else
-            return "";
+            return ""; 
     }
 
 }

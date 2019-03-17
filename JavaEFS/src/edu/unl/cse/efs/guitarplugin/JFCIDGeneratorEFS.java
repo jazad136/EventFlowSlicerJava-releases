@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2009-@year@. The  GUITAR group  at the University of
+ *  Copyright (c) 2009, 2018-@year@. The  GUITAR group  at the University of
  *  Maryland. Names of owners of this group may be obtained by sending
  *  an e-mail to atif@cs.umd.edu
  *

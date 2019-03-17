@@ -1,3 +1,21 @@
+/*******************************************************************************
+ *    Copyright (c) 2018 Jonathan A. Saddler
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ *    
+ *    Contributors:
+ *     Jonathan A. Saddler - initial API and implementation
+ *******************************************************************************/
 package edu.unl.cse.efs.java;
 
 import java.awt.AWTEvent;
@@ -6,6 +24,8 @@ import java.awt.Container;
 import java.awt.EventQueue;
 import java.awt.KeyEventDispatcher;
 import java.awt.KeyboardFocusManager;
+import java.awt.MouseInfo;
+import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.event.ComponentEvent;
@@ -38,7 +58,6 @@ import javax.swing.event.ChangeListener;
 import edu.umd.cs.guitar.model.GWindow;
 import edu.umd.cs.guitar.model.JFCXComponent;
 import edu.umd.cs.guitar.model.JFCXWindow;
-import edu.unl.cse.efs.app.EventFlowSlicer;
 import edu.unl.cse.efs.commun.JavaListener;
 import edu.unl.cse.guitarext.JavaTestInteractions;
 
@@ -53,7 +72,7 @@ public class JavaCaptureMonitor implements WindowListener{
 	protected final JavaSpecialEventQueue specialQueue;
 	protected ArrayList<Window> windowsInCapture;
 	protected boolean textCapture, buttonCapture, menuCapture, radioCapture,
-		listCapture, comboCapture, checkboxCapture,
+		listCapture, comboCapture, checkboxCapture, 
 		contextboxCapture, tabchangeCapture, tableCapture;
 	protected boolean hTextCapture, hButtonCapture, hMenuCapture, hRadioCapture,
 		hListCapture, hComboCapture, hCheckboxCapture,
@@ -63,7 +82,7 @@ public class JavaCaptureMonitor implements WindowListener{
 
 	/**
 	 * Constructor for JavaCaptureMonitor. Finally, initialize the list
-	 * of java listeners that will be used to capture these windows.
+	 * of java listeners that will be used to capture these windows. 
 	 * @param windowsToCapture
 	 */
 	public JavaCaptureMonitor(Collection<GWindow> windowsToCapture, JavaCaptureTaskList testCase)
@@ -73,9 +92,9 @@ public class JavaCaptureMonitor implements WindowListener{
 	}
 
 	/**
-	 * Constructor for the JavaCaptureMonitor.
-	 * Set up the containers for windows and interaction records.
-	 * Set the features that capture certain interactables to all be on by default.
+	 * Constructor for the JavaCaptureMonitor. 
+	 * Set up the containers for windows and interaction records. 
+	 * Set the features that capture certain interactables to all be on by default. 
 	 */
 	public JavaCaptureMonitor(Collection<GWindow> windowsToCapture)
 	{
@@ -86,26 +105,26 @@ public class JavaCaptureMonitor implements WindowListener{
 		interactionsByWindow = new ArrayList<JavaTestInteractions>();
 		appRelatedWindows = new ArrayList<GWindow>(windowsToCapture);
 		windowsInCapture = new ArrayList<Window>();
-		// set feature states. By default, all capture features are turned on
+		// set feature states. By default, all capture features are turned on 
 		// for all windows in capture.
-		textCapture = buttonCapture = menuCapture = radioCapture = listCapture =
-				comboCapture = checkboxCapture =
+		textCapture = buttonCapture = menuCapture = radioCapture = listCapture = 
+				comboCapture = checkboxCapture = 
 				contextboxCapture = tabchangeCapture = tableCapture = true;
-		hTextCapture = hButtonCapture = hMenuCapture = hRadioCapture =
-				hListCapture = hComboCapture = hCheckboxCapture =
+		hTextCapture = hButtonCapture = hMenuCapture = hRadioCapture = 
+				hListCapture = hComboCapture = hCheckboxCapture = 
 				hContextboxCapture = hTabchangeCapture = hTableCapture = true;
-		windowEventPrint = false;
+		windowEventPrint = false; 
 	}
 	/**
 	 * Returns the JavaTestInteractions that correspond to captureWindow. If no interactions
 	 * were ever registered on capture window or captureWindow is not currently in the capture,
 	 * an empty JavaTestInteractions is returned, implying that there are no capture interactions currently
 	 * registered for the window provided.
-	 *
+	 * 
 	 * Preconditions: 	none
 	 * Postconditions:	the testInteractions that correspond to the provided window
-	 * 					are returned if and only if captureWindow is currently being captured.
-	 * 					Otherwise, an empty JavaTestInteractions is returned.
+	 * 					are returned if and only if captureWindow is currently being captured. 
+	 * 					Otherwise, an empty JavaTestInteractions is returned. 
 	 */
 	public JavaTestInteractions interactionsForWindow(String windowName)
 	{
@@ -115,13 +134,13 @@ public class JavaCaptureMonitor implements WindowListener{
 		else
 			return interactionsByWindow.get(windowIndex);
 	}
-
+	
 	/**
 	 * Initiates the capture of windows that were provided to this JavaCaptureMonitor through the constructor.
-	 *
+	 * 
 	 * Preconditions: 	javaApplication is currently open.
 	 * Postconditions: 	Capture has been initiated to all windows provided to JavaCaptureMonitor that could be captured.
-	 * 					If no window provided could be captured, an error message is printed to console.
+	 * 					If no window provided could be captured, an error message is printed to console.					
 	 */
 	public boolean captureWindowsProvided()
 	{
@@ -129,8 +148,8 @@ public class JavaCaptureMonitor implements WindowListener{
 			JFCXWindow nextWindow;
 			nextWindow = (JFCXWindow)appRelatedWindows.get(i);
 			// if capture is allowed, add a window listener to this
-			// window, and attach startCapture on its interactables.
-			if(captureIsAllowedOn(nextWindow.getWindow()))
+			// window, and attach startCapture on its interactables. 
+			if(captureIsAllowedOn(nextWindow.getWindow())) 
 				startCaptureOn(nextWindow.getWindow());
 		}
 
@@ -147,23 +166,23 @@ public class JavaCaptureMonitor implements WindowListener{
 		}
 	}
 
-
+	
 	public void receiveSpecialEvents()
 	{
 		toolkit.getSystemEventQueue().push(specialQueue);
 		specialQueue.setKeyboardManager();
 	}
-
+	
 	/**
 	 * Start capturing interaction events from openedWindow. Events
-	 * are sent by the appropriate Java AWTEvent listeners to the JavaCaptureTaskList object in this
-	 * CaptureMonitor.
-	 *
-	 * Preconditions: openedWindow should be a valid window.
+	 * are sent by the appropriate Java AWTEvent listeners to the JavaCaptureTaskList object in this 
+	 * CaptureMonitor. 
+	 * 
+	 * Preconditions: openedWindow should be a valid window. 
 	 * Postconditions: 	OpenedWindow is in the windowsInCapture list
 	 * 					A java listener is registered for openedWindow
 	 * 					A testInteractions module is registered for openedWindow
-	 * 					buttons and interactibles of openedWindow are picked up by java listener and recorded to
+	 * 					buttons and interactibles of openedWindow are picked up by java listener and recorded to 
 	 * 					  testInteractions module
 	 * 					OpenedWindow's window interactions are registered with the windowListener methods of this class.
 	 * 					Events enacted by the user on openedWindow are sent to testCase for post-processing.
@@ -176,7 +195,7 @@ public class JavaCaptureMonitor implements WindowListener{
 			windowsInCapture.add(openedWindow);
 			javaListeners.add(new JavaListener(windowNameID, taskList));
 			interactionsByWindow.add(new JavaTestInteractions());
-
+			
 			// ensure that we're not getting interrupted while...
 			int newWindowIndex = javaListeners.size()-1;
 			Object awtTreeLock = openedWindow.getTreeLock();
@@ -198,29 +217,29 @@ public class JavaCaptureMonitor implements WindowListener{
 			openedWindow.addWindowListener(this);
 		}
 	}
-
+	
 	/**
 	 * Conduct the proper measures to re-configure this window for capturing interaction events
-	 * after it has already been set up for capture one time.
+	 * after it has already been set up for capture one time. 
 	 * Note that this method only replaces interactions from a window that has already entered
 	 * capture.
-	 *
+	 * 
 	 * Preconditions: openedWindow is not null
-	 * 					if this window never entered capture before, an error message is printed, and
-	 * 						the method returns.
+	 * 					if this window never entered capture before, an error message is printed, and 
+	 * 						the method returns. 
 	 * 					Else: a new testInteractions module is registered for openedWindow
-	 * 					buttons and interactibles of openedWindow are picked up by java listener and recorded to
+	 * 					buttons and interactibles of openedWindow are picked up by java listener and recorded to 
 	 * 					  testInteractions module
 	 * 					A close event enacted on openedWindow will cause openedWindow to be removed from capture.
 	 */
-	public boolean reRip(Window openedWindow)
+	protected boolean reRip(Window openedWindow)
 	{
-		int currentWindowIndex = lookupWindowIndex(openedWindow);
-		if(currentWindowIndex == -1) {
+		int currentWindowIndex = lookupWindowIndex(openedWindow); 
+		if(currentWindowIndex == -1)
 			return false;
-		}
+		
 		interactionsByWindow.set(currentWindowIndex, new JavaTestInteractions());
-
+		
 		// ensure that we can't be interrupted by user input by using a tree lock
 		Object awtTreeLock = openedWindow.getTreeLock();
 		synchronized(awtTreeLock) {
@@ -229,15 +248,14 @@ public class JavaCaptureMonitor implements WindowListener{
 			traverseComponentGraph(openedWindow, false, currentWindowIndex);
 			traverseComponentGraph(openedWindow, true, currentWindowIndex);
 		}
-		DebugMessage.CAPTURE_WINDOW_AGAIN.print();
 		return true;
 	}
-
+	
 	/**
-	 *  Stop capturing events from toUnCapture. Events from toUncapture are no longer sent to
+	 *  Stop capturing events from toUnCapture. Events from toUncapture are no longer sent to 
 	 *  this captureMonitor's testCase object.
-	 *
-	 *  Preconditions: 	toUnmonitor is not null.
+	 * 
+	 *  Preconditions: 	toUnmonitor is not null. 
 	 *  Postconditions: toUnCapture is not in the windowsInCapture list
 	 * 					A java listener is not registered for toUnCapture
 	 * 					A testInteractions module is not registered for toUnCapture
@@ -249,60 +267,61 @@ public class JavaCaptureMonitor implements WindowListener{
 	 * @param toUnmonitor
 	 */
 	protected void endCaptureOn(Window toUnCapture)
-	{
+	{	
 		// do everything from start except backwards and in the negative
-
+		
 		int windowIndex = lookupWindowIndex(toUnCapture);
-
+		
 		if(windowIndex != -1) { // only take action if toUnCapture is actually in the capture.
 			// remove the window interaction listener
 			toUnCapture.removeWindowListener(this);
-
+			
 			// remove listeners attached to buttons
 			Object awtTreeLock = toUnCapture.getTreeLock();
 			synchronized(awtTreeLock) {
 				interactionsByWindow.get(windowIndex).setCurrentWindow(toUnCapture);
-
+				
 				traverseComponentGraph(toUnCapture, false, windowIndex);
 			}
 			// deregister listeners associated with this window.
-			javaListeners.remove(windowIndex);
-
+			javaListeners.remove(windowIndex);	
+			
 			// remove recorded JTI because it's no longer needed after capture is over.
 			interactionsByWindow.remove(windowIndex);
-
+			
 			// remove the window from capture list
 			windowsInCapture.remove(windowIndex);
 		}
-	}
-	/**
-	 *
-	 * Stops the capture process of any window currently in capture.
-	 *
+	}	
+	/** 
+	 * 
+	 * Stops the capture process of any window currently in capture. 
+	 * 
 	 * Preconditions: none
 	 * Postconditions: This JavaCaptureMonitor is no longer capturing elements of windows previously involved in capture.
 	 */
 	public void stopCapture()
-	{
+	{	
 		for(Window w : Window.getWindows())
 			endCaptureOn(w);
 		JavaListener.stopCapturing();
 		specialQueue.stopReceiving();
+		
 		System.out.println(DebugMessage.CAPTURE_STOPPED);
 	}
-
-
+	
+	
 	/**
 	 * Returns the integer ID matching the window in capture corresponding to
 	 * the windowNameID (accessible name) represented in targetWindowName.
 	 * If target is being captured by this JavaCaptureMonitor, this ID can be used
 	 * to perform further lookups in the listener list and the interactions list.
 	 * Returns -1 if no window bearing targetWindowName is being captured.
-	 *
+	 * 
 	 * Preconditions: 	none
-	 * Postconditions:	if a window bearing targetWindowName is being captured, the ID of target is returned.
+	 * Postconditions:	if a window bearing targetWindowName is being captured, the ID of target is returned. 
 	 */
-	private int lookupWindowIndex(String targetWindowName)
+	private int lookupWindowIndex(String targetWindowName) 
 	{
 		for(int i = 0; i < windowsInCapture.size(); i++) {
 			Window w = windowsInCapture.get(i);
@@ -316,23 +335,23 @@ public class JavaCaptureMonitor implements WindowListener{
 		}
 		return -1;
 	}
-
+	
 	/**
 	 * Returns the integer ID matching the window in capture corresponding to target
 	 * if target is being captured by this JavaCaptureMonitor, that can be used to perform
 	 * lookups in the listener list and the interactions list.
 	 * Returns -1 if target is not being captured.
 	 * The ID can be used to index the map of captured windows.
-	 *
+	 * 
 	 * Preconditions: 	none
-	 * Postconditions:	if target is being captured, the ID of target is returned.
+	 * Postconditions:	if target is being captured, the ID of target is returned. 
 	 */
 	private int lookupWindowIndex(Window target)
 	{
 		AccessibleContext targetAC = target.getAccessibleContext();
 		if(targetAC == null)
 			return -1;
-
+		
 		for(int i = 0; i < windowsInCapture.size(); i++) {
 			Window w = windowsInCapture.get(i);
 			AccessibleContext ac = w.getAccessibleContext();
@@ -342,47 +361,47 @@ public class JavaCaptureMonitor implements WindowListener{
 		}
 		return -1;
 	}
-
-
+	
+	
 	/**
-	 * Return false if toTest is null, is a tool tip or a menu, is nameless, or has a name matching "CogTool Helper".
+	 * Return false if toTest is null, is a tool tip or a menu, is nameless, or has a name matching "CogTool Helper". 
 	 * Returns true otherwise.
-	 *
+	 * 
 	 * Preconditions: 	none
-	 * Postconditions: 	true is returned if capture is allowed. False is returned otherwise.
+	 * Postconditions: 	true is returned if capture is allowed. False is returned otherwise. 
 	 */
 	private boolean captureIsAllowedOn(Window toTest)
 	{
-		if(toTest == null)
+		if(toTest == null) 
 			return false;
-
+		
 		String windowName = toTest.getAccessibleContext().getAccessibleName();
-
+		
 		if(windowName == null)
 			return false;
-		if(windowName.equals("EventFlowSlicer"))
+		if(windowName.equals("CogTool Helper"))
 			return false;
-
+		
 		AccessibleRole windowRole = toTest.getAccessibleContext().getAccessibleRole();
 		if( windowRole.equals(AccessibleRole.TOOL_TIP) ||
 			windowRole.equals(AccessibleRole.MENU)) {
 				return false;
 		}
-
+		
 		// all tests passed
 		return true;
 	}
-
+	
 	public void traverseMenuBarGraph(final Window nextComponent, boolean forRegistration, int listenerIndex)
 	{
 		ArrayList<MenuElement> subElements = new ArrayList<MenuElement>();
-
+		
 		if(nextComponent instanceof JDialog) {
 			JDialog w = (JDialog) nextComponent;
 			JMenuBar treeRoot = w.getJMenuBar();
 			if(treeRoot == null)
 				return;
-			for(MenuElement me : treeRoot.getSubElements())
+			for(MenuElement me : treeRoot.getSubElements()) 
 				subElements.add(me);
 		}
 		else if(nextComponent instanceof JFrame) {
@@ -390,84 +409,85 @@ public class JavaCaptureMonitor implements WindowListener{
 			JMenuBar treeRoot = w.getJMenuBar();
 			if(treeRoot == null)
 				return;
-			for(MenuElement me : treeRoot.getSubElements())
+			for(MenuElement me : treeRoot.getSubElements()) 
 				subElements.add(me);
 		}
-		for(MenuElement e : subElements)
+		for(MenuElement e : subElements) 
 			traverseMenuElementGraph(e, forRegistration, listenerIndex);
 	}
 	public void traverseMenuElementGraph(final MenuElement nextElement, boolean forRegistration, int listenerIndex)
 	{
 		Component nextComponent = (Component)nextElement;
-
-
+		
+		@SuppressWarnings("unused")
+		String eventId = "";
 		if(nextComponent instanceof Accessible) {
 			AccessibleRole componentRole = ((Accessible) nextComponent).getAccessibleContext().getAccessibleRole();
 			if(forRegistration) {
-				int captureCode = JavaTestInteractions.hoverCaptureCode(menuCapture, hMenuCapture);
-				// for menus (don't attach a listener)
+				
+				// for menus (don't attach a listener) 
 				if(componentRole.equals(AccessibleRole.MENU)) {
-					interactionsByWindow.get(listenerIndex).saveNewMenuEventIDs(nextComponent, captureCode);
+					eventId = interactionsByWindow.get(listenerIndex).saveNewMenuEventID(nextComponent);
 				}
 				// for menu items
 				else if(componentRole.equals(AccessibleRole.MENU_ITEM)) {
 					javaListeners.get(listenerIndex).registerMenuItem(nextComponent);
-					interactionsByWindow.get(listenerIndex).saveNewMenuItemEventIDs(nextComponent, captureCode);
+					eventId = interactionsByWindow.get(listenerIndex).saveNewMenuItemEventID(nextComponent);
 				}
 				// for radio buttons
 				else if(componentRole.equals(AccessibleRole.RADIO_BUTTON)) {
 					javaListeners.get(listenerIndex).registerMenuItem(nextComponent);
-					interactionsByWindow.get(listenerIndex).saveNewMenuItemEventIDs(nextComponent, captureCode);
+					eventId = interactionsByWindow.get(listenerIndex).saveNewMenuItemEventID(nextComponent);
 				}// for check boxes
 				else if(componentRole.equals(AccessibleRole.CHECK_BOX)) {
+					
 					javaListeners.get(listenerIndex).registerMenuItem(nextComponent);
-					interactionsByWindow.get(listenerIndex).saveNewMenuItemEventIDs(nextComponent, captureCode);
+					eventId = interactionsByWindow.get(listenerIndex).saveNewMenuItemEventID(nextComponent);
 				}
 			}
 			else {
 				if(componentRole.equals(AccessibleRole.MENU_ITEM))
 					javaListeners.get(listenerIndex).unRegisterMenuItem(nextComponent);
-				else if(componentRole.equals(AccessibleRole.RADIO_BUTTON))
+				else if(componentRole.equals(AccessibleRole.RADIO_BUTTON)) 
 					javaListeners.get(listenerIndex).unRegisterMenuItem(nextComponent);
-				else if(componentRole.equals(AccessibleRole.CHECK_BOX))
+				else if(componentRole.equals(AccessibleRole.CHECK_BOX)) 
 					javaListeners.get(listenerIndex).unRegisterMenuItem(nextComponent);
 			}
 		}
-		for(MenuElement nextChild : nextElement.getSubElements())
+		for(MenuElement nextChild : nextElement.getSubElements()) 
 			traverseMenuElementGraph(nextChild, forRegistration, listenerIndex);
 	}
-
-
-
+	
+	
 	/**
-	 * This method selects children of the interact-able
-	 * referenced by root, and registers them properly
+	 * This method selects children of the interact-able 
+	 * referenced by root, and registers them properly 
 	 * with the java listener if it can be registered. Following
-	 * a call to this method, all actions taken upon root,
-	 * and children of root that involve the following options
-	 * are recorded:
+	 * a call to this method, all actions taken upon root, 
+	 * and children of root that involve the following options 
+	 * are recorded: 
 	 * text editing, button pressing, selection among radio button or checkbox choices, selection among page tabs,
-	 * selection among menu items, selection among flat lists, selections within table cells.
-	 *
+	 * selection among menu items, selection among flat lists, selections within table cells. 
+	 * 
 	 * Preconditions: 	none
 	 * Postconditions: 	Based on which capture features are turned on immediately preceding a call to this method
-	 * 					1. the component root and all its children now send
-	 * 				   	  events to the JavaListener in javaListeners specified
+	 * 					1. the component root and all its children now send 
+	 * 				   	  events to the JavaListener in javaListeners specified 
 	 * 				   	  by listenerIndex
-	 * 					2. the component root and all its children are recorded
-	 * 					  in the local JavaTestInteractions object registered at index "listenerIndex" for this capture
+	 * 					2. the component root and all its children are recorded 
+	 * 					  in the local JavaTestInteractions object registered at index "listenerIndex" for this capture 
 	 * 					  if forRegistration is true.
 	 */
-	protected void traverseComponentGraph(final Component nextComponent, boolean forRegistration, int listenerIndex)
+	protected void traverseComponentGraph(final Component nextComponent, boolean forRegistration, int listenerIndex) 
 	{
 		if(nextComponent == null)
 			return;
-
+		
 		if(nextComponent instanceof Window) {
-			if(menuCapture)
+			if(menuCapture) 
 				traverseMenuBarGraph((Window)nextComponent, forRegistration, listenerIndex);
 		}
-		else if( nextComponent instanceof Accessible &&
+		else if( nextComponent instanceof Accessible && 
 				 nextComponent.getAccessibleContext().getAccessibleRole().equals(AccessibleRole.MENU_BAR))
 					return; // do not parse menu bars in this method.
 		AccessibleRole componentRole = null;
@@ -476,143 +496,135 @@ public class JavaCaptureMonitor implements WindowListener{
 			if(forRegistration)  {
 				// for panels that you can click or type into
 				if(componentRole.equals(AccessibleRole.PANEL)) {
-					if((buttonCapture || hButtonCapture) && JFCXComponent.hasListeners(nextComponent, "button")) {
-						int captureCode = JavaTestInteractions.hoverCaptureCode(buttonCapture, hButtonCapture);
+					if(buttonCapture && JFCXComponent.hasListeners(nextComponent, "button")) {
 						javaListeners.get(listenerIndex).registerDirectClickComponent(nextComponent);
-						interactionsByWindow.get(listenerIndex).saveNewMouseInputPanelEventIDs(nextComponent, captureCode);
+						interactionsByWindow.get(listenerIndex).saveNewMouseInputPanelEventID(nextComponent);
 					}
-					if((textCapture || hTextCapture) && JFCXComponent.hasListeners(nextComponent, "textbox")) {
-						int captureCode = JavaTestInteractions.hoverCaptureCode(textCapture, hTextCapture);
+					if(textCapture && JFCXComponent.hasListeners(nextComponent, "textbox")) {
 						javaListeners.get(listenerIndex).registerText(nextComponent);
-						interactionsByWindow.get(listenerIndex).saveNewTypingPanelEventIDs(nextComponent, captureCode);
+						interactionsByWindow.get(listenerIndex).saveNewTypingPanelEventID(nextComponent);
 					}
 				}
 				// for text elements
 				else if(componentRole.equals(AccessibleRole.TEXT)) {
-					if(textCapture || hTextCapture) {
-						int captureCode = JavaTestInteractions.hoverCaptureCode(textCapture, hTextCapture);
+					if(textCapture) {
 						boolean comboText = findRoleAbove(AccessibleRole.COMBO_BOX, nextComponent, 2);
-						if(comboText)
+						if(comboCapture && comboText) 
 							javaListeners.get(listenerIndex).registerComboBoxText(nextComponent);
-						else
-							javaListeners.get(listenerIndex).registerText(nextComponent);
-						interactionsByWindow.get(listenerIndex).saveNewTextEventIDs(nextComponent, captureCode);
+						
+						else if(!comboText) {
+							javaListeners.get(listenerIndex).registerText(nextComponent);	
+							interactionsByWindow.get(listenerIndex).saveNewTextEventID(nextComponent);
+						}
 					}
 				}
-
-				// for button elements
+				
+				// for button elements 
 				else if(componentRole.equals(AccessibleRole.PUSH_BUTTON)) {
 					boolean comboButton = false;
 					comboButton = findRoleAbove(AccessibleRole.COMBO_BOX, nextComponent, 2);
-					if((comboCapture || hComboCapture) && comboButton)
-						javaListeners.get(listenerIndex).registerComboBoxButton(nextComponent);
-					else if((buttonCapture || hButtonCapture) && !comboButton) {
-						int captureCode = JavaTestInteractions.hoverCaptureCode(buttonCapture, hButtonCapture);
+					if(comboCapture && comboButton) 
+						javaListeners.get(listenerIndex).registerComboBoxButton(nextComponent);	
+					
+					else if(buttonCapture && !comboButton) {
 						javaListeners.get(listenerIndex).registerButton(nextComponent);
-						interactionsByWindow.get(listenerIndex).saveNewPushButtonEventIDs(nextComponent, captureCode);
+						interactionsByWindow.get(listenerIndex).saveNewPushButtonEventID(nextComponent);
 					}
 				}
-
+				
 				// for page tabs
 				else if(componentRole.equals(AccessibleRole.PAGE_TAB_LIST)) {
-					if(tabchangeCapture || hTabchangeCapture) {
-						int captureCode = JavaTestInteractions.hoverCaptureCode(tabchangeCapture, hTabchangeCapture);
+					if(tabchangeCapture) {
 						javaListeners.get(listenerIndex).registerTabList(nextComponent);
-						if(nextComponent instanceof JTabbedPane)
+						if(nextComponent instanceof JTabbedPane) 
 							((JTabbedPane)nextComponent).addChangeListener(new ReRipAction(SwingUtilities.getWindowAncestor(nextComponent)));
-						interactionsByWindow.get(listenerIndex).saveNewTabListEventIDs(nextComponent, captureCode);
+						interactionsByWindow.get(listenerIndex).saveNewTabListEventID(nextComponent);
 					}
 				}
-
+		
 				// for menu items
 				else if(componentRole.equals(AccessibleRole.MENU_ITEM)) {
-					if(menuCapture || hMenuCapture) {
-						int captureCode = JavaTestInteractions.hoverCaptureCode(menuCapture, hMenuCapture);
+					if(menuCapture) {
 						javaListeners.get(listenerIndex).registerMenuItem(nextComponent);
-						interactionsByWindow.get(listenerIndex).saveNewMenuItemEventIDs(nextComponent, captureCode);
+						interactionsByWindow.get(listenerIndex).saveNewMenuItemEventID(nextComponent);
 					}
 				}
-
-				// for menus (don't attach a listener)
+				
+				// for menus (don't attach a listener) 
 				else if(componentRole.equals(AccessibleRole.MENU)) {
-					if(menuCapture || hMenuCapture) {
-						int captureCode = JavaTestInteractions.hoverCaptureCode(menuCapture, hMenuCapture);
-						interactionsByWindow.get(listenerIndex).saveNewMenuEventIDs(nextComponent, captureCode);
-					}
+					if(menuCapture) 
+						interactionsByWindow.get(listenerIndex).saveNewMenuEventID(nextComponent);
 				}
-
+				
 				// for radio buttons
 				else if(componentRole.equals(AccessibleRole.RADIO_BUTTON)) {
 					if(nextComponent instanceof MenuElement) {
-						if(menuCapture || hMenuCapture) {
-							int captureCode = JavaTestInteractions.hoverCaptureCode(menuCapture, hMenuCapture);
+						if(menuCapture) {
 							javaListeners.get(listenerIndex).registerMenuItem(nextComponent);
-							interactionsByWindow.get(listenerIndex).saveNewMenuItemEventIDs(nextComponent, captureCode);
+							interactionsByWindow.get(listenerIndex).saveNewMenuItemEventID(nextComponent);
 						}
 					}
-					else if(radioCapture || hRadioCapture) {
-						int captureCode = JavaTestInteractions.hoverCaptureCode(radioCapture, hRadioCapture);
+					else if(radioCapture) {
 						javaListeners.get(listenerIndex).registerButton(nextComponent);
-						interactionsByWindow.get(listenerIndex).saveNewRadioButtonEventIDs(nextComponent, captureCode);
+						interactionsByWindow.get(listenerIndex).saveNewRadioButtonEventID(nextComponent);
 					}
 				}
-
+				
 				// for flat lists
 				else if(componentRole.equals(AccessibleRole.LIST)) {
-					if(listCapture || hListCapture) {
-						int captureCode = JavaTestInteractions.hoverCaptureCode(listCapture, hListCapture);
-						javaListeners.get(listenerIndex).registerListSelector(nextComponent);
-						interactionsByWindow.get(listenerIndex).saveNewListEventIDs(nextComponent, captureCode);
-					}
+					javaListeners.get(listenerIndex).registerListSelector(nextComponent);
+					interactionsByWindow.get(listenerIndex).saveNewListEventID(nextComponent);
 				}
-
 				// for toggle buttons
 				else if(componentRole.equals(AccessibleRole.TOGGLE_BUTTON)) {
 					if(buttonCapture || hButtonCapture) {
-						int captureCode = JavaTestInteractions.hoverCaptureCode(buttonCapture, hButtonCapture);
 						javaListeners.get(listenerIndex).registerToggleButton(nextComponent);
-						interactionsByWindow.get(listenerIndex).saveNewToggleButtonEventIDs(nextComponent, captureCode);
-					}
+						int hoverCode;
+						if(buttonCapture && hButtonCapture)
+							hoverCode = JavaTestInteractions.W_HOVER; // typical
+						else if(buttonCapture)
+							hoverCode = JavaTestInteractions.NO_HOVER; // typical
+						else
+							hoverCode = JavaTestInteractions.HOVER_ONLY; // rare
+						interactionsByWindow.get(listenerIndex).saveNewToggleButtonEventIDs(nextComponent, hoverCode);
+					}		
 				}
-
 				// for combo boxes
 				else if(componentRole.equals(AccessibleRole.COMBO_BOX)) {
-					if(comboCapture || hComboCapture) {
-						int captureCode = JavaTestInteractions.hoverCaptureCode(comboCapture, hComboCapture);
+					if(comboCapture) {
 						javaListeners.get(listenerIndex).registerComboBoxComponent(nextComponent);
-						interactionsByWindow.get(listenerIndex).saveNewComboBoxEventIDs(nextComponent, captureCode);
+						interactionsByWindow.get(listenerIndex).saveNewComboBoxEventIDs(nextComponent);
 					}
 				}
 				// for check boxes
 				else if(componentRole.equals(AccessibleRole.CHECK_BOX)) {
+	
 					if(nextComponent instanceof MenuElement) {
 						if(menuCapture) {
-							int captureCode = JavaTestInteractions.hoverCaptureCode(menuCapture, hMenuCapture);
 							javaListeners.get(listenerIndex).registerMenuItem(nextComponent);
-							interactionsByWindow.get(listenerIndex).saveNewMenuItemEventIDs(nextComponent, captureCode);
+							interactionsByWindow.get(listenerIndex).saveNewMenuItemEventID(nextComponent);
 						}
 					}
-					else
-						if(checkboxCapture) {
-							int captureCode = JavaTestInteractions.hoverCaptureCode(checkboxCapture, hCheckboxCapture);
-							javaListeners.get(listenerIndex).registerButton(nextComponent);
-							interactionsByWindow.get(listenerIndex).saveNewCheckboxEventIDs(nextComponent, captureCode);
-						}
+					else 
+						if(checkboxCapture) {	
+						javaListeners.get(listenerIndex).registerButton(nextComponent);
+						interactionsByWindow.get(listenerIndex).saveNewCheckboxEventID(nextComponent);
+					}
 				}
-				// for tables (not fully supported)
+				
 				else if(componentRole.equals(AccessibleRole.TABLE)) {
 					javaListeners.get(listenerIndex).registerTable(nextComponent);
 					interactionsByWindow.get(listenerIndex).saveNewTableEventID(nextComponent);
 				}
-				// for context menus (not fully supported)
-				else if(componentRole.equals(AccessibleRole.POPUP_MENU)) {
-					// assumes we know where in the hierarchy the window will be.
+				
+				else if(componentRole.equals(AccessibleRole.POPUP_MENU)) { 
+					// assumes we know where in the hierarchy the window will be. 
 					if(contextboxCapture) {
 						// none of these tests are good at discovering the special role of a popup menu
 						// except for perhaps menuAbove
 						boolean barAbove = findRoleAbove(AccessibleRole.MENU_BAR, nextComponent, 1);
 						boolean menuAbove = findRoleAbove(AccessibleRole.MENU, nextComponent, 1);
-
+						
 						if(!(menuAbove || barAbove)) {
 							// we have to capture the clicking of an item within a context box.
 							javaListeners.get(listenerIndex).registerContextboxPotential(nextComponent);
@@ -628,40 +640,40 @@ public class JavaCaptureMonitor implements WindowListener{
 					if(textCapture)
 						javaListeners.get(listenerIndex).unRegisterText(nextComponent);
 				}
-
+				
 				else if(componentRole.equals(AccessibleRole.TEXT)) {
 					if(textCapture)
 						javaListeners.get(listenerIndex).unRegisterText(nextComponent);
-					if(comboCapture)
+					if(comboCapture) 
 						javaListeners.get(listenerIndex).unregisterComboBoxText(nextComponent);
 				}
 				else if(componentRole.equals(AccessibleRole.PUSH_BUTTON)) {
 					boolean comboButton = false;
 					comboButton = findRoleAbove(AccessibleRole.COMBO_BOX, nextComponent, 2);
-					if(comboCapture && comboButton)
-						javaListeners.get(listenerIndex).unRegisterComboBoxButton(nextComponent);
-					else if(buttonCapture && !comboButton)
+					if(comboCapture && comboButton) 
+						javaListeners.get(listenerIndex).unRegisterComboBoxButton(nextComponent);	
+					else if(buttonCapture && !comboButton) 
 						javaListeners.get(listenerIndex).unRegisterButton(nextComponent);
 				}
 				else if(componentRole.equals(AccessibleRole.MENU_ITEM)) {
 					if(menuCapture)
 						javaListeners.get(listenerIndex).unRegisterMenuItem(nextComponent);
 				}
-
+				
 				else if(componentRole.equals(AccessibleRole.RADIO_BUTTON)) {
 					if(nextComponent instanceof MenuElement) {
-						if(menuCapture)
+						if(menuCapture) 
 							javaListeners.get(listenerIndex).unRegisterMenuItem(nextComponent);
 					}
-					else if(radioCapture)
+					else if(radioCapture) 
 						javaListeners.get(listenerIndex).unRegisterButton(nextComponent);
 				}
 				else if(componentRole.equals(AccessibleRole.LIST)) {
-					if(listCapture)
+					if(listCapture) 
 						javaListeners.get(listenerIndex).unRegisterListSelector(nextComponent);
 				}
 				else if(componentRole.equals(AccessibleRole.TOGGLE_BUTTON)) {
-					if(buttonCapture)
+					if(buttonCapture) 
 						javaListeners.get(listenerIndex).unRegisterToggleButton(nextComponent);
 				}
 				else if(componentRole.equals(AccessibleRole.COMBO_BOX)) {
@@ -680,74 +692,74 @@ public class JavaCaptureMonitor implements WindowListener{
 				}
 				else if(componentRole.equals(AccessibleRole.CHECK_BOX)) {
 					if(nextComponent instanceof MenuElement) {
-						if(menuCapture)
+						if(menuCapture) 
 							javaListeners.get(listenerIndex).unRegisterMenuItem(nextComponent);
 					}
-					else if(checkboxCapture)
+					else if(checkboxCapture) 
 						javaListeners.get(listenerIndex).unRegisterButton(nextComponent);
 				}
-
+				
 				else if(componentRole.equals(AccessibleRole.TABLE)) {
 					if(tableCapture)
 						javaListeners.get(listenerIndex).unRegisterTable(nextComponent);
 				}
 			}
-		}
-
-		if(nextComponent instanceof Accessible && componentRole.equals(AccessibleRole.COMBO_BOX))
-			for(Component nextChild: ((Container)nextComponent).getComponents())
+		}		
+		
+		if(nextComponent instanceof Accessible && componentRole.equals(AccessibleRole.COMBO_BOX)) 
+			for(Component nextChild: ((Container)nextComponent).getComponents()) 
 				traverseComponentGraph(nextChild, forRegistration, listenerIndex);
-		else if(nextComponent instanceof Accessible && nextComponent instanceof MenuElement)
+		else if(nextComponent instanceof Accessible && nextComponent instanceof MenuElement) 
 			traverseMenuElementGraph((MenuElement)nextComponent, forRegistration, listenerIndex);
-
+		
 //		else if(nextComponent instanceof Accessible && componentRole.equals(AccessibleRole.POPUP_MENU)) {
 //			traversePopupMenuGraph(nextComponent, forRegistration, listenerIndex);
 //		}
-
-		// now process this root's children if root is a container, but not a menu element.
+		
+		// now process this root's children if root is a container, but not a menu element. 
 		else if(nextComponent instanceof Container) {
 			Component[] childComponents = ((Container)nextComponent).getComponents();
-			for(Component nextChild : childComponents)
+			for(Component nextChild : childComponents) 
 				traverseComponentGraph(nextChild, forRegistration, listenerIndex);
 			if(nextComponent instanceof JComponent) {
 				JPopupMenu compPopup = ((JComponent)nextComponent).getComponentPopupMenu();
-				if(compPopup != null)
+				if(compPopup != null) 
 					traverseComponentGraph(compPopup, forRegistration, listenerIndex);
 			}
 		}
 	}
-
-
+	
+	
 	/**
 	 * Flip the switch for all hover related capture to be either on or off.<br>
-	 *
-	 * This method must be called before attachAndStartListeners
+	 * 
+	 * This method must be called before attachAndStartListeners 
 	 * is called, or this method will have no effect until the
-	 * attachAndStartListeners is called a second time.
+	 * attachAndStartListeners is called a second time.  
 	 */
 	public void switchHoverCapture(boolean on)
 	{
-		hTextCapture = hButtonCapture = hMenuCapture = hRadioCapture =
-				hListCapture = hComboCapture = hCheckboxCapture =
+		hTextCapture = hButtonCapture = hMenuCapture = hRadioCapture = 
+				hListCapture = hComboCapture = hCheckboxCapture = 
 				hContextboxCapture = hTabchangeCapture = hTableCapture = on;
 	}
-
-	/**
+	
+	/** 
 	 * Turns off capture of certain interactables within the java application.<br>
-	 * This method must be called before attachAndStartListeners
+	 * This method must be called before attachAndStartListeners 
 	 * is called, or this method will have no effect until the
-	 * attachAndStartListeners is called a second time.
-	 *
-	 * Preconditions: 	each string in captureTypes represents a valid widget string -
-	 * 					"text", "button", "menu", "radio", "list", "combo", "checkbox",
-	 * 					  "contextbox", "tabchange", "table", or their plural variants.
-	 * 					If an element of captureTypes is a valid capture type specified above, that capture
-	 * 					  every element of that capture type in the UI will be listened to by at least one java
-	 * 					  listener when traverse tree is called on a window in capture following a call to this method.
-	 * Postconditions: 	Capture for each of the widgets specified in capture types is turned on.
-	 * 					If an element of captureTypes is a valid capture type specified above, that capture
-	 * 					  every element of that capture type in the UI will make at least one java
-	 * 					  listener listen to its fired events when traverse tree is called on a window in capture
+	 * attachAndStartListeners is called a second time.  
+	 * 
+	 * Preconditions: 	each string in captureTypes represents a valid widget string - 
+	 * 					"text", "button", "menu", "radio", "list", "combo", "checkbox", 
+	 * 					  "contextbox", "tabchange", "table", or their plural variants. 
+	 * 					If an element of captureTypes is a valid capture type specified above, that capture 
+	 * 					  every element of that capture type in the UI will be listened to by at least one java 
+	 * 					  listener when traverse tree is called on a window in capture following a call to this method. 
+	 * Postconditions: 	Capture for each of the widgets specified in capture types is turned on. 
+	 * 					If an element of captureTypes is a valid capture type specified above, that capture 
+	 * 					  every element of that capture type in the UI will make at least one java 
+	 * 					  listener listen to its fired events when traverse tree is called on a window in capture 
 	 * 					   following a call to this method.
 	 */
 	public void turnOnCaptureOf(String... captureTypes)
@@ -758,147 +770,147 @@ public class JavaCaptureMonitor implements WindowListener{
 				case "texthover"		: hTextCapture = false; break;
 				case "button" 			:
 				case "buttons" 			: buttonCapture = true; break;
-				case "buttonhover"		:
+				case "buttonhover"		: 
 				case "buttonshover"		: hButtonCapture = true; break;
-				case "menu"				:
+				case "menu"				: 
 				case "menus"			: menuCapture = true; break;
-				case "menuhover"		:
+				case "menuhover"		: 
 				case "menushover"		: hMenuCapture = true; break;
-				case "radio"			:
+				case "radio"			: 
 				case "radios" 			: radioCapture = true; break;
-				case "radiohover"		:
+				case "radiohover"		: 
 				case "radioshover"		: hRadioCapture = true; break;
-				case "list"				:
+				case "list"				: 
 				case "lists"			: listCapture = true; break;
-				case "listhover"		:
+				case "listhover"		: 
 				case "listshover"		: hListCapture = true; break;
-				case "combo" 			:
+				case "combo" 			: 
 				case "combos" 			: comboCapture = true; break;
-				case "comobhover"		:
+				case "comobhover"		: 
 				case "comboshover"		: hComboCapture = true; break;
-				case "checkbox"			:
+				case "checkbox"			: 
 				case "checkboxes" 		: checkboxCapture = true; break;
-				case "checkboxhover"	:
+				case "checkboxhover"	: 
 				case "checkboxeshover" 	: hCheckboxCapture = true; break;
-				case "contextbox" 		:
+				case "contextbox" 		: 
 				case "contextboxes"		: contextboxCapture = true; break;
 				case "contextboxhover"	:
 				case "contextboxeshover": hContextboxCapture = true; break;
-				case "tabchange"		:
+				case "tabchange"		: 
 				case "tabchanges"		: tabchangeCapture = true; break;
-				case "tabchangehover"	:
+				case "tabchangehover"	: 
 				case "tabchangeshover"	: hTabchangeCapture = true; break;
-				case "table"			:
+				case "table"			: 
 				case "tables"			: tableCapture = true; break;
-				case "tablehover"		:
+				case "tablehover"		: 
 				case "tableshover"		: hTableCapture = true; break;
-//				case "all"		: textCapture = buttonCapture = menuCapture = listCapture = comboCapture =
+//				case "all"		: textCapture = buttonCapture = menuCapture = listCapture = comboCapture = 
 // 								  checkboxCapture = contextboxCapture = tabChangeCapture = tableCapture = true; break;
 				// little need for this option
 			}
 	}
-
+	
 	/**
 	 * Turn on capture of certain interactables within the java application.
-	 * This method must be called before attachAndStartListeners
-	 * is called, or this method will have no effect until the
-	 * attachAndStartListeners is called a second time.
-	 *
-	 * Preconditions: 	each string in captureTypes represents a valid widget string -
-	 * 					"text", "button", "menu", "radio", "list", "combo", "checkbox", or their plural variants.
-	 * Postconditions: 	Capture for each of the widgets specified in capture types is turned off.
-	 * 					If an element of captureTypes is a valid capture type specified above, that capture
-	 * 					  every element of that capture type in the UI will make at least one java
-	 * 					  listener listen to its fired events when traverse tree is called on a window
+	 * This method must be called before attachAndStartListeners 
+	 * is called, or this method will have no effect until the 
+	 * attachAndStartListeners is called a second time. 
+	 *  
+	 * Preconditions: 	each string in captureTypes represents a valid widget string - 
+	 * 					"text", "button", "menu", "radio", "list", "combo", "checkbox", or their plural variants. 
+	 * Postconditions: 	Capture for each of the widgets specified in capture types is turned off. 
+	 * 					If an element of captureTypes is a valid capture type specified above, that capture 
+	 * 					  every element of that capture type in the UI will make at least one java 
+	 * 					  listener listen to its fired events when traverse tree is called on a window 
 	 * 					  in capture following a call to this method.
 	 */
 	public void turnOffCaptureOf(String... captureTypes)
 	{
-		for(String s : captureTypes)
+		for(String s : captureTypes) 
 			switch(s.toLowerCase()) {
 				case "text"				: textCapture = false; break;
 				case "texthover"		: hTextCapture = false; break;
 				case "button"			:
 				case "buttons" 			: buttonCapture = false; break;
-				case "buttonhover"		:
+				case "buttonhover"		: 
 				case "buttonshover"		: hButtonCapture = false; break;
 				case "menu"				:
 				case "menus"			: menuCapture = false; break;
-				case "menuhover"		:
+				case "menuhover"		: 
 				case "menushover"		: hMenuCapture = false; break;
-				case "radio" 			:
+				case "radio" 			: 
 				case "radios" 			: radioCapture = false; break;
-				case "radiohover"		:
+				case "radiohover"		: 
 				case "radioshover"		: hRadioCapture = false; break;
-				case "list"				:
+				case "list"				: 
 				case "lists"			: listCapture = false; break;
-				case "listhover"		:
+				case "listhover"		: 
 				case "listshover"		: hListCapture = false; break;
 				case "combo"			:
 				case "combos"			: comboCapture = false; break;
-				case "comobhover"		:
+				case "comobhover"		: 
 				case "comboshover"		: hComboCapture = false; break;
-				case "checkbox"			:
+				case "checkbox"			: 
 				case "checkboxes"		: checkboxCapture = false; break;
-				case "checkboxhover"	:
+				case "checkboxhover"	: 
 				case "checkboxeshover" 	: hCheckboxCapture = false; break;
-				case "contextbox"		:
+				case "contextbox"		: 
 				case "contextboxes"		: contextboxCapture = false; break;
 				case "contextboxhover"	:
 				case "contextboxeshover": hContextboxCapture = false; break;
-				case "tabchange" 		:
+				case "tabchange" 		: 
 				case "tabchanges"		: tabchangeCapture = false; break;
-				case "tabchangehover"	:
+				case "tabchangehover"	: 
 				case "tabchangeshover"	: hTabchangeCapture = false; break;
 				case "table"			:
 				case "tables"			: tableCapture = false; break;
-				case "tablehover"		:
+				case "tablehover"		: 
 				case "tableshover"		: hTableCapture = false; break;
 //				case "all" 				: textCapture = buttonCapture = menuCapture = radioCapture = listCapture = comboCapture = true;
 			}
 	}
-
+	
 	/**
-	 *  If capturing has been started, WindowEvents sent to windows in the capture
+	 *  If capturing has been started, WindowEvents sent to windows in the capture 
 	 *  are printed to console if printOn is true. If printOn is false, WindowEvents from this
 	 *  JavaCaptureMonitor are never printed to the console.
-	 *
-	 *  Preconditions: 	Test case has already been initialized
-	 *  Postconditions:	WindowEvents on windows in capture will be printed when
-	 * 					they are triggered.
+	 * 
+	 *  Preconditions: 	Test case has already been initialized 
+	 *  Postconditions:	WindowEvents on windows in capture will be printed when 
+	 * 					they are triggered. 
 	 */
 	public void setWindowEventPrint(boolean printOn)
 	{
 		windowEventPrint = printOn;
 	}
-
-
+	
+	
 	private static void debugStatusMessage(DebugMessage messageType)
 	{
 		System.out.println(messageType);
 	}
 
-	private static boolean isModalWindow(Window w)
+	private static boolean isModalWindow(Window w) 
 	{
 		if(w.getAccessibleContext() != null)
 			if(w.getAccessibleContext().getAccessibleStateSet().contains(AccessibleState.MODAL))
 				return true;
 		return false;
 	}
-
+	
 	/**
-	 * If capture is allowed on the window opposite from the one being activated, and the
-	 * window is not already being captured, start capturing that window opposite.
-	 *
+	 * If capture is allowed on the window opposite from the one being activated, and the 
+	 * window is not already being captured, start capturing that window opposite. 
+	 * 
 	 * Print the caught event if windowEventPrint is on
 	 */
 	public void windowDeactivated(WindowEvent e)
 	{
 		if(windowEventPrint) System.out.println(e);
 
-		// if a switch is to be done, do things, otherwise, do nothing
+		// if a switch is to be done, do things, otherwise, do nothing 
 		Window discoveredWindow = e.getOppositeWindow();
-
+		
 		if(captureIsAllowedOn(discoveredWindow) && lookupWindowIndex(discoveredWindow) == -1) {
 		 	debugStatusMessage(DebugMessage.WAIT);
 		 	startCaptureOn(discoveredWindow);
@@ -907,73 +919,70 @@ public class JavaCaptureMonitor implements WindowListener{
 				modals.add(discoveredWindow);
 		}
 	}
-
+	
 	/**
 	 * Print the caught event if windowEventPrint is on
 	 */
-	public void windowClosed(WindowEvent e) {
-		if(windowEventPrint)
-			System.out.println(e);
-
+	public void windowClosed(WindowEvent e) { 
+		if(windowEventPrint) 
+			System.out.println(e); 
+		 
 		if(modals.contains(e.getWindow()))
 			modals.remove(e.getWindow());
-
+		
 		endCaptureOn(e.getWindow());
-	}
+	}	
 	/**
 	 * If capture is allowed on this new window. End capture on whatever window was switched out of
-	 * to get here. Note that in Swing, window deactivated is always called before window activated.
-	 *
+	 * to get here. Note that in Swing, window deactivated is always called before window activated. 
+	 * 
 	 * Print the caught event if windowEventPrint is on
 	 */
-	public void windowActivated(WindowEvent e)
-	{
-		if(windowEventPrint) System.out.println(e);
+	public void windowActivated(WindowEvent e) 
+	{ 
+		if(windowEventPrint) System.out.println(e); 
 	}
-
-
+	
+	
 	/**
 	 * Print the caught event if windowEventPrint is on
 	 */
-	public void windowClosing(WindowEvent e)
-	{
-		if(windowEventPrint)
-			System.out.println(e);
-
+	public void windowClosing(WindowEvent e) 
+	{ 
+		if(windowEventPrint) 
+			System.out.println(e); 
+		 
 		if(modals.contains(e.getWindow()))
 			modals.remove(e.getWindow());
-		lookupWindowIndex(e.getWindow());
-		taskList.flushStoredKeystrokes();
-		taskList.flushListItemSelectionToSavedSteps();
-		taskList.saveWindowClose(e);
+		
 		endCaptureOn(e.getWindow());
 		if(windowsInCapture.isEmpty()) {
 			DebugMessage.CAPTURE_CLOSED_ALL_WINDOWS.print();
 			taskList.interrupt();
 		}
 	}
-
+	
 	/**
 	 * Print the caught event if windowEventPrint is on
 	 */
 	public void windowOpened(WindowEvent e) { if(windowEventPrint) System.out.println(e); }
-
+	
 
 	/**
 	 * Print the caught event if windowEventPrint is on
 	 */
 	public void windowDeiconified(WindowEvent e) { if(windowEventPrint) System.out.println(e); }
-
+	
 	/**
 	 * Print the caught event if windowEventPrint is on
 	 */
 	public void windowIconified(WindowEvent e) { if(windowEventPrint) System.out.println(e); }
-
-	/**
-	 * Class designed for printing debugging messages related to capture.
+	
+	/** 
+	 * Class designed for printing debugging messages related to capture. 
 	 */
 	public enum DebugMessage {
-
+		
 		WAIT("JavaCaptureMonitor: Setting up capture, please wait."),
 		CAPTURE_UPDATED("JavaCaptureMonitor: Ready to capture actions on opened window."),
 		CAPTURE_STOPPED("JavaCaptureMonitor: Capture session is finished."),
@@ -982,31 +991,31 @@ public class JavaCaptureMonitor implements WindowListener{
 		CAPTURE_NEW_WINDOW("JavaCaptureMonitor: New Window Found."),
 		CAPTURE_WINDOW_AGAIN("JavaCaptureMonitor: Rescanning Window Elements");
 		private String messageString;
-
+		
 		private DebugMessage(String messageString)
 		{
 			this.messageString = messageString;
 		}
-
+		
 		public String toString()
 		{
 			return messageString;
 		}
-
+		
 		public void print(String... parameters)
 		{
 			switch(this) {
-				default:	System.out.println(messageString);
+				default:	System.out.println(messageString); 
 			}
 		}
 	}
-
+	
 	/**
-	 * Searches for the role specified if it can be found within n ancestors in component's parent hierarchy
+	 * Searches for the role specified if it can be found within n ancestors in component's parent hierarchy 
 	 * (where n = stepsToLook).  Return false if the role specified doesn't exist up to and including n steps up from components
 	 * position in the component hierarchy. Else, return true.
 	 */
-	private boolean findRoleAbove(AccessibleRole targetRole, Component component, int stepsToLook)
+	private boolean findRoleAbove(AccessibleRole targetRole, Component component, int stepsToLook) 
 	{
 		Accessible bParent;
 		bParent = getProperParent((Accessible)component);
@@ -1024,15 +1033,15 @@ public class JavaCaptureMonitor implements WindowListener{
 			else
 				bParent = bParent.getAccessibleContext().getAccessibleParent();
 		}
-
+		
 		if(bParent != null && bParent.getAccessibleContext().getAccessibleRole().equals(targetRole))
 			return true;
 		return false;
 	}
-
+	
 	/**
 	 * Return the accessible parent of this accessible object. If the object is a windowless popupMenu, its parent
-	 * is returned as the invoker of the popup menu.
+	 * is returned as the invoker of the popup menu. 
 	 */
 	private Accessible getProperParent(Accessible c) {
 		if(c.getAccessibleContext().getAccessibleRole().equals(AccessibleRole.POPUP_MENU)) {
@@ -1044,7 +1053,7 @@ public class JavaCaptureMonitor implements WindowListener{
 		else
 			return c.getAccessibleContext().getAccessibleParent();
 	}
-
+	
 	/**
 	 * Process the reception of a hover event via this Capture Monitor
 	 * @param w
@@ -1052,8 +1061,9 @@ public class JavaCaptureMonitor implements WindowListener{
 	 * @param mouseXPosition
 	 * @param mouseYPosition
 	 */
-	public void processHoverEvent(Window w, Component c, int mouseXPosition, int mouseYPosition)
+	private void processHoverEvent(Window w, Component c, int mouseXPosition, int mouseYPosition)
 	{
+		
 		int i = lookupWindowIndex(w);
 		if(i == -1)
 			return;
@@ -1061,31 +1071,7 @@ public class JavaCaptureMonitor implements WindowListener{
 			javaListeners.get(i).getMouseHoverListener().captureHover(c, mouseXPosition, mouseYPosition);
 		}
 	}
-	public void processSpecialKeyEvent(Window w, Component c, KeyEvent ke)
-	{
-		int i = lookupWindowIndex(w);
-		if(i == -1)
-			return;
-		if(doCaptureKeyEvent(c)) {
-			javaListeners.get(i).getTextListener().captureKey(c, ke);
-		}
-	}
-
-	private boolean doCaptureKeyEvent(Component c)
-	{
-		if(c == null)
-			return false;
-		AccessibleContext aContext = c.getAccessibleContext();
-		if(aContext == null)
-			return false;
-		AccessibleRole myRole = c.getAccessibleContext().getAccessibleRole();
-
-		if(!myRole.equals(AccessibleRole.TEXT)
-		&& !(myRole.equals(AccessibleRole.PANEL) && JFCXComponent.hasListeners(c, "textbox")))
-			return false;
-
-		return textCapture;
-	}
+	
 	private boolean doCaptureHover(Component c)
 	{
 		if(c == null)
@@ -1094,7 +1080,7 @@ public class JavaCaptureMonitor implements WindowListener{
 		if(aContext == null)
 			return false;
 		AccessibleRole myRole = c.getAccessibleContext().getAccessibleRole();
-
+		
 		if(myRole.equals(AccessibleRole.TEXT)) {
 			if(!hTextCapture)
 				return false;
@@ -1112,24 +1098,24 @@ public class JavaCaptureMonitor implements WindowListener{
 //		myRole.equals(AccessibleRole.MENU) ||
 //		myRole.equals(AccessibleRole.MENU_ITEM) ||
 //		myRole.equals(AccessibleRole.CHECK_BOX) ||
-//
+//		
 //		else if(myRole.equals(AccessibleRole.COMBO_BOX)) {
 //			if(JFCXComponent.hasChildren(c))
 //				hoverType = "basic"; // this must be top level.
 //			else
 //				hoverType = "parental"; // this must be an element in the list
 //		}
-//
+//		
 //		else if(myRole.equals(AccessibleRole.PAGE_TAB_LIST)) {
 //			if(JFCXComponent.hasChildren(c))
-//				hoverType = "basic"; // this must be the top level.
+//				hoverType = "basic"; // this must be the top level. 
 //			else
-//				hoverType = "parental"; // this must be an element in the list.
+//				hoverType = "parental"; // this must be an element in the list. 
 //		}
-//
-//		else if(myRole.equals(AccessibleRole.PANEL))
+//		
+//		else if(myRole.equals(AccessibleRole.PANEL)) 
 //			hoverType = "basic";
-//
+//		
 //		else if(myRole.equals(AccessibleRole.LIST))
 //			hoverType = "parental";
 	}
@@ -1142,26 +1128,26 @@ public class JavaCaptureMonitor implements WindowListener{
 		{
 			receivingKeys = false;
 		}
-
+		
 		public void setKeyboardManager()
 		{
 			currentManager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
 			currentManager.addKeyEventDispatcher(this);
 			receivingKeys = true;
 		}
-
+		
 		public void unsetKeyboardManager()
 		{
 			currentManager.removeKeyEventDispatcher(this);
 		}
-
+		
 		/**
-		 * Stop processing events through this event queue.
+		 * Stop processing events through this event queue. 
 		 * Return true if this event queue was currently dispatching events and has now stopped.
 		 * Return false if nothing happened, and the stack was empty prior to the call.
-		 *
+		 * 
 		 *  Preconditions: none
-		 *  Postconditions: this event queue is no longer dispatching events.
+		 *  Postconditions: this event queue is no longer dispatching events. 
 		 */
 		public boolean stopReceiving()
 		{
@@ -1174,60 +1160,60 @@ public class JavaCaptureMonitor implements WindowListener{
 			}
 			return true;
 		}
-
+		
 		public boolean goodCE(AWTEvent event)
 		{
 			if(!(event instanceof ComponentEvent))
 				return false;
-
-			boolean useful = !(
+			
+			boolean useful = !( 
 //				(event instanceof PeerEvent)
 				(event instanceof PaintEvent)
-				|| (event instanceof MouseEvent)
-				|| (event instanceof KeyEvent)
-				|| (event instanceof FocusEvent)
-				|| (event instanceof WindowEvent)
+				|| (event instanceof MouseEvent) 
+				|| (event instanceof KeyEvent) 
+				|| (event instanceof FocusEvent) 
+				|| (event instanceof WindowEvent) 
 				);
 			if(useful)
 				return true;
 			return false;
 		}
-
+		
 		private boolean usedPopup(AWTEvent event)
 		{
 			Object source = event.getSource();
 			if(source instanceof Window) {
 				Window w = (Window)source;
-				if(w.getType() == Window.Type.POPUP)
+				if(w.getType() == Window.Type.POPUP) 
 					return true;
 			}
 			return false;
 		}
-
+		
 		@Override
 		protected void dispatchEvent(AWTEvent awte)
 		{
-
+			
 			if(goodCE(awte)) {
 				int awtID = awte.getID();
-				if(usedPopup(awte)
-				&& !popupRaised
+				if(usedPopup(awte) 
+				&& !popupRaised 
 				&& awtID != ComponentEvent.COMPONENT_HIDDEN) {
 					popupRaised = true;
 					if(awtID == ComponentEvent.COMPONENT_SHOWN) {
 						Window popup = getWindowFromComponent(awte.getSource());
-						if(captureIsAllowedOn(popup))
+						if(captureIsAllowedOn(popup)) 
 							startCaptureOn(popup);
 					}
 				}
 				else if(awte instanceof PaintEvent) {
-					if(popupRaised)
+					if(popupRaised)   
 						popupRaised = false;
 					else {
 						Window w = getWindowFromComponent(awte.getSource());
-						// if window is in capture and is not valid yet, rerip it.
+						// if window is in capture and is not valid yet, rerip it. 
 						boolean inCapture = windowsInCapture.contains(w);
-						if(inCapture && !w.isValid())
+						if(inCapture && !w.isValid()) 
 							reRip(w);
 						// if window is not currently in capture, and is valid, don't rerip it.
 						else if(!inCapture && w.isValid() && captureIsAllowedOn(w)) {
@@ -1235,40 +1221,68 @@ public class JavaCaptureMonitor implements WindowListener{
 							startCaptureOn(w);
 							DebugMessage.CAPTURE_UPDATED.print();
 						}
+						
 					}
 				}
 			}
-
+			
 			super.dispatchEvent(awte);
 		}
-
-
+		
+		
 		public Window getWindowFromComponent(Object compObject)
 		{
 			Component comp = (Component)compObject;
-			if(comp instanceof Window)
+			if(comp instanceof Window) 
 				return (Window)comp;
 			else
 				return SwingUtilities.getWindowAncestor(comp);
 		}
 
 		@Override
-		public void focusGained(FocusEvent e)
-		{
+		public void focusGained(FocusEvent e) 
+		{	
 //			System.out.println("JavaCaptureMonitor: Reripping window due to changed elements, please wait.");
 //			reRip(w);
 //			w.removeFocusListener(this);
 //			System.out.println("JavaCaptureMonitor: Ready to capture window. Please begin performing steps.");
 		}
-
+		
 		public void focusLost(FocusEvent fe) {/*Nothing done on focus lost*/}
-
+		
 		@Override
-		public boolean dispatchKeyEvent(KeyEvent e)
+		public boolean dispatchKeyEvent(KeyEvent e) 
 		{
 			Window w = currentManager.getActiveWindow();
-			boolean dispatchFurther = EventFlowSlicer.processEFSKeystroke(e, w, JavaCaptureMonitor.this);
-			return dispatchFurther;
+			if(e.getID() == KeyEvent.KEY_PRESSED) { // if we pressed ctrl_shift_R
+				int code = e.getKeyCode();
+				int mask = e.getModifiersEx();
+				int captureMask = KeyEvent.CTRL_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK;
+				if((mask & captureMask) == captureMask)  {
+					if(code == KeyEvent.VK_R) {
+						reRip(w);
+						DebugMessage.CAPTURE_WINDOW_AGAIN.print();
+						return true;
+					}
+					else if(code == KeyEvent.VK_H) {
+						// thanks goes out to 
+						// http://stackoverflow.com/questions/2733896/identifying-swing-component-at-a-particular-screen-coordinate-and-manually-dis 
+						
+						Point mouse = MouseInfo.getPointerInfo().getLocation();
+						Point origMouse = (Point)mouse.clone();
+						mouse.x -= w.getLocationOnScreen().x;
+						mouse.y -= w.getLocationOnScreen().y;
+						
+						Component underneath = SwingUtilities.getDeepestComponentAt(w, mouse.x, mouse.y);
+						Point underPoint = underneath.getLocationOnScreen();
+						int mouseHovX = origMouse.x - underPoint.x;
+						int mouseHovY = origMouse.y - underPoint.y;
+						processHoverEvent(w, underneath, mouseHovX, mouseHovY);
+					}
+				}
+			}
+			
+			return false;
 		};
 	}
 	private class ReRipAction implements ChangeListener
@@ -1278,7 +1292,7 @@ public class JavaCaptureMonitor implements WindowListener{
 		{
 			reRipWindow = window;
 		}
-		public void stateChanged(ChangeEvent ae)
+		public void stateChanged(ChangeEvent ae) 
 		{
 			reRip(reRipWindow);
 		}

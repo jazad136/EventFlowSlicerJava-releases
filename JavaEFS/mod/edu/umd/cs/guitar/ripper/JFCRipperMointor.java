@@ -41,6 +41,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -64,28 +65,30 @@ import edu.umd.cs.guitar.model.JFCApplication2;
 import edu.umd.cs.guitar.model.JFCConstants;
 import edu.umd.cs.guitar.model.JFCXComponent;
 import edu.umd.cs.guitar.model.JFCXWindow;
-import edu.umd.cs.guitar.model.data.Configuration;
 import edu.umd.cs.guitar.util.GUITARLog;
+import edu.unl.cse.efs.java.JavaLaunchApplication;
+import edu.unl.cse.efs.ripper.JFCRipperConfigurationEFS;
+import edu.unl.cse.efs.util.ReadArguments;
 
 /**
- *
+ * 
  * Monitor for the ripper to handle Java Swing specific features
- *
+ * 
  * @see GRipperMonitor
- *
+ * 
  * @author <a href="mailto:baonn@cs.umd.edu"> Bao Nguyen </a>
  */
 public class JFCRipperMointor extends GRipperMonitor {
 
-
+	
 	// --------------------------
 	// Configuartion Parameters
 	// --------------------------
 
 	/**
-     *
+     * 
      */
-//	private static final int INITIAL_DELAY = 1000;
+	private static final int INITIAL_DELAY = 1000;
 
 	// Logger logger;
 	JFCRipperConfiguration configuration;
@@ -94,9 +97,9 @@ public class JFCRipperMointor extends GRipperMonitor {
 
 	/**
 	 * Constructor
-	 *
+	 * 
 	 * <p>
-	 *
+	 * 
 	 * @param configuration
 	 *            ripper configuration
 	 */
@@ -111,7 +114,7 @@ public class JFCRipperMointor extends GRipperMonitor {
 	/**
 	 * Temporary list of windows opened during the expand event is being
 	 * performed. Those windows are in a native form to prevent data loss.
-	 *
+	 * 
 	 */
 	volatile LinkedList<Window> tempOpenedWinStack = new LinkedList<Window>();
 
@@ -121,26 +124,23 @@ public class JFCRipperMointor extends GRipperMonitor {
 
 	/**This method essentially ensures that runtime dependences between the ripper and the classes
 	 * that are used to display the GUI interface of the AUT are not linked together anymore.
-	 *
+	 * 
 	 * Following a call to this method, the windows of the interface are disposed, and
 	 * classes to load the interface are no longer loaded.
 	 */
 	@Override
-	public void cleanUp()
+	public void cleanUp() 
 	{
 		if(application != null) {
-			for(GWindow g : application.getAllWindow()) {
-				if(!isIgnoredWindow(g))
-					closeWindow(g);
-			}
-
+			for(GWindow g : application.getAllWindow())
+				closeWindow(g);
 			application.disconnect();
-		}
+		}		
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see
 	 * edu.umd.cs.guitar.ripper.RipperMonitor#closeWindow(edu.umd.cs.guitar.
 	 * model.GXWindow)
@@ -150,13 +150,15 @@ public class JFCRipperMointor extends GRipperMonitor {
 
 		JFCXWindow jWindow = (JFCXWindow) gWindow;
 		Window window = jWindow.getWindow();
+		// A bug might happen here
+		// window.setVisible(false);
 		window.dispose();
 
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see
 	 * edu.umd.cs.guitar.ripper.RipperMonitor#expand(edu.umd.cs.guitar.model
 	 * .GXComponent)
@@ -169,12 +171,12 @@ public class JFCRipperMointor extends GRipperMonitor {
 
 		GEvent action = new JFCActionEDT();
 		action.perform(component, null);
-		new EventTool().waitNoEvent(JFCRipperConfiguration.DELAY);
+		new EventTool().waitNoEvent(configuration.DELAY);
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see edu.umd.cs.guitar.ripper.RipperMonitor#getOpenedWindowCache()
 	 */
 	@Override
@@ -205,7 +207,7 @@ public class JFCRipperMointor extends GRipperMonitor {
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see edu.umd.cs.guitar.ripper.RipperMonitor#getRootWindows()
 	 */
 	@Override
@@ -228,35 +230,31 @@ public class JFCRipperMointor extends GRipperMonitor {
 			if (sRootWindows.size() == 0
 					|| (sRootWindows.contains(sWindowName))) {
 
-
 				GWindow gWindow = new JFCXWindow(frame);
-				// jsaddle added,
-				// if this window is an ignored window, don't return it from this method
-				// as a root window.
-				if(isIgnoredWindow(gWindow))
-					continue;
 				retWindowList.add(gWindow);
 				// frame.requestFocus();
 			}
 		}
 
 		// / Debugs:
-//		System.out.println("Root window size: " + retWindowList.size());
-//		for (GWindow window : retWindowList)
-//			System.out.println("Window title: " + window.getTitle());
+		GUITARLog.log.debug("Root window size: " + retWindowList.size());
+		for (GWindow window : retWindowList) {
+			GUITARLog.log.debug("Window title: " + window.getTitle());
+		}
+
 		try {
 			Thread.sleep(50);
 		} catch (InterruptedException e) {
-			System.err.println(e);
+			GUITARLog.log.error(e);
 		}
 		return retWindowList;
 	}
 
 	/**
 	 * Check if a root window is worth ripping
-	 *
+	 * 
 	 * <p>
-	 *
+	 * 
 	 * @param window
 	 *            the window to consider
 	 * @return true/false
@@ -281,21 +279,21 @@ public class JFCRipperMointor extends GRipperMonitor {
 	}
 
 	/**
-	 *
+	 * 
 	 * @see
 	 * edu.umd.cs.guitar.ripper.RipperMonitor#isExpandable(edu.umd.cs.guitar
 	 * .model.GXComponent, edu.umd.cs.guitar.model.GXWindow)
-	 *
+	 * 
 	 * For this subclass, a component is expandable iff
 	 * 1. Its title is not null, and not the empty string.
 	 * 2. It is an enabled widget
 	 * 3. It is a clickable widget.
-	 * 4. It is not a terminal widget.
-	 * 5. It is a terminal widget.
-	 * 6. It contains an accessible text attribute.
+	 * 4. It is not a terminal widget. 
+	 * 5. It is a terminal widget. 
+	 * 6. It contains an accessible text attribute. 
 	 */
 	@Override
-   public
+   public 
 	boolean isExpandable(GComponent gComponent, GWindow window) {
 
 		JFCXComponent jComponent = (JFCXComponent) gComponent;
@@ -342,7 +340,7 @@ public class JFCRipperMointor extends GRipperMonitor {
 
 	/**
 	 * Check if a component is click-able.
-	 *
+	 * 
 	 * @param component
 	 * @return true/false
 	 */
@@ -363,7 +361,7 @@ public class JFCRipperMointor extends GRipperMonitor {
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see
 	 * edu.umd.cs.guitar.ripper.RipperMonitor#isIgnoredWindow(edu.umd.cs.guitar
 	 * .model.GXWindow)
@@ -377,7 +375,7 @@ public class JFCRipperMointor extends GRipperMonitor {
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see edu.umd.cs.guitar.ripper.RipperMonitor#isNewWindowOpened()
 	 */
 	@Override
@@ -388,7 +386,7 @@ public class JFCRipperMointor extends GRipperMonitor {
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see edu.umd.cs.guitar.ripper.RipperMonitor#resetWindowCache()
 	 */
 	@Override
@@ -401,7 +399,7 @@ public class JFCRipperMointor extends GRipperMonitor {
 
 		/*
 		 * (non-Javadoc)
-		 *
+		 * 
 		 * @see
 		 * java.awt.event.AWTEventListener#eventDispatched(java.awt.AWTEvent)
 		 */
@@ -445,7 +443,7 @@ public class JFCRipperMointor extends GRipperMonitor {
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see edu.umd.cs.guitar.ripper.RipperMonitor#setUp()
 	 */
 	@Override
@@ -498,7 +496,7 @@ public class JFCRipperMointor extends GRipperMonitor {
 		sIgnoreWindowList = JFCConstants.sIgnoredWins;
 
 		// Start the application
-
+		
 		try {
 			// jsaddler
 			String[] URLs;
@@ -508,7 +506,7 @@ public class JFCRipperMointor extends GRipperMonitor {
 			else
 				URLs = new String[0];
 			URLs = JFCApplication2.convertToURLStrings(URLs);
-
+			
 			application = new JFCApplication2(JFCRipperConfiguration.MAIN_CLASS, JFCRipperConfiguration.LONG_PATH_TO_APP, JFCRipperConfiguration.USE_JAR, URLs);
 
 			// Parsing arguments
@@ -520,7 +518,7 @@ public class JFCRipperMointor extends GRipperMonitor {
 				args = new String[0];
 			final PrintStream originalOut = System.out;
 			final PrintStream originalErr = System.err;
-
+			
 			application.connect(args);
 			System.setOut(originalOut);
 			System.setErr(originalErr);
@@ -566,11 +564,11 @@ public class JFCRipperMointor extends GRipperMonitor {
 	}
 
 	/**
-	 *
+	 * 
 	 * Add a root window to be ripped
-	 *
+	 * 
 	 * <p>
-	 *
+	 * 
 	 * @param sWindowName
 	 *            the window name
 	 */
@@ -580,7 +578,7 @@ public class JFCRipperMointor extends GRipperMonitor {
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see edu.umd.cs.guitar.ripper.GRipperMonitor#isWindowClose()
 	 */
 	@Override
@@ -640,7 +638,7 @@ public class JFCRipperMointor extends GRipperMonitor {
 			GUITARLog.log.error("OutOfMemoryError converted to AWTException");
 			throw new AWTException("Out of memory");
 		}
-
+ 
 	}
 
 } // End of class

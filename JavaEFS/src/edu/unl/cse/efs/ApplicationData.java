@@ -1,3 +1,21 @@
+/*******************************************************************************
+ *    Copyright (c) 2018 Jonathan A. Saddler
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ *    
+ *    Contributors:
+ *     Jonathan A. Saddler - initial API and implementation
+ *******************************************************************************/
 package edu.unl.cse.efs;
 
 import java.io.File;
@@ -21,6 +39,8 @@ public class ApplicationData {
 	private String subdirectoryFiller;
 	private File outputDirectory;
 	private File workingTestCaseDirectory;
+	private String outputDirectoryProvided;
+	private String testCaseDirectoryProvided;
 	private String extrasAppend;
 	private String outputAppend;
 	private String timeLogAppend;
@@ -28,6 +48,7 @@ public class ApplicationData {
 	private String customMainClass;
 	private File argumentsAppFile;
 	private File argumentsVMFile;
+	private File preferencesFile;
 	private File ripConfigFile;
 	private File replayConfigFile;
 
@@ -56,6 +77,7 @@ public class ApplicationData {
 		workingTestCaseDirectory = new File("");
 		argumentsAppFile = new File("");
 		argumentsVMFile = new File("");
+		preferencesFile = new File("");
 		outputDirectory = new File("");
 		ripConfigFile = new File("");
 		replayConfigFile = new File("");
@@ -63,32 +85,18 @@ public class ApplicationData {
 		outputAppend = "gen_out";
 		timeLogAppend = "times_log";
 		constraintsAppend = "tasklist";
+		outputDirectoryProvided = null;
+		testCaseDirectoryProvided = null;
 		customMainClass = "";
 		resetSubdirectoryFiller();
-	}
-
-	/**
-	 * Resets variables that are not transient (not kept in memory) between separate runs of EventFlowSlicer.
-	 */
-	public void resetNonTransientData()
-	{
-		applicationFilePath = new File("");
-		workingGUIFile = new File("");
-		workingEFGFile = new File("");
-		workingTaskListFile = new File("");
-		workingTestCaseDirectory = new File("");
-		argumentsAppFile = new File("");
-		argumentsVMFile = new File("");
-		outputDirectory = new File("");
-		ripConfigFile = new File("");
-		replayConfigFile = new File("");
-		customMainClass = "";
 	}
 
 	public void setAppFilePath(String filepath)
 	{
 		if(filepath == null)
 			filepath = "";
+		else
+			filepath = filepath.trim();
 		applicationFilePath = new File(filepath);
 	}
 	public File getAppFile()
@@ -112,6 +120,8 @@ public class ApplicationData {
 	{
 		if(filepath == null)
 			filepath = "";
+		else
+			filepath = filepath.trim();
 		ripConfigFile = new File(filepath);
 	}
 	public File getRipConfigurationFile()
@@ -132,6 +142,8 @@ public class ApplicationData {
 	{
 		if(filepath == null)
 			filepath = "";
+		else
+			filepath = filepath.trim();
 		replayConfigFile = new File(filepath);
 	}
 	public File getReplayConfigurationFile()
@@ -151,6 +163,8 @@ public class ApplicationData {
 	{
 		if(classPath == null)
 			classPath = "";
+		else
+			classPath = classPath.trim();
 		customMainClass = classPath;
 	}
 	public String getCustomMainClass()
@@ -191,23 +205,12 @@ public class ApplicationData {
 				fileStem = fileStem.substring(0, jarPt);
 		}
 		// what if we have a long class name? Take out the content before the actual class name.
-//		int lastDotPt = fileStem.lastIndexOf(".");
-//		if(lastDotPt != -1) {
-//			fileStem = fileStem.substring(lastDotPt+1);
-//		}
+		int lastDotPt = fileStem.lastIndexOf(".");
+		if(lastDotPt != -1) {
+			fileStem = fileStem.substring(lastDotPt+1);
+		}
 		// overwrite the GUI file
 		workingGUIFile = new File(getOutputDirectory().getAbsolutePath() + File.separator + fileStem + ".GUI");
-	}
-
-	public static File getStandardizedFile(String filepath)
-	{
-		if(filepath == null)
-			filepath = "";
-		return new File(filepath);
-	}
-	public static boolean standardizedFileExists(File standardFile)
-	{
-		return standardFile.exists() && !standardFile.isDirectory();
 	}
 
 	//GUI File
@@ -215,6 +218,8 @@ public class ApplicationData {
 	{
 		if(filepath == null)
 			filepath = "";
+		else
+			filepath = filepath.trim();
 		workingGUIFile = new File(filepath);
 	}
 	public File getWorkingGUIFile()
@@ -234,6 +239,8 @@ public class ApplicationData {
 	{
 		if(filepath == null)
 			filepath = "";
+		else
+			filepath = filepath.trim();
 		workingEFGFile = new File(filepath);
 	}
 	public void setDefaultWorkingEFGFile()
@@ -253,10 +260,10 @@ public class ApplicationData {
 				fileStem = fileStem.substring(0, jarPt);
 		}
 		// what if we have a long class name? Take out the content before the actual class name.
-//		int lastDotPt = fileStem.lastIndexOf(".");
-//		if(lastDotPt != -1) {
-//			fileStem = fileStem.substring(lastDotPt+1);
-//		}
+		int lastDotPt = fileStem.lastIndexOf(".");
+		if(lastDotPt != -1) {
+			fileStem = fileStem.substring(lastDotPt+1);
+		}
 
 		// overwrite the name of the EFG file
 		workingEFGFile = new File(getOutputDirectory().getAbsolutePath() + File.separator + fileStem + ".EFG");
@@ -279,6 +286,8 @@ public class ApplicationData {
 	{
 		if(filepath == null)
 			filepath = "";
+		else
+			filepath = filepath.trim();
 		workingTaskListFile = new File(filepath);
 	}
 	public File getWorkingTaskListFile()
@@ -297,6 +306,8 @@ public class ApplicationData {
 	{
 		if(filepath == null)
 			filepath = "";
+		else
+			filepath = filepath.trim();
 		argumentsAppFile = new File(filepath);
 	}
 	public File getArgumentsAppFile()
@@ -316,6 +327,8 @@ public class ApplicationData {
 	{
 		if(filepath == null)
 			filepath = "";
+		else
+			filepath = filepath.trim();
 		argumentsVMFile = new File(filepath);
 	}
 	public File getArgumentsVMFile()
@@ -332,9 +345,28 @@ public class ApplicationData {
 		return !argumentsVMFile.getName().isEmpty();
 	}
 
+	// Preferences File
+	public void setPreferencesFile(String filepath)
+	{
+		filepath = filepath.trim();
+		if(filepath == null)
+			filepath = "";
+		preferencesFile = new File(filepath);
+	}
+	public File getPreferencesFile()
+	{
+		return preferencesFile;
+	}
+	public String getTestCaseDirectoryProvided()
+	{
+		return testCaseDirectoryProvided;
+	}
 	// Test Case Directory
 	public void setWorkingTestCaseDirectory(String filepath)
 	{
+		if(filepath != null)
+			filepath = filepath.trim();
+		testCaseDirectoryProvided = filepath;
 		if(filepath == null || filepath.isEmpty())
 			filepath = "";
 		else {
@@ -366,7 +398,7 @@ public class ApplicationData {
 		if(filepath.equals(".")) {
 			File dotFile = new File(".");
 			filepath = dotFile.getAbsolutePath();
-			// the behavior of this function is to typically place ./ after the name of the path.
+			// the behavior of this function is to typically place /. after the name of the path.
 			// remove these extraneous characters
 			filepath = filepath.substring(0, filepath.length()-2);
 		}
@@ -376,6 +408,9 @@ public class ApplicationData {
 	// Output Capture Directory
 	public void setOutputDirectory(String filepath)
 	{
+		if(filepath != null)
+			filepath = filepath.trim();
+		outputDirectoryProvided = filepath;
 		if(filepath == null || filepath.isEmpty())
 			filepath = "";
 		else {
@@ -394,12 +429,19 @@ public class ApplicationData {
 		return outputDirectory.exists() && outputDirectory.isDirectory();
 	}
 
-
 	public boolean hasOutputDirectory()
 	{
 		return !outputDirectory.getName().isEmpty();
 	}
 
+	/**
+	 * Returns a trimmed version of the String provided to the setOutputDirectory method.
+	 * @return
+	 */
+	public String getOutputDirectoryProvided()
+	{
+		return outputDirectoryProvided;
+	}
 	public File getOutputGenBaseFile()
 	{
 		if(!outputDirectoryExists())
@@ -448,38 +490,5 @@ public class ApplicationData {
 	public String getConstraintsFileAppend()
 	{
 		return constraintsAppend;
-	}
-
-	public String toString()
-	{
-		String toReturn = "";
-		toReturn = "Application Data contents:";
-		String[][] valueArray = new String[][]{
-			{"output directory", ""+outputDirectory},
-			{"application file", ""+applicationFilePath},
-			{"custom main class", ""+customMainClass},
-			{"custom main class", ""+customMainClass},
-			{"arguments app file", ""+argumentsAppFile},
-			{"arguments vm file", ""+argumentsVMFile},
-			{"wk tasklist file", ""+workingTaskListFile},
-			{"wk GUI file", ""+workingGUIFile},
-			{"wk EFG file", ""+workingEFGFile},
-			{"wk TC directory", ""+workingTestCaseDirectory},
-			{"rip config file", ""+ripConfigFile},
-			{"replay config file", ""+replayConfigFile},
-			{"extras append", ""+extrasAppend},
-			{"output append", ""+outputAppend},
-			{"consraints append", ""+constraintsAppend},
-			{"time log append", ""+timeLogAppend,}
-		};
-
-		for(String[] s : valueArray) {
-			if(s[1].isEmpty() || s[1].equals(String.valueOf(""+null)))
-				toReturn += "\n" + s[0] + ": ";
-			else
-				toReturn += "\n" + s[0] + ": " + s[1];
-		}
-		return toReturn;
-
 	}
 }

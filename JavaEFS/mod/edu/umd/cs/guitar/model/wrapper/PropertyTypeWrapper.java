@@ -100,7 +100,7 @@ public class PropertyTypeWrapper {
 	 * For example:
 	 *
 	 * <Name>X</Name>        <Name>X</Name>       <Name>X</Name>
-    * <Value>A</Value> with <Value>A</Value>  =>
+    * <Value>A</Value> with <Value>A</Value>  => 
     * <Value>B</Value>      <Value>B</Value>
     *
 	 * <Name>X</Name>        <Name>X</Name>       <Name>X</Name>
@@ -109,7 +109,7 @@ public class PropertyTypeWrapper {
 	 *
 	 * <Name>X</Name>        <Name>X</Name>       <Name>X</Name>
     * <Value>B</Value>      <Value>B</Value>  => <Value>A:C</Value>
-    * <Value>A</Value> with <Value>C</Value>
+    * <Value>A</Value> with <Value>C</Value> 
 	 *
 	 * Note: Properties being compared MUST have the same name. This implicitly
 	 *       implies that the order of properties must be the same.
@@ -226,10 +226,5 @@ public class PropertyTypeWrapper {
 			return "ptw:\n" + property.toString();
 		else
 			return "ptw: no properties";
-	}
-
-	public PropertyType getProperty()
-	{
-		return property;
 	}
 } // End of class

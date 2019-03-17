@@ -1,3 +1,21 @@
+/*******************************************************************************
+ *    Copyright (c) 2018 Jonathan A. Saddler
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ *    
+ *    Contributors:
+ *     Jonathan A. Saddler - initial API and implementation
+ *******************************************************************************/
 package edu.unl.cse.efs.view;
 
 
@@ -60,8 +78,7 @@ import edu.unl.cse.efs.generate.SearchPack;
 import edu.unl.cse.efs.generate.SelectorPack;
 import edu.unl.cse.efs.bkmktools.EFGBookmarking;
 
-public class EventFlowSlicerController
-{
+public class EventFlowSlicerController {
 	private ApplicationData ad;
 	private JavaLaunchApplication jLaunch;
 	private JavaCaptureLauncher currentCapture;
@@ -72,11 +89,6 @@ public class EventFlowSlicerController
 	private EFG workingEventFlow;
 	private PrintWriter logFileWriter;
 	private SecondaryLoop ripLoop;
-	private List<SelectorPack> facetInstructions;
-	private List<DirectionalPack> facetDirectionals;
-	private FocusOnPack facetFocus;
-	private SearchPack facetSearches;
-	private List<Integer> facetSearchesToModify;
 	private boolean doLogging;
 
 
@@ -86,7 +98,6 @@ public class EventFlowSlicerController
 		ObjectFactory fact = new ObjectFactory();
 		ripperArtifact = fact.createGUIStructure();
 		workingTaskList = fact.createTaskList();
-		facetInstructions = new ArrayList<SelectorPack>();
 	}
 
 	public void setWorkingEventFlow(EFG efg)
@@ -130,187 +141,6 @@ public class EventFlowSlicerController
 		FittingTool.startAndReadTo(ad, parentFrame);
 	}
 
-
-	public void startSelectorDialog(JFrame parentFrame)
-	{
-		facetInstructions = IPSelectorDisplay.startAndGetPacks(ad, parentFrame);
-		facetDirectionals = IPSelectorDisplay.timDirPacksOutput;
-		if(IPSelectorDisplay.timFocPacksOutput != null && !IPSelectorDisplay.timFocPacksOutput.isEmpty()) {
-			facetFocus = IPSelectorDisplay.timFocPacksOutput.get(0);
-		}
-		if(IPSelectorDisplay.abbySearchPacksOutput != null && !IPSelectorDisplay.abbySearchPacksOutput.isEmpty()) {
-			facetSearches = IPSelectorDisplay.abbySearchPacksOutput.get(0);
-			facetSearchesToModify = new ArrayList<Integer>(IPSelectorDisplay.tooltipModify);
-		}
-		System.out.println("Modifying constraints...");
-		workingTaskList.getWidget().clear();
-		workingTaskList.getWidget().addAll(IPSelectorDisplay.outputScope);
-		ObjectFactory fact = new ObjectFactory();
-		List<Widget> focusList = IPSelectorDisplay.timFocPacksOutput.get(0).list;
-		for(Widget w : focusList) {
-			Required sample = fact.createRequired();
-			sample.getWidget().add(w);
-			// add the required rule necessary to get the generator running to the tasklist
-			boolean foundR = false;
-			for(Required r : workingTaskList.getRequired()) {
-				if(sample.equals(r)) {
-					foundR = true;
-					break;
-				}
-			}
-			if(!foundR)
-				workingTaskList.getRequired().add(sample);
-		}
-		writeTaskListFile();
-	}
-
-
-	public int generateFacetedTCsFor(int directionInstruction) throws IOException
-	{
-		int testCases = 0;
-		File newDDirectory = new File(ad.getOutputDirectory().getAbsoluteFile(), "D" + directionInstruction);
-
-		TestCaseGenerate tcg = new TestCaseGenerate(
-				workingEventFlow,
-				ripperArtifact,
-				newDDirectory.getAbsolutePath());
-		// set up packs
-		List<SelectorPack> packs = new ArrayList<SelectorPack>();
-		if(facetDirectionals != null)
-			packs.addAll(facetDirectionals);
-		if(facetFocus != null)
-			packs.add(facetFocus);
-		if(facetSearches != null)
-			packs.add(facetSearches);
-		// ensure that search performers have updated values.
-		for(SelectorPack testP : packs) {
-			if(testP instanceof SearchPack) {
-				SearchPack testSP = ((SearchPack)testP);
-				List<Widget> newFullScope = TaskListConformance.checkAndSetWidgets(workingTaskList.getWidget(), ripperArtifact, workingEventFlow);
-				for(int i : facetSearchesToModify) {
-					// pull index from the tasklist.
-					// reset the search pack performer.
-					Widget newPerformer = newFullScope.get(i);
-					testSP.setSearchPerformer(i, newPerformer);
-				}
-				testSP.resetList(newFullScope);
-			}
-			else {
-				List<Widget> checkedWidgets = TaskListConformance.checkAndSetWidgets(testP.list, ripperArtifact, workingEventFlow);
-				testP.resetList(checkedWidgets);
-			}
-		}
-		// setup the generator
-		tcg.setupSliceSets(workingTaskList, packs.toArray(new SelectorPack[0]));
-		tcg.setupSliceIndexSets(workingTaskList);
-		tcg.resetTimes();
-
-		try {
-			boolean hasMore = tcg.hasMoreSlices();
-			while(hasMore) {
-				testCases += tcg.runSliceAlgorithmAndWriteResultsToOutputDirectory(false);
-				hasMore = tcg.advanceSplicer();
-			}
-			System.out.println("No more slices.");
-		} catch(IOException e) {
-			throw new IOException("Generator could not write files.");
-		}
-		EFG minimalEFG = tcg.postEFG;
-		XMLHandler handler = new XMLHandler();
-		String minimalFilename = ad.getOutputGenBaseFile() + "_minimal.EFG";
-		System.out.println("Writing final minimal EFG to " + minimalFilename);
-		long finalIOTime = System.currentTimeMillis();
-
-		try { handler.writeObjToFile(minimalEFG, new FileOutputStream(minimalFilename)); }
-		catch(IOException e) {
-			finalIOTime = System.currentTimeMillis() - finalIOTime;
-			// log time
-			if(doLogging) {
-				logFileWriter.append("gentc\t" + (tcg.algoDurationTime + tcg.ioHandlingTime + finalIOTime) + "\tms\n");
-				logFileWriter.close();
-			}
-			throw new IOException("Generation was completed. (final EFG could not be written)");
-		}
-		finalIOTime = System.currentTimeMillis() - finalIOTime;
-		// log time
-		if(doLogging) {
-			logFileWriter.append("gentc\t" + (tcg.algoDurationTime + tcg.ioHandlingTime + finalIOTime) + "\tms\n");
-			logFileWriter.close();
-		}
-		System.out.println("Done.");
-		return testCases;
-	}
-	public int startGeneratingTestCasesWithFacets(LauncherData ld) throws IOException
-	{
-		try {
-			if(!ad.outputDirectoryExists()) {
-				if(!ad.getOutputDirectory().mkdirs()) {
-					throw new RuntimeException("Could not create results directory and write test cases:\n"
-							+ ad.getOutputDirectory().getPath());
-				}
-			}
-		} catch(Exception e) {
-			throw new SecurityException(e.getMessage());
-		}
-		EFGPacifier pacifier = new EFGPacifier(workingEventFlow, workingTaskList, ad.getOutputGenBaseFile().getAbsolutePath());
-		System.out.println("Using pacifier run type " + ld.getGeneratorRunningType() + ":");
-		switch(ld.getGeneratorRunningType()) {
-			case NOCHOICE:
-			case RSECWO: workingEventFlow = pacifier.pacifyInputGraphAndWriteResultsRev3(); break;
-			case ECRSWO: workingEventFlow = pacifier.pacifyInputGraphAndWriteResultsRev4(); break;
-			case WORSEC: workingEventFlow = pacifier.pacifyInputGraphAndWriteResultsRev6(); break;
-			case NOREDS: // do nothing.
-		}
-		if(doLogging) {
-			logFileWriter.append("1\t" + pacifier.times[EFGPacifier.RED1] + "\tms\n");
-			logFileWriter.append("2\t" + pacifier.times[EFGPacifier.RED2] + "\tms\n");
-			logFileWriter.append("3\t" + pacifier.times[EFGPacifier.RED3] + "\tms\n");
-		}
-		TestCaseGenerate tcg = new TestCaseGenerate(
-				workingEventFlow,
-				ripperArtifact,
-				ad.getOutputDirectory().getAbsolutePath());
-		int testCases = 0;
-		// parameterize the events.
-		PEFGCreator pefgc = new PEFGCreator(workingEventFlow, workingTaskList);
-		workingEventFlow = pefgc.augmentEvents();
-		if(!facetInstructions.isEmpty()) {
-			for(int i = 0; i < facetDirectionals.size(); i++)
-				testCases += generateFacetedTCsFor(i);
-			return testCases;
-		}
-
-		tcg.setupIndexSets(workingTaskList);
-		tcg.resetTimes();
-		try{ testCases = tcg.runAlgorithmAndWriteResultsToOutputDirectory(false);}
-		catch(IOException e) {
-			throw new IOException("Generation Erorrs", e);
-		}
-		EFG minimalEFG = tcg.postEFG;
-		XMLHandler handler = new XMLHandler();
-		String minimalFilename = ad.getOutputGenBaseFile() + "_minimal.EFG";
-		System.out.println("Writing final minimal EFG to " + minimalFilename);
-		long finalIOTime = System.currentTimeMillis();
-
-		try { handler.writeObjToFile(minimalEFG, new FileOutputStream(minimalFilename)); }
-		catch(IOException e) {
-			finalIOTime = System.currentTimeMillis() - finalIOTime;
-			// log time
-			if(doLogging) {
-				logFileWriter.append("gentc\t" + (tcg.algoDurationTime + tcg.ioHandlingTime + finalIOTime) + "\tms\n");
-				logFileWriter.close();
-			}
-			throw new IOException("Generation was completed. (final EFG could not be written)");
-		}
-		finalIOTime = System.currentTimeMillis() - finalIOTime;
-		// log time
-		if(doLogging) {
-			logFileWriter.append("gentc\t" + (tcg.algoDurationTime + tcg.ioHandlingTime + finalIOTime) + "\tms\n");
-			logFileWriter.close();
-		}
-		System.out.println("Done.");
-		return testCases;
-	}
 	/*
 	 *\\\\\\
 	 *\\\\\GENERATION
@@ -345,16 +175,11 @@ public class EventFlowSlicerController
 			logFileWriter.append("2\t" + pacifier.times[EFGPacifier.RED2] + "\tms\n");
 			logFileWriter.append("3\t" + pacifier.times[EFGPacifier.RED3] + "\tms\n");
 		}
-//		// add parameters to the events.
-//		PEFGCreator pefgc = new PEFGCreator(workingEventFlow, workingTaskList);
-//		workingEventFlow = pefgc.augmentEvents();
 
 		TestCaseGenerate tcg = new TestCaseGenerate(
 				workingEventFlow,
 				ripperArtifact,
 				ad.getOutputDirectory().getAbsolutePath());
-		tcg.setupIndexSets(workingTaskList);
-		tcg.resetTimes();
 		int testCases = 0;
 		try {
 			testCases = tcg.runAlgorithmAndWriteResultsToOutputDirectory(false);
@@ -643,6 +468,11 @@ public class EventFlowSlicerController
 	 * using a subprocess.
 	 * @param waitLoop
 	 */
+	/**
+	 * Helper method to rip models from the app outside of the current java virtual machine,
+	 * using a subprocess.
+	 * @param waitLoop
+	 */
 	public void ripOutsideVM(final SecondaryLoop waitLoop)
 	{
 		// setup the process.
@@ -826,6 +656,13 @@ public class EventFlowSlicerController
 	 * @param GUIStructureOutputLocation
 	 * @param waitLoop
 	 */
+	/**
+	 * This method is used to complete the rip process when the process is complete. The class that started the rip process
+	 * should wait until the waitLoop provided has called the loop's exit method at the end of this procedure
+	 * to allow for the ripper to compelete. This method is called only when the ripper is done.
+	 * @param GUIStructureOutputLocation
+	 * @param waitLoop
+	 */
 	private void endRipProcess(final SecondaryLoop waitLoop)
 	{
 		// fetch the GUI from the file system.
@@ -859,7 +696,6 @@ public class EventFlowSlicerController
 				EFG bookmarkedEFG = EFGPacifier.copyOf(workingEventFlow);
 				EFGBookmarking bkmk = new EFGBookmarking(bookmarkedEFG, ripperArtifact);
 				bookmarkedEFG = bkmk.getBookmarked(true);
-				modifyEFGInitials(bookmarkedEFG);
 				System.out.println("EVENTFLOWSLICER: Writing completed EFG File to:\n\t" + ad.getWorkingEFGFile().getPath());
 				handler.writeObjToFile(workingEventFlow, ad.getWorkingEFGFile().getAbsolutePath());
 				System.out.println("EVENTFLOWSLICER: Done.");
@@ -872,10 +708,6 @@ public class EventFlowSlicerController
 		waitLoop.exit();
 	}
 
-	public List<DirectionalPack> getFacetDirectionals()
-	{
-		return facetDirectionals;
-	}
 
 	public void endRipProcess()
 	{
@@ -911,8 +743,7 @@ public class EventFlowSlicerController
 				EFG bookmarkedEFG = EFGPacifier.copyOf(workingEventFlow);
 				EFGBookmarking bkmk = new EFGBookmarking(bookmarkedEFG, ripperArtifact);
 				bookmarkedEFG = bkmk.getBookmarked(true);
-				modifyEFGInitials(bookmarkedEFG);
-
+				
 				System.out.println("EVENTFLOWSLICER: Writing completed EFG File to:\n\t" + ad.getWorkingEFGFile().getPath());
 				handler.writeObjToFile(workingEventFlow, ad.getWorkingEFGFile().getAbsolutePath());
 				System.out.println("EVENTFLOWSLICER: Done.");
@@ -922,35 +753,6 @@ public class EventFlowSlicerController
 		catch(Exception e) {
 			System.err.println("Failed Bookmarking test.");
 		}
-	}
-	public void modifyEFGInitials(EFG bookmarkedEFG)
-	{
-		if(facetDirectionals != null && !facetDirectionals.isEmpty()) {
-			LinkedList<Widget> firsts = new LinkedList<Widget>();
-			for(DirectionalPack dp : facetDirectionals) {
-				GUIStructureWrapper gsw = new GUIStructureWrapper(ripperArtifact);
-				gsw.parseData();
-				LocationComparator oc = new LocationComparator(gsw, workingTaskList.getWidget(), bookmarkedEFG.getEvents().getEvent());
-				Collection<LinkedList<Widget>> mapped = oc.getMappedWidgets(dp.hovers, dp.isRightDirectional()).values();
-				if(!mapped.isEmpty())
-					firsts.addAll(mapped.iterator().next());
-			}
-			Iterator<EventType> bIt = bookmarkedEFG.getEvents().getEvent().iterator();
-			List<Widget> newFirsts = TaskListConformance.checkAndSetWidgets(firsts, ripperArtifact, bookmarkedEFG);
-			for(EventType et : workingEventFlow.getEvents().getEvent()) {
-				EventType nextBE = bIt.next();
-				boolean found = false;
-				for(int i = 0; i < newFirsts.size() && !found; i++) {
-					if(nextBE.getEventId().equals(newFirsts.get(i).getEventID())) {
-						et.setInitial(true);
-						found = true;
-					}
-				}
-				if(!found)
-					et.setInitial(false);
-			}
-		}
-
 	}
 
 	public String copyTaskListToRipDirectory() throws JAXBException
