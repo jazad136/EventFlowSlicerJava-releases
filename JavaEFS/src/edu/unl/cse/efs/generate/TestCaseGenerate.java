@@ -18,8 +18,6 @@
  *******************************************************************************/
 package edu.unl.cse.efs.generate;
 
-import static edu.unl.cse.efs.bkmktools.TSTBookmarking.*;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -39,18 +37,10 @@ import edu.umd.cs.guitar.model.GUITARConstants;
 import edu.umd.cs.guitar.model.XMLHandler;
 import edu.umd.cs.guitar.model.data.*;
 import edu.umd.cs.guitar.model.wrapper.*;
-<<<<<<< HEAD
 import edu.unl.cse.efs.bkmktools.TSTBookmarking.TSTUnBookmarking;
 import edu.unl.cse.efs.tools.AlphabetIterator;
 import edu.unl.cse.efs.tools.ArrayTools;
-import edu.unl.cse.efs.tools.LocationComparator;
 import edu.unl.cse.efs.tools.TaskListConformance;
-import edu.unl.cse.guitarext.JavaTestInteractions;
-=======
-import edu.unl.cse.efs.tools.ArrayTools;
-import edu.unl.cse.jontools.paths.TaskListConformance;
-import edu.unl.cse.jontools.string.AlphabetIterator;
->>>>>>> master
 
 /**
  * Class bearing the main level of support for the EventFlowSlicer test case generator.
@@ -74,7 +64,6 @@ public class TestCaseGenerate
 	public long firstTime;
 	public long algoDurationTime, ioHandlingTime;
 	public boolean[] repeatable;
-	private boolean continueGeneration, highPathPromptShown;
 	/** an integer array with strides **/
 	public int[][] repeats;
 	public Set<Integer> atomicRepeatEvents;
@@ -120,8 +109,6 @@ public class TestCaseGenerate
 
 		guiStructureAdapter = new GUIStructureWrapper(guiData);
 		guiStructureAdapter.parseData();
-		continueGeneration = true;
-		highPathPromptShown = false;
 		setupIndexSets(constraints);
 		resetTimes();
 	}

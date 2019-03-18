@@ -16,7 +16,6 @@
  *    Contributors:
  *     Jonathan A. Saddler - initial API and implementation
  *******************************************************************************/
-package edu.unl.cse.jontools.widget;
 package edu.unl.cse.efs.tools;
 import java.util.Collection;
 import java.util.Iterator;

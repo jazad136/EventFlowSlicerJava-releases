@@ -41,7 +41,6 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -68,8 +67,6 @@ import edu.umd.cs.guitar.model.JFCXWindow;
 import edu.umd.cs.guitar.ripper.GRipperMonitor;
 import edu.umd.cs.guitar.ripper.JFCRipperConfiguration;
 import edu.umd.cs.guitar.util.GUITARLog;
-import edu.unl.cse.efs.java.JavaLaunchApplication;
-import edu.unl.cse.efs.util.ReadArguments;
 
 /**
  *
@@ -85,11 +82,6 @@ public class JFCRipperMonitorEFS extends GRipperMonitor {
 	// --------------------------
 	// Configuartion Parameters
 	// --------------------------
-
-	/**
-     *
-     */
-	private static final int INITIAL_DELAY = 1000;
 
 	// Logger logger;
 	JFCRipperConfiguration configuration;

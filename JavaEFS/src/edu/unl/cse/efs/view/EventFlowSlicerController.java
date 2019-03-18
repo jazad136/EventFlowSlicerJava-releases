@@ -54,7 +54,6 @@ import edu.unl.cse.efs.tools.PathConformance;
 import edu.unl.cse.efs.tools.TaskListConformance;
 import edu.unl.cse.efs.util.ReadArguments;
 import edu.unl.cse.efs.view.ft.FittingTool;
-import edu.unl.cse.efs.view.tcselect.IPSelectorDisplay;
 import edu.unl.cse.efs.generate.TestCaseGenerate;
 import edu.unl.cse.efs.guitarplugin.EFSEFGConverter;
 import edu.umd.cs.guitar.model.GUITARConstants;
@@ -66,16 +65,10 @@ import edu.umd.cs.guitar.model.data.ObjectFactory;
 import edu.umd.cs.guitar.model.data.Required;
 import edu.umd.cs.guitar.model.data.TaskList;
 import edu.umd.cs.guitar.model.data.Widget;
-import edu.umd.cs.guitar.model.wrapper.GUIStructureWrapper;
 import edu.unl.cse.efs.ApplicationData;
 import edu.unl.cse.efs.LauncherData;
 import edu.unl.cse.efs.app.EventFlowSlicer;
-import edu.unl.cse.efs.generate.DirectionalPack;
 import edu.unl.cse.efs.generate.EFGPacifier;
-import edu.unl.cse.efs.generate.FocusOnPack;
-import edu.unl.cse.efs.generate.PEFGCreator;
-import edu.unl.cse.efs.generate.SearchPack;
-import edu.unl.cse.efs.generate.SelectorPack;
 import edu.unl.cse.efs.bkmktools.EFGBookmarking;
 
 public class EventFlowSlicerController {

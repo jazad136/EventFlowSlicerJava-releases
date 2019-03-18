@@ -812,7 +812,7 @@ public class JavaLaunchApplication extends LaunchApplication implements Runnable
 		// reset the look and feel now that the java app is done. 
 		// (otherwise the look and feel carries over to CogToolHelper, which we don't want!)
 		try {
-			UIManager.setLookAndFeel(EventFlowSlicerView.lookAndFeel);
+			UIManager.setLookAndFeel(EventFlowSlicer.lookAndFeel);
 		} catch(UnsupportedLookAndFeelException e) {
 			System.err.println("JavaLaunchApplication: Could not reset look and feel. Buttons may appear to "
 					+ "look strange in resulting interface.");

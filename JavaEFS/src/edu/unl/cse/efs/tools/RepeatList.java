@@ -1,6 +1,3 @@
-<<<<<<< HEAD:JavaEFS/src/edu/unl/cse/efs/tools/RepeatList.java
-package edu.unl.cse.efs.tools;
-=======
 /*******************************************************************************
  *    Copyright (c) 2018 Jonathan A. Saddler
  *
@@ -19,11 +16,9 @@ package edu.unl.cse.efs.tools;
  *    Contributors:
  *     Jonathan A. Saddler - initial API and implementation
  *******************************************************************************/
-package edu.unl.cse.jontools.widget;
->>>>>>> master:JavaEFS/src/edu/unl/cse/jontools/widget/RepeatList.java
+package edu.unl.cse.efs.tools;
 
 import java.util.LinkedList;
-
 import edu.umd.cs.guitar.model.data.Repeat;
 import edu.umd.cs.guitar.model.data.Widget;
 

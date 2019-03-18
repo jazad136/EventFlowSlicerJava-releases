@@ -36,6 +36,7 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 import javax.swing.JFrame;
+import javax.swing.LookAndFeel;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.JAXBIntrospector;
@@ -67,6 +68,8 @@ import edu.unl.cse.efs.view.EventFlowSlicerErrors;
 import edu.unl.cse.efs.view.EventFlowSlicerView;
 
 public class EventFlowSlicer {
+	
+	public static LookAndFeel lookAndFeel;
 	private static SecondaryLoop waitLoop;
 	private static LauncherData ld;
 	private static ApplicationData ad;
@@ -77,6 +80,9 @@ public class EventFlowSlicer {
 			+ System.getProperty("file.separator") + "bin" + System.getProperty("file.separator") + "java";
 	public static final String DEFAULT_JAVA_RMI_PORT = "1099";
 	public static final String APP_INVOKE_STRING = getRunLocation();
+	public static String loadPreferencesFilename;
+	public static File loadPreferencesDirectory;
+
 	public static final PrintStream originalOut = System.out;
 	public static final PrintStream originalErr = System.err;
 
@@ -97,6 +103,17 @@ public class EventFlowSlicer {
 		doGUI = doCapture = doConstraints = doRip = doGenerate = doBookmark = doReplay = false;
 	}
 
+	public static void resetToPreferences()
+	{
+		ad.resetNonTransientData();
+		ld = new LauncherData(DEFAULT_JAVA_RMI_PORT);
+		try {
+			ReadArguments.setupPreferences(loadPreferencesDirectory.getAbsolutePath(), loadPreferencesFilename, true);
+			ReadArguments.searchPreferences(ad, ld, ReadArguments.ConfigProperty.all);
+		} catch(JAXBException e) {
+
+		}
+	}
 	public static void main(String[] args) {
 		reset();
 		try {
@@ -143,7 +160,7 @@ public class EventFlowSlicer {
 				System.out.println("Doing rip");
 				JFCRipperConfigurationEFS config = rippingArgs(args);
 				if (!ld.sendsToRMI()) {
-					efc.startRip(config);
+					efc.startRip();
 
 					System.out.println(efc.modifyWorkingTasklistAfterRip());
 					System.out.println("Done ripping.");
@@ -1366,5 +1383,43 @@ public class EventFlowSlicer {
 			return false;
 		}
 		return true;
+	}
+	
+	public static void initRipperVMChanges()
+	{
+		boolean useVMArgs = !JFCRipperConfigurationEFS.VM_ARGS_FILE.isEmpty();
+		if(useVMArgs) {
+			String[] jvmArgs = ReadArguments.readVMArguments(JFCRipperConfigurationEFS.VM_ARGS_FILE);
+			String[] urlsList = new String[0];
+			HashMap<String, String> sysProp = JavaLaunchApplication.imitateVMPropertyChanges(jvmArgs);
+			urlsList = JavaLaunchApplication.getCPUrlsList(jvmArgs);
+			for(String s : urlsList) {
+				if(JFCRipperConfigurationEFS.URL_LIST.isEmpty())
+					JFCRipperConfigurationEFS.URL_LIST += s;
+				else
+					JFCRipperConfigurationEFS.URL_LIST += GUITARConstants.CMD_ARGUMENT_SEPARATOR + s;
+			}
+			if(sysProp != null)
+				poppedSystemProperties = sysProp;
+		}
+	}
+
+	public static void initReplayerVMChanges()
+	{
+		boolean useVMArgs = !JFCReplayerConfigurationEFS.VM_ARGS_FILE.isEmpty();
+		if(useVMArgs) {
+			String[] jvmArgs = ReadArguments.readVMArguments(JFCReplayerConfigurationEFS.VM_ARGS_FILE);
+			String[] urlsList = new String[0];
+			HashMap<String, String> sysProp = JavaLaunchApplication.imitateVMPropertyChanges(jvmArgs);
+			urlsList = JavaLaunchApplication.getCPUrlsList(jvmArgs);
+			for(String s : urlsList) {
+				if(JFCReplayerConfigurationEFS.URL_LIST.isEmpty())
+					JFCReplayerConfigurationEFS.URL_LIST += s;
+				else
+					JFCReplayerConfigurationEFS.URL_LIST += GUITARConstants.CMD_ARGUMENT_SEPARATOR + s;
+			}
+			if(sysProp != null)
+				poppedSystemProperties = sysProp;
+		}
 	}
 }
