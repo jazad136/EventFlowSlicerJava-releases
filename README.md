@@ -31,9 +31,10 @@ by Jonathan A. Saddler and Myra B. Cohen.
 
 [Jan. 2019] Today we're announcing that we will soon host the ability to check out this project via Gradle and Maven. 
 
-This will make it simple for you to run scripts and automate setup of the tool and its dependencies in a few keystrokes and small downloads. 
+[Mar. 2019] We were recently successful in uploading project descriptions to Maven Central for release approval, however, download via maven is not available yet. Check back soon for more details. 
 
-Check back soon for more details. 
+## Until then
+EventFlowSlicer has 5 steps in which at least 2 make use of human-readable XML files called EFG files and GUI files and Rules files. You can learn about how these files are created from the published papers. For a limited time, the artifacts themselves for various kinds of GUI tasks you can execute yourself will be posted to the following website: [http://cse.unl.edu/~myra/artifacts/EventFlowSlicer](http://cse.unl.edu/~myra/artifacts/EventFlowSlicer)
 
 ## Appeal and Audience
 
@@ -45,9 +46,7 @@ EFS trades off the ability to directly click to capture for an *algorithm*-based
 
 Search is done using some of the constraints defined contained in [Swearngin's 2013 Conference Paper (affiliation: University of Nebraska, Lincoln)](http://digitalcommons.unl.edu/cseconfwork/260/)[1]. More constraints were defined as more uses became pertinent.
 
-## Artifacts
-
-You may also be interested in artifacts for use with testing EventFlowSlicer. EventFlowSlicer has 5 steps in which at least 2 make use of human-readable XML files called EFG files and GUI files and Rules files. You can learn about how these files are created from the published papers. For a limited time, the artifacts themselves for various kinds of GUI tasks you can execute yourself will be posted to the following website: [http://cse.unl.edu/~myra/artifacts/EventFlowSlicer](http://cse.unl.edu/~myra/artifacts/EventFlowSlicer)
+## For more information
 
 email the maintainer Jonathan A. Saddler @ saddler@huskers.unl.edu
 
