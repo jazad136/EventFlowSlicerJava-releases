@@ -1,27 +1,21 @@
-/*
- *  Copyright (c) 2009, 2018-@year@. The  GUITAR group  at the University of
- *  Maryland. Names of owners of this group may be obtained by sending
- *  an e-mail to atif@cs.umd.edu
+/*******************************************************************************
+ *    Copyright (c) 2018 Jonathan A. Saddler
  *
- *  Permission is hereby granted, free of charge, to any person obtaining
- *  a copy of this software and associated documentation files
- *  (the "Software"), to deal in the Software without restriction,
- *  including without limitation  the rights to use, copy, modify, merge,
- *  publish,  distribute, sublicense, and/or sell copies of the Software,
- *  and to  permit persons  to whom  the Software  is furnished to do so,
- *  subject to the following conditions:
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
  *
- *  The above copyright notice and this permission notice shall be included
- *  in all copies or substantial portions of the Software.
+ *        http://www.apache.org/licenses/LICENSE-2.0
  *
- *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- *  OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- *  MERCHANTABILITY,  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- *  IN NO  EVENT SHALL THE  AUTHORS OR COPYRIGHT  HOLDERS BE LIABLE FOR ANY
- *  CLAIM, DAMAGES OR  OTHER LIABILITY,  WHETHER IN AN  ACTION OF CONTRACT,
- *  TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- *  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- */
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ *    
+ *    Contributors:
+ *     Jonathan A. Saddler - initial API and implementation
+ *******************************************************************************/
 package edu.unl.cse.efs.ripper;
 
 import java.io.File;
@@ -29,6 +23,7 @@ import java.io.InputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.TimeZone;
 
@@ -39,6 +34,7 @@ import edu.umd.cs.guitar.ripper.JFCRipperConfiguration;
 import edu.umd.cs.guitar.ripper.JFCRipperMointor;
 import edu.umd.cs.guitar.ripper.Ripper;
 import edu.umd.cs.guitar.ripper.adapter.JFCTabFilter;
+import edu.umd.cs.guitar.event.JFCMenuReopenHandler;
 import edu.umd.cs.guitar.model.GUITARConstants;
 import edu.umd.cs.guitar.model.JFCConstants;
 import edu.umd.cs.guitar.model.XMLHandler;
@@ -48,6 +44,8 @@ import edu.umd.cs.guitar.model.data.ComponentType;
 import edu.umd.cs.guitar.model.data.Configuration;
 import edu.umd.cs.guitar.model.data.FullComponentType;
 import edu.umd.cs.guitar.model.data.GUIStructure;
+import edu.umd.cs.guitar.model.data.ObjectFactory;
+import edu.umd.cs.guitar.model.data.PropertyType;
 import edu.umd.cs.guitar.model.data.TaskList;
 import edu.umd.cs.guitar.model.data.Widget;
 import edu.umd.cs.guitar.model.wrapper.AttributesTypeWrapper;
@@ -60,45 +58,46 @@ import edu.umd.cs.guitar.util.GUITARLog;
 import edu.unl.cse.efs.guitaradapter.JFCRulesFilter;
 import edu.unl.cse.efs.guitarplugin.JFCIDGeneratorEFS;
 import edu.unl.cse.efs.guitarplugin.JavaTestInteractionsInstantiator;
-import edu.unl.cse.jontools.paths.TaskListConformance;
+import edu.unl.cse.efs.tools.TaskListConformance;
 
 /**
- * 
+ *
  * Executing class for JFCRipperFlowbehind
- * 
- * 
- * @author Jonathan Saddler 
+ *
+ *
+ * @author Jonathan Saddler
  */
 public class JFCRipperEFS {
-	
+
 	private JFCRipperConfigurationEFS config;
-	
+
 	Ripper ripper;
 	JFCRulesFilter rulesFilt;
 	JFCIDGeneratorEFS jIDGeneratorFB;
-	
+
 	/**
 	 * @param CONFIG
 	 */
-	public JFCRipperEFS(JFCRipperConfigurationEFS CONFIG) {
+
+	public JFCRipperEFS()
+	{
 		super();
-		this.config = CONFIG;
 	}
-	
+
 	public static void main(String[] args)
 	{
 		JFCRipperConfigurationEFS configuration = new JFCRipperConfigurationEFS();
-		final JFCRipperEFS jfcRipperFB = new JFCRipperEFS(configuration);
+		final JFCRipperEFS jfcRipperFB = new JFCRipperEFS();
 		jfcRipperFB.runRipper(args);
 	}
-	
+
 	public JFCRulesFilter getRulesFilter()
 	{
 		return rulesFilt;
 	}
 	public GUIStructure runRipper(String[] args)
 	{
-		CmdLineParser parser = new CmdLineParser(config);
+		CmdLineParser parser = new CmdLineParser(new JFCRipperConfigurationEFS());
 		GUIStructure rippedStructure = null;
 		try {
 			parser.parseArgument(args);
@@ -118,7 +117,7 @@ public class JFCRipperEFS {
 	}
 
 	/**
-    * 
+    *
     */
 	private void setupEnv() throws Exception {
 		// --------------------------
@@ -126,7 +125,7 @@ public class JFCRipperEFS {
 		// Try to find absolute path first then relative path
 		XMLHandler handler = new XMLHandler();
 		Configuration conf = null;
-		
+
 		File configFile = new File(JFCRipperConfigurationEFS.CONFIG_FILE);
 		if(!configFile.exists()) {
 			System.err.println("\n*** Configuration file not found. ***\n"
@@ -179,14 +178,29 @@ public class JFCRipperEFS {
 		 * ***********
 		 * ***********
 		 */
+
 		List<FullComponentType> lIgnoredComps = new ArrayList<FullComponentType>();
 		ComponentListType ignoredComponentList = conf.getIgnoredComponents();
+		ObjectFactory fact = new ObjectFactory();
+		if(ignoredComponentList == null)
+			ignoredComponentList = fact.createComponentListType();
+
+		// ignore the EventFlowSlicer window by default.
+
+		FullComponentType efsType = fact.createFullComponentType();
+		PropertyType prop = fact.createPropertyType();
+		prop.setName("Title");
+		prop.setValue(Arrays.asList(new String[]{"EventFlowSlicer"}));
+
+		efsType.setWindow(fact.createComponentType());
+		efsType.getWindow().setAttributes(fact.createAttributesType());
+		efsType.getWindow().getAttributes().getProperty().add(0, prop);
+		ignoredComponentList.getFullComponent().add(efsType);
+
 		if (ignoredComponentList != null) {
 			for (FullComponentType fullComp : ignoredComponentList
 					.getFullComponent()) {
 				ComponentType comp = fullComp.getComponent();
-
-				// TODO: Shortcut here
 				if (comp == null) {
 					ComponentType win = fullComp.getWindow();
 					ComponentTypeWrapper winAdapter = new ComponentTypeWrapper(
@@ -199,7 +213,7 @@ public class JFCRipperEFS {
 					lIgnoredComps.add(fullComp);
 			}
 		}
-		
+
 		// --------------------------
 		// Ignore components xml
 		IgnoreSignExpandFilter jIgnoreExpand = new IgnoreSignExpandFilter(lIgnoredComps);
@@ -208,16 +222,16 @@ public class JFCRipperEFS {
 		// Setup tab components ripper filter
 		JFCTabFilter jTab = (JFCTabFilter)JFCTabFilter.getInstance();
 		ripper.addComponentFilter(jTab);
-		
+
 		// Setup IgnoreComopnentsByType filter
-		rulesFilt = new JFCRulesFilter();
+		rulesFilt = new JFCRulesFilter(jMonitor);
 		rulesFilt.setMonitor(jMonitor);
 		rulesFilt.ignoreComponents(jIgnoreExpand);
 		rulesFilt.expandTabs(jTab);
 		ripper.addComponentFilter(rulesFilt);
-		
-		
-		
+
+
+
 		/* **************
 		 * **************
 		 * Set up Monitor
@@ -225,7 +239,7 @@ public class JFCRipperEFS {
 		 * **************
 		 */
 		ripper.setMonitor(jMonitor);
-		
+
 		/* **************
 		 * **************
 		 * Set up ID Generator
@@ -252,13 +266,13 @@ public class JFCRipperEFS {
 		 * **********
 		 * **********
 		 */
-		// for flowbehind. 
-		String namesFileProvided = JFCRipperConfigurationEFS.NAMES_FILE;  
+		// for flowbehind.
+		String namesFileProvided = JFCRipperConfigurationEFS.NAMES_FILE;
 		if(!(namesFileProvided== null || namesFileProvided.isEmpty()))
 			ripper.addPlugin(new JavaTestInteractionsInstantiator(namesFileProvided));
 		else
 			ripper.addPlugin(new JavaTestInteractionsInstantiator());
-		
+
 		// Add ripper plugins
 		if (config.PLUGIN_LIST != null) {
 			System.out.println("Ripper plugin(s):");
@@ -270,20 +284,20 @@ public class JFCRipperEFS {
 				ripper.addPlugin(plugin);
 			}
 		}
-		
+
 	}
 	/**
 	 * Execute the jfc ripper
-	 * 
+	 *
 	 * <p>
-	 * 
+	 *
 	 * @throws CmdLineException
-	 * 
+	 *
 	 */
 
 	public GUIStructure execute() {
 		long nStartTime = System.currentTimeMillis();
-		
+
 		ripper = new Ripper(GUITARLog.log);
 		GUITARLog.addFileAppender(JFCRipperConfiguration.LOG_FILE);
 		// -------------------------
@@ -292,7 +306,6 @@ public class JFCRipperEFS {
 
 		try {
 			setupEnv();
-			
 			ripper.execute();
 		} catch (Exception e) {
 			System.err.println("Error while ripping: ");
@@ -307,25 +320,15 @@ public class JFCRipperEFS {
 		GUIStructure dFilterGUIStructure = rulesFilt.getResult();
 		dGUIStructure.getGUI().addAll(dFilterGUIStructure.getGUI());
 		jIDGeneratorFB.generateID(dFilterGUIStructure);
-		
-		;
-		
-		// append what we missed earlier to the head GUI structure. 
-//		dGUIStructure.getGUI().addAll(dFilterGUIStructure.getGUI());
-		// log all the window names, if a log is installed. 
+
+
+		// log all the window names, if a log is installed.
 		GUIStructureInfoUtil guistructureinfoutil = new GUIStructureInfoUtil();
 		guistructureinfoutil.generate(dGUIStructure, false);
-		
-		
-		
-		// write the rip file. 
-//		File x = new File(JFCRipperFlowbehindConfiguration.GUI_FILE);
-//		if(!x.exists()) 
-//			new File(JFCRipperFlowbehindConfiguration.GUI_FILE).mkdirs();
-		
+
 		handler.writeObjToFile(dGUIStructure, JFCRipperConfigurationEFS.GUI_FILE);
-		
-		
+
+
 		// output some summary data.
 		System.out.println("-----------------------------");
 		System.out.println("OUTPUT SUMARY: ");
@@ -343,10 +346,10 @@ public class JFCRipperEFS {
 		System.out.println("Ripping Elapsed: " + df.format(nDuration));
 		System.out.println("Log file: " + JFCRipperConfigurationEFS.LOG_FILE);
 		System.out.println("-----------------------------");
-		
+
 		return dGUIStructure;
 	}
 
-	
+
 
 } // End of class

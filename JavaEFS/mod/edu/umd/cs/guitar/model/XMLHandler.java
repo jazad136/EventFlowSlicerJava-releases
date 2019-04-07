@@ -1,21 +1,21 @@
-/*	
+/*
  *  Copyright (c) 2009-@year@. The GUITAR group at the University of Maryland. Names of owners of this group may
  *  be obtained by sending an e-mail to atif@cs.umd.edu
- * 
- *  Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated 
- *  documentation files (the "Software"), to deal in the Software without restriction, including without 
+ *
+ *  Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+ *  documentation files (the "Software"), to deal in the Software without restriction, including without
  *  limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- *	the Software, and to permit persons to whom the Software is furnished to do so, subject to the following 
+ *	the Software, and to permit persons to whom the Software is furnished to do so, subject to the following
  *	conditions:
- * 
- *	The above copyright notice and this permission notice shall be included in all copies or substantial 
+ *
+ *	The above copyright notice and this permission notice shall be included in all copies or substantial
  *	portions of the Software.
  *
- *	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT 
- *	LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO 
- *	EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER 
- *	IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR 
- *	THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
+ *	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT
+ *	LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO
+ *	EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ *	IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
+ *	THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 package edu.umd.cs.guitar.model;
 
@@ -30,14 +30,17 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.bind.annotation.XmlSeeAlso;
+
+import edu.umd.cs.guitar.model.data.TaskList;
 
 /**
- * 
+ *
  * Provide GUITAR data XML reader and writer. This is a replacement of
  * {@link IO} to deal with dynamic resource allocation.
- * 
+ *
  * <p>
- * 
+ *
  * @author <a href="mailto:baonn@cs.umd.edu"> Bao Nguyen </a>
  */
 public class XMLHandler {
@@ -48,7 +51,7 @@ public class XMLHandler {
 	 * @param cls
 	 * @return
 	 */
-	public Object readObjFromFileThrowExceptions(File file, Class<?> cls) throws JAXBException 
+	public Object readObjFromFileThrowExceptions(File file, Class<?> cls) throws JAXBException
 	{
 		Object retObj = null;
 		String packageName = cls.getPackage().getName();
@@ -59,10 +62,10 @@ public class XMLHandler {
 
 		return retObj;
 	}
-	
+
 	/**
 	 * Read an object from a XML file
-	 * 
+	 *
 	 * @param is
 	 *            input stream
 	 * @param cls
@@ -90,7 +93,7 @@ public class XMLHandler {
 
 	/**
 	 * Read an object from a XML file
-	 * 
+	 *
 	 * @param sFileName
 	 *            file name
 	 * @param cls
@@ -102,13 +105,12 @@ public class XMLHandler {
 		Object retObj = null;
 		File file = new File(sFileName);
 		retObj = readObjFromFileThrowExceptions(file, cls);
-		
 		return retObj;
 	}
-	
+
 	/**
 	 * Read an object from a XML file
-	 * 
+	 *
 	 * @param sFileName
 	 *            file name
 	 * @param cls
@@ -130,7 +132,7 @@ public class XMLHandler {
 
 	/**
 	 * Read an object from a XML file
-	 * 
+	 *
 	 * @param is
 	 *            input stream
 	 * @param cls
@@ -172,20 +174,22 @@ public class XMLHandler {
 			System.err.println("XMLHandler: Cannot write xml data to file: \n" + e.getCause() + "\n" + e.getMessage());
 		}
 	}
-	
+
 	/**
 	 * Write an object to XML file
-	 * 
+	 *
 	 * @param object
 	 *            object to write
 	 * @param os
 	 *            output stream
 	 */
 	public void writeObjToFile(Object object, OutputStream os) {
-		String packageName = object.getClass().getPackage().getName();
 		JAXBContext jc;
+		if(object == null)
+			throw new IllegalArgumentException("Null object passed to writeObjToFile().");
 		try {
-			jc = JAXBContext.newInstance(packageName);
+//			jc = JAXBContext.newInstance(packageName);
+			jc = JAXBContext.newInstance(object.getClass());
 			Marshaller marshaller = jc.createMarshaller();
 			marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT,
 					Boolean.TRUE);
@@ -202,9 +206,9 @@ public class XMLHandler {
 
 	/**
 	 * Write an object to XML file
-	 * 
+	 *
 	 * <p>
-	 * 
+	 *
 	 * @param object
 	 *            Object to write
 	 * @param sFileName
@@ -218,4 +222,21 @@ public class XMLHandler {
 			//GUITARLog.log.error(e);
 		}
 	}
+	public void writeObjToFileThrowExceptions(Object object, OutputStream os) throws IOException, JAXBException
+	{
+		String packageName = object.getClass().getPackage().getName();
+		JAXBContext jc;
+		jc = JAXBContext.newInstance(packageName);
+		Marshaller marshaller = jc.createMarshaller();
+		marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT,
+				Boolean.TRUE);
+		marshaller.marshal(object, os);
+		os.close();
+	}
+	public void writeObjToFileThrowExceptions(Object object, String sFileName) throws IOException, JAXBException, FileNotFoundException
+	{
+		File file = new File(sFileName);
+		writeObjToFileThrowExceptions(object, new FileOutputStream(file));
+	}
+
 }

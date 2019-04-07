@@ -1,3 +1,21 @@
+/*******************************************************************************
+ *    Copyright (c) 2018 Jonathan A. Saddler
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ *    
+ *    Contributors:
+ *     Jonathan A. Saddler - initial API and implementation
+ *******************************************************************************/
 package edu.unl.cse.efs.app;
 
 import java.io.BufferedWriter;
@@ -16,19 +34,19 @@ import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
 
-import edu.umd.cs.guitar.graph.converter.EFG2GraphvizFixString;
-import edu.umd.cs.guitar.graph.converter.TST2GraphvizFixString;
+import edu.umd.cs.guitar.graph.converter.EFG2GraphvizEFS;
+import edu.umd.cs.guitar.graph.converter.TST2GraphvizEFS;
 import edu.umd.cs.guitar.model.XMLHandler;
 import edu.umd.cs.guitar.model.data.EFG;
 import edu.umd.cs.guitar.model.data.GUIStructure;
 import edu.umd.cs.guitar.model.data.TestCase;
-import edu.unl.cse.bmktools.Bookmarker;
-import edu.unl.cse.bmktools.EFGBookmarking;
+import edu.unl.cse.efs.bkmktools.Bookmarker;
+import edu.unl.cse.efs.bkmktools.EFGBookmarking;
 import edu.unl.cse.efs.ApplicationData;
 import edu.unl.cse.efs.guitarplugin.EFSEFGConverter;
 import edu.unl.cse.efs.guitarplugin.GUIStructure2EFGConverterEFS;
+import edu.unl.cse.efs.tools.PathConformance;
 import edu.unl.cse.efs.view.EventFlowSlicerErrors;
-import edu.unl.cse.jontools.paths.PathConformance;
 import edu.unl.cse.guitarext.GUITARDataFiles;
 import edu.unl.cse.guitarext.GUITARDataFiles.WrongFileTypeException;
 
@@ -65,7 +83,7 @@ public class VisToolchain {
 
 	public static void part3T(TestCase testCase, String newFileBase)
 	{
-		StringBuffer result = TST2GraphvizFixString.toGraphviz(testCase);
+		StringBuffer result = TST2GraphvizEFS.toGraphviz(testCase);
 		if(newFileBase.isEmpty())
 			newFileBase = guic.OUTPUT_DIRECTORY + File.separator;
 
@@ -92,7 +110,7 @@ public class VisToolchain {
 	 */
 	public static void part3(EFG eventFlow, String newFileBase)
 	{
-		StringBuffer result = EFG2GraphvizFixString.toGraphviz(eventFlow);
+		StringBuffer result = EFG2GraphvizEFS.toGraphviz(eventFlow);
 		if(newFileBase.isEmpty())
 			newFileBase = guic.OUTPUT_DIRECTORY + File.separator;
 

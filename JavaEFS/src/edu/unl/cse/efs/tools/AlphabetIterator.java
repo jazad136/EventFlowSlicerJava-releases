@@ -16,7 +16,7 @@
  *    Contributors:
  *     Jonathan A. Saddler - initial API and implementation
  *******************************************************************************/
-package edu.unl.cse.jontools.string;
+package edu.unl.cse.efs.tools;
 
 import java.util.HashMap;
 import java.util.Iterator;

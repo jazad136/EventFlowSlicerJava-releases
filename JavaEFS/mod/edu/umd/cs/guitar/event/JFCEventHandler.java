@@ -21,6 +21,8 @@ package edu.umd.cs.guitar.event;
 
 import java.awt.Component;
 
+import javax.accessibility.AccessibleRole;
+
 import edu.umd.cs.guitar.model.GObject;
 import edu.umd.cs.guitar.model.JFCXComponent;
 
@@ -31,21 +33,61 @@ import edu.umd.cs.guitar.model.JFCXComponent;
  * @author <a href="mailto:baonn@cs.umd.edu"> Bao Nguyen </a>
  */
 public abstract class JFCEventHandler extends GThreadEvent {
-	/**
-	 * A helper method to get the real JFC Accessible object from a
-	 * <code> GXComponent </code>
-	 * 
-	 * @param gComponent
-	 * @return Accessible
-	 */
-	// protected Accessible getAccessible(GComponent gComponent) {
-	// JFCXComponent jxComponent = (JFCXComponent) gComponent;
-	// return jxComponent.getAComponent();
-	// }
-
 	protected Component getComponent(GObject gComponent) {
 		JFCXComponent jxComponent = (JFCXComponent) gComponent;
 		return jxComponent.getComponent();
+	}
+	
+	/**
+	 * Returns a string identifying the type of hover that JFCEvent handlers will 
+	 * be able to actuate on the javaComponent specified.
+	 * There are two levels of valid hover support that can be returned from this method.
+	 * : "basic" and "parental". <br>
+	 * <br>
+	 * If JFCEventHandlers do not support hover on the component specified, the empty string is returned.
+	 * @return
+	 */
+	public static String hoverTypeAvailable(Component javaComponent)
+	{
+		AccessibleRole myRole;
+		if(javaComponent == null || javaComponent.getAccessibleContext() == null)
+			return "";
+		myRole = javaComponent.getAccessibleContext().getAccessibleRole();
+		if(myRole == null)
+			return "";
+		String hoverType = "";
+		if(myRole.equals(AccessibleRole.TEXT))
+			hoverType = "parental";
+		else if(myRole.equals(AccessibleRole.PUSH_BUTTON) ||
+				myRole.equals(AccessibleRole.RADIO_BUTTON) ||
+				myRole.equals(AccessibleRole.MENU) ||
+				myRole.equals(AccessibleRole.MENU_ITEM) ||
+				myRole.equals(AccessibleRole.CHECK_BOX) ||
+				myRole.equals(AccessibleRole.TOGGLE_BUTTON)) {
+			hoverType = "basic";
+		}
+		else if(myRole.equals(AccessibleRole.COMBO_BOX)) {
+			if(JFCXComponent.hasChildren(javaComponent))
+				hoverType = "basic"; // this must be top level.
+			else
+				hoverType = "parental"; // this must be an element in the list
+		}
+		
+		else if(myRole.equals(AccessibleRole.PAGE_TAB_LIST)) {
+			if(JFCXComponent.hasChildren(javaComponent))
+				hoverType = "basic"; // this must be the top level.
+			// otherwise, no support
+		}
+		
+		else if(myRole.equals(AccessibleRole.PANEL)) {
+			if(JFCXComponent.hasListeners(javaComponent, "button"))
+				hoverType = "basic";
+		}
+		
+		else if(myRole.equals(AccessibleRole.LIST))
+			hoverType = "parental";
+		
+		return hoverType;
 	}
 
 }

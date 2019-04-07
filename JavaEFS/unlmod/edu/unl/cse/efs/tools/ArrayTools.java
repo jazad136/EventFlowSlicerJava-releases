@@ -1,11 +1,29 @@
+/*******************************************************************************
+ *    Copyright (c) 2018 Jonathan A. Saddler
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ *    
+ *    Contributors:
+ *     Jonathan A. Saddler - initial API and implementation
+ *******************************************************************************/
 package edu.unl.cse.efs.tools;
 
 import java.util.Arrays;
 
 /**
  * Tools to help with recognizing and identifying inclusion arrays.
- * 
- * @author Jonathan Saddler
+ *
+ * @author Jonathan A Saddler
  *
  */
 public class ArrayTools {
@@ -15,29 +33,29 @@ public class ArrayTools {
 			while(j.hasNextLine()) {
 				String in = j.nextLine();
 				System.out.println(bibleNotationType(in, false));
-			}		
+			}
 		}
 	}
 	public static boolean[][] extendRangeDepth(int newSize, boolean[][] currentRanges)
 	{
 		boolean[][] newArr = new boolean[newSize][];
-		for(int i = 0; i < currentRanges.length; i++)  
+		for(int i = 0; i < currentRanges.length; i++)
 			newArr[i] = Arrays.copyOf(currentRanges[i], currentRanges[i].length); // for safety.
-		for(int i = currentRanges.length; i < newSize; i++) 
+		for(int i = currentRanges.length; i < newSize; i++)
 			newArr[i] = new boolean[0];
 		return newArr;
 	}
-	
+
 	/**
 	 * Extend the first dimension of currentRanges to be the size newSize,
-	 * allowing the arrays added to have zero dimension. 
+	 * allowing the arrays added to have zero dimension.
 	 */
 	public static int[][] extendRangeDepthInt(int newSize, int[][] currentRanges)
 	{
 		int[][] newArr = new int[newSize][];
-		for(int i = 0; i < currentRanges.length; i++)  
+		for(int i = 0; i < currentRanges.length; i++)
 			newArr[i] = Arrays.copyOf(currentRanges[i], currentRanges[i].length); // for safety.
-		for(int i = currentRanges.length; i < newSize; i++) 
+		for(int i = currentRanges.length; i < newSize; i++)
 			newArr[i] = new int[0];
 		return newArr;
 	}
@@ -45,113 +63,130 @@ public class ArrayTools {
 	{
 		Arrays.fill(currentRange, minReal-1, maxReal, true);
 	}
-	
+
 	public static boolean[] extendRange(int newSize, boolean[] currentRange)
 	{
 		boolean[] newArr = new boolean[newSize];
-		for(int i = 0; i < currentRange.length; i++) 
+		for(int i = 0; i < currentRange.length; i++)
 			newArr[i] = currentRange[i];
 		return newArr;
 	}
-	
+
+	public static char[] extendRangeChar(int newSize, char[] currentRange)
+	{
+		char[] newArr = new char[newSize];
+		for(int i = 0; i < currentRange.length; i++)
+			newArr[i] = currentRange[i];
+		return newArr;
+	}
+	public static char[] prependRangeChar(int newSize, char[] currentRange)
+	{
+		char[] newArr = new char[newSize];
+		int oldSize = currentRange.length;
+		for(int i = newSize-oldSize; i < newSize; i++)
+			newArr[i] = currentRange[i-oldSize];
+		return newArr;
+	}
+
+
 	public static int[] extendRangeInt(int newSize, int[] currentRange)
 	{
 		int[] newArr = new int[newSize];
-		for(int i = 0; i < currentRange.length; i++) 
+		for(int i = 0; i < currentRange.length; i++)
 			newArr[i] = currentRange[i];
 		return newArr;
 	}
-	
+
 	/**
 	 * Returns a code indicating what kind of selector notation that arg is in
-	 * when using the bibleNotationType language. There are three codes:<br> 
+	 * when using the bibleNotationType language. There are three codes:<br>
 	 * 0 indicates only notation indicating a single numeric argument.<br>
 	 * 1 indicates notation including multiple numeric arguments separated by comma delimiters,
 	 * or multiple spans (two numeric arguments separated by dashes) separated by comma delimiters<br>
 	 * 2 indicates notation including 1 or more type-1 arguments preceded by a single numeric
 	 * argument followed by a colon. <br>These three types of arguments have no meaning until brought
-	 * under the context of some program who needs to decipher the types returned for further use. 
-	 * These notations have been used to create special arrays 
-	 * using other methods in the ArrayTools class.    
-	 * 
-	 * For an arg that doesn't follow any three of these definintions, -1 is returned. 
-	 * If accept0 is false, then if arg contains a 0, return -1.     
+	 * under the context of some program who needs to decipher the types returned for further use.
+	 * These notations have been used to create special arrays
+	 * using other methods in the ArrayTools class.
+	 *
+	 * For an arg that doesn't follow any three of these definintions, -1 is returned.
+	 * If accept0 is false, then if arg contains a 0, return -1.
 	 * As a guide, here are some templates:<br>
 	 * <pre>
 	 * 11 (type-0)<br>
-	 * 11,11 (type-1) 
+	 * 11,11 (type-1)
 	 * 11-11 (type-1)<br>
-	 * 11:11-11 (type-2) 
+	 * 11:11-11 (type-2)
 	 * 2:3-4,5:5-5 (type-2)
-	 * @author Jonathan Saddler (jsaddler) 
+	 * @author Jonathan Saddler (jsaddler)
 	 * </pre>
 	 */
-	public static int bibleNotationType(String arg, boolean accept0)	
+	public static int bibleNotationType(String arg, boolean accept0)
 	{
 		if(!accept0)
 			return bibleNotationTypeNoZero(arg);
-		
+
 		if(arg.matches("^\\d+$")) return 0; // a single
 		if(arg.matches("(\\d+(-\\d+)?)(,(\\d+(-\\d+)?))*")) return 1; // ranges, multiple singles, and multiple ranges
-		if(arg.matches("(\\d+:\\d+(-\\d+)?)(,\\d+:\\d+(-\\d+)?)*")) return 2; // books of ranges and singles. 
+		if(arg.matches("(\\d+:\\d+(-\\d+)?)(,\\d+:\\d+(-\\d+)?)*")) return 2; // books of ranges and singles.
 		return -1;
 	}
-	public static int bibleNotationTypeNoZero(String arg)	
+	public static int bibleNotationTypeNoZero(String arg)
 	{
 		if(arg.matches("^[1-9][0-9]*$")) return 0; // a single
 		if(arg.matches("([1-9][0-9]*(-[1-9][0-9]*)?)(,([1-9][0-9]*+(-[1-9][0-9]*)?))*")) return 1; // ranges, multiple singles, and multiple ranges
-		if(arg.matches("([1-9]+:[1-9]+(-[1-9]+)?)(,[1-9]+:[1-9]+(-[1-9]+)?)*")) return 2; // books of ranges and singles. 
+		if(arg.matches("([1-9]+:[1-9]+(-[1-9]+)?)(,[1-9]+:[1-9]+(-[1-9]+)?)*")) return 2; // books of ranges and singles.
 		return -1;
 	}
 	/**
 	 * Returns an inclusion array, where selArg specifies (in 1-based notation) what cells in an array
-	 * should be returned as true. 
-	 * Depending on the notation: 
+	 * should be returned as true.
+	 * Depending on the notation:
 	 * (digits only)<br>
-	 * the number represents the cell in the (first) array within the 2d result to be set to true. 
-	 * 
+	 * the number represents the cell in the (first) array within the 2d result to be set to true.
+	 *
 	 * (digits-comma-digits/digits-dash-digits)<br>
 	 * the numbers or ranges, represent the cells to be set to true in the aforementioned array
-	 * 
+	 *
 	 * digits-colon-digits-dash-digit (+ underscore-more-digit-colon-digit)...<br>
 	 * number behind colon represents the array within the result, numbers after the colon
 	 * represent the ranges to be set.
-	 * 
-	 * We do our best to get a filled inclusion array result for the argument specified, 
+	 *
+	 * We do our best to get a filled inclusion array result for the argument specified,
 	 * even if selArg contains a 0.
 	 */
 	public static boolean[][] getFilledArrayFor(String selArg)
 	{
 		boolean[][] toReturn = new boolean[0][0];
 		switch(bibleNotationType(selArg, true)) {
-			case -1: return toReturn;	
+			case -1: return toReturn;
 			case 0: {
 				int soleNum = Integer.parseInt(selArg);
 				toReturn = new boolean[1][soleNum];
 				if(soleNum > 0)
 					toReturn[0][soleNum-1] = true;
 				return toReturn;
-			} 
+			}
 			case 1: {
 				boolean[] newRange = new boolean[0];
 				String[] parts = selArg.split(",");
 				int min, max;
-				
+
 				for(String part : parts) {
 					min = max = -1;
 					// assign points 1 and 2 integers
 					String[] range = part.split("-");
 					min = Integer.parseInt(range[0]);
-					if(range.length == 2) 
+					if(range.length == 2)
 						max = Integer.parseInt(range[1]);
-					
-					// parse the points 
+
+					// parse the points
 					if(max < min)
 						max = min;
-					
+
 					// if the new range is too small to fit the range specified, extend it
 					if(max > 0) {
-						if(newRange.length < max) 
+						if(newRange.length < max)
 							newRange = extendRange(max, newRange);
 						assignRange(min, max, newRange); // assign the range specified to the range we call for.
 					}
@@ -159,21 +194,21 @@ public class ArrayTools {
 				toReturn = new boolean[1][];
 				toReturn[0] = newRange;
 				return toReturn;
-			} 
+			}
 			default: {
 				boolean[][] newRanges = new boolean[0][0];
 				String[] parts = selArg.split(",");
 				int book, min, max;
 				for(String part : parts) {
-					// setup 
+					// setup
 					String[] range = part.split("[\\:\\-]");
 					book = Integer.parseInt(range[0]);
-					// if the old array does not exist, create it. 
-					if(newRanges.length < book) 
+					// if the old array does not exist, create it.
+					if(newRanges.length < book)
 						newRanges = extendRangeDepth(book, newRanges);
-					
+
 					min = max = -1;
-					
+
 					// find the min and max
 					min = Integer.parseInt(range[1]);
 					if(range.length == 3)
@@ -181,17 +216,17 @@ public class ArrayTools {
 					// parse the min and max
 					if(max < min)
 						max = min;
-					
+
 					// if the new range is too small to fit the range specified, extend the old one.
 					if(book > 0 && max > 0) {
-						if(newRanges[book-1].length < max) 
+						if(newRanges[book-1].length < max)
 							newRanges[book-1] = extendRange(max, newRanges[book-1]);
 						// assign new values to the array
 						assignRange(min, max, newRanges[book-1]); // assign the range specified to the range we call for.
 					}
-					
+
 				}
-				return newRanges;					
+				return newRanges;
 			}
 		}
 	}

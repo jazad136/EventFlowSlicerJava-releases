@@ -20,7 +20,7 @@ package edu.unl.cse.efs;
 
 import java.io.File;
 
-import edu.unl.cse.jontools.string.TimeFormats;
+import edu.unl.cse.efs.tools.TimeFormats;
 
 /**
  * Source for the ApplicationData class.
@@ -77,20 +77,48 @@ public class ApplicationData {
 		workingTestCaseDirectory = new File("");
 		argumentsAppFile = new File("");
 		argumentsVMFile = new File("");
-		preferencesFile = new File("");
 		outputDirectory = new File("");
 		ripConfigFile = new File("");
 		replayConfigFile = new File("");
+		customMainClass = "";
+		preferencesFile = new File("");
 		extrasAppend = "Extra_Output";
 		outputAppend = "gen_out";
 		timeLogAppend = "times_log";
 		constraintsAppend = "tasklist";
 		outputDirectoryProvided = null;
 		testCaseDirectoryProvided = null;
-		customMainClass = "";
 		resetSubdirectoryFiller();
 	}
-
+	
+	/**
+	 * Resets variables that are not transient (not kept in memory) between separate runs of EventFlowSlicer.
+	 */
+	public void resetNonTransientData()
+	{
+		applicationFilePath = new File("");
+		workingGUIFile = new File("");
+		workingEFGFile = new File("");
+		workingTaskListFile = new File("");
+		workingTestCaseDirectory = new File("");
+		argumentsAppFile = new File("");
+		argumentsVMFile = new File("");
+		outputDirectory = new File("");
+		ripConfigFile = new File("");
+		replayConfigFile = new File("");
+		customMainClass = "";
+	}
+	
+	public static File getStandardizedFile(String filepath)
+	{
+		if(filepath == null)
+			filepath = "";
+		return new File(filepath);
+	}
+	public static boolean standardizedFileExists(File standardFile)
+	{
+		return standardFile.exists() && !standardFile.isDirectory();
+	}
 	public void setAppFilePath(String filepath)
 	{
 		if(filepath == null)
@@ -491,4 +519,7 @@ public class ApplicationData {
 	{
 		return constraintsAppend;
 	}
+
+
+	
 }

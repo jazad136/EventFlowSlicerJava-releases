@@ -16,23 +16,22 @@
  *    Contributors:
  *     Jonathan A. Saddler - initial API and implementation
  *******************************************************************************/
-package edu.unl.cse.jontools.widget;
 
-import java.util.Arrays;
+package edu.unl.cse.efs.tools;
 import java.util.List;
 
 import edu.umd.cs.guitar.model.data.*;
 
 public class ReportTranslation {
-	
-	
+
+
 	/**
 	 * Prints out all the elements of the Repeat rules in reportList 
 	 * with the right connector and the right number of the rule. The default connector between widgets is comma (,)
 	 * between rules is newline.
 	 * 
 	 * Preconditions: none.
-	 * Postconditions: A String containing all the Repeat rules in the TaskList reportList 
+	 * Postconditions: A String containing all the Repeat rules in the TaskList reportList
 	 * is returned from the function.
 	 */
 	public static String repeatReport(TaskList reportList)
@@ -41,6 +40,22 @@ public class ReportTranslation {
 		if(reportList == null || reportList.getRepeat().isEmpty()) 
 			return toReturn;
 		List<Repeat> ruleList = reportList.getRepeat();
+		for(int i = 0; i < ruleList.size(); i++)
+			toReturn += combine(toReturn, "Rule " + widgetReport(ruleList.get(i).getWidget(), i+1, ","));
+		return toReturn;
+	}
+	
+	/**
+	 * Prints out all the elements of the Stop rules in reportList 
+	 * with the right connector and the right number of the rule. 
+	 * The default connector between widgets is comma (,) between rules is newline.
+	 */
+	public static String stopReport(TaskList reportList)
+	{
+		String toReturn = "";
+		if(reportList == null || reportList.getStop().isEmpty())
+			return toReturn;
+		List<Stop> ruleList = reportList.getStop();
 		for(int i = 0; i < ruleList.size(); i++)
 			toReturn += combine(toReturn, "Rule " + widgetReport(ruleList.get(i).getWidget(), i+1, ","));
 		return toReturn;

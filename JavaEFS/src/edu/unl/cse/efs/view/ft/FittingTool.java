@@ -19,18 +19,16 @@
 package edu.unl.cse.efs.view.ft;
 
 import javax.swing.*;
-import javax.swing.text.PlainDocument;
-import static edu.unl.cse.efs.view.ft.InvalidWidgetException.Attribute.*;
 import edu.umd.cs.guitar.model.XMLHandler;
 import edu.umd.cs.guitar.model.data.ObjectFactory;
 import edu.umd.cs.guitar.model.data.TaskList;
 import edu.umd.cs.guitar.model.data.Widget;
 import edu.unl.cse.efs.ApplicationData;
-import edu.unl.cse.jontools.widget.HyperList;
-import edu.unl.cse.jontools.widget.ReportTranslation;
+import edu.unl.cse.efs.tools.HyperList;
+import edu.unl.cse.efs.tools.ReportTranslation;
+import javax.swing.text.PlainDocument;
 
-import java.awt.Component;
-import java.awt.Container;
+import java.awt.*;
 import java.awt.Dialog.ModalityType;
 import java.awt.Dimension;
 import java.awt.FocusTraversalPolicy;
@@ -47,11 +45,12 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
+import static edu.unl.cse.efs.view.ft.InvalidWidgetException.Attribute.*;
+import static edu.unl.cse.efs.tools.TestCaseGeneratorPreparation.*;
 import static edu.unl.cse.efs.view.DecorationsRunner.*;
-import static edu.unl.cse.jontools.widget.TestCaseGeneratorPreparation.*;
 
 /**
- * This class builds a GUI that allows a user to edit constraints xml files, 
+ * This class builds a GUI that allows a user to edit constraints xml files,
  * including their widgets and parameterized rules.
  * @author Jonathan Saddler
  */
@@ -72,7 +71,7 @@ public class FittingTool {
 	public static Controller progressListeners;
 	public static DisplayIcon prototypeWidgetIcon, prototypeRuleIcon;
 	public static DisplayIcon noneIcon;
-	
+
 	public static ObjectFactory fact = new ObjectFactory();
 	public static XMLHandler handler = new XMLHandler();
 	
@@ -412,44 +411,43 @@ public class FittingTool {
 	
 	private static void rulesLabels(RuleName type)
 	{
+		topLabel.setFont(topLabel.getFont().deriveFont(16f));
 		switch(type) {
 		case REQ:
 			topLabel.setText("1. Edit Requires Constraints.");
-			topLabel.setFont(topLabel.getFont().deriveFont(16f));
 			secLabel.setText("");
 			previousButton.setText("Back");
 			nextButton.setText("Next");
 			
 break;	case MEX:
 			topLabel.setText("2. Edit Exclusion Constraints.");
-			topLabel.setFont(topLabel.getFont().deriveFont(16f));
 			secLabel.setText("");
 			previousButton.setText("<html><center>Back to<br>Requires</center></html>");
 			nextButton.setText("Next");
-			
 break;	case ORD:
 			topLabel.setText("3. Edit Order Constraints.");
-			topLabel.setFont(topLabel.getFont().deriveFont(16f));
 			secLabel.setText("");
 			previousButton.setText("<html><center>Back to<br>Exclusion</center></html>");
 			nextButton.setText("Next");
-			
 break;	case REP:
 			topLabel.setText("4. Edit Repeat Constraints.");
-			topLabel.setFont(topLabel.getFont().deriveFont(16f));
 			secLabel.setText("");
 			previousButton.setText("<html><center>Back to<br>Atomic</center></html>");
 			nextButton.setText("Next");
-			
+break; 	case STO:
+			topLabel.setText("5. Edit Stop Constraints.");
+			secLabel.setText("");
+			previousButton.setText("<html><center>Back to<br>Repeat</center></html>");
+			nextButton.setText("Next");
 break;	case ATM:
-			topLabel.setText("5. Edit Atomic Constraints.");
+			topLabel.setText("6. Edit Atomic Constraints.");
 			topLabel.setFont(topLabel.getFont().deriveFont(16f));
 			secLabel.setText("");
-			previousButton.setText("<html>Back to<br>Repeat</html>");
+			previousButton.setText("<html><center>Back to<br>Stop</center></html>");
 			nextButton.setText("Finish");
 		}
 	}
-	
+
 	private static JPanel topPanel()
 	{
 		JPanel top = new JPanel();
@@ -479,7 +477,7 @@ break;	case ATM:
 		top.add(prevPan);
 		top.add(labelPan);
 		top.add(nextPan);
-		
+
 		return top;
 	}
 	public static void setupContent(Window frameToUse, File widgetFile, Controller.State state)
@@ -852,6 +850,7 @@ break;	case ATM:
 		break;  case MEX: toReturn += ReportTranslation.exclusionReport(workingTaskList) + separator;
 		break;  case REQ: toReturn += ReportTranslation.requiresReport(workingTaskList) + separator;
 		break;  case ORD: toReturn += ReportTranslation.orderReport(workingTaskList) + separator;
+//		break;  case STO: toReturn += ReportTranslation.stopReport(workingTaskList) + separator;
 		break;  case ATM: toReturn += ReportTranslation.atomicReport(workingTaskList) + separator;
 				}
 			}
@@ -870,15 +869,16 @@ break;	case ATM:
 	{
 		enum State{
 			W(null, "Widgets", false),
-			RQ(RuleName.REQ, "Requires", false), 
-			M(RuleName.MEX, "Exclusion", false), 
-			O(RuleName.ORD, "Order", true), 
-			RP(RuleName.REP, "Repeat", false), 
+			RQ(RuleName.REQ, "Requires", false),
+			M(RuleName.MEX, "Exclusion", false),
+			O(RuleName.ORD, "Order", true),
+			RP(RuleName.REP, "Repeat", false),
+			S(RuleName.STO, "Stop", false),
 			A(RuleName.ATM, "Atomic", true),
 			END(null, "End", false);
-			
-			final RuleName ruleName;
-			final String labelString;
+
+			private final RuleName ruleName;
+			private final String labelString;
 			final boolean isComplexRule;
 			State(RuleName element, String labelString, boolean isComplexRule)
 			{
@@ -899,11 +899,6 @@ break;	case ATM:
 			{
 				return State.values().length-2 == ordinal();
 			}
-			public static State firstState()
-			{return RQ;}
-			public static State lastState()
-			{return RP;}
-			
 		}
 		
 		public NextListener nextListener;
@@ -981,26 +976,28 @@ break;	case ATM:
 				System.out.println("Fitting Tool: Done.\n");
 			}
 			else if(Writeout.bigMaps() > 0) {
-				if(state == State.RQ || state == State.M) {
-					workingTaskList = overwriteRule(workingTaskList, Writeout.modeledRuleSetAtIndex(0), state.ruleName);
-					System.out.println("Fitting Tool: Writing " + state.labelString + " to\n  \'" + writeFile + "\'");
-					handler.writeObjToFile(workingTaskList, writeFile.getAbsolutePath());
-					System.out.println("Fitting Tool: Done.");	
-				}
-				else if(state == State.O || state == State.A) {
-					workingTaskList = overwriteRule(workingTaskList, Writeout.modeledRuleSetAtIndex(0), state.ruleName);
-					int ruleNums = Writeout.bigMaps();
-					for(int i = 1; i < ruleNums; i++) 
-						workingTaskList = extendRule(workingTaskList, Writeout.modeledRuleSetAtIndex(i), state.ruleName);
-					System.out.println("Fitting Tool: Writing " + state.labelString + " to\n  \'" + writeFile + "\'");
-					handler.writeObjToFile(workingTaskList, writeFile.getAbsolutePath());
-					System.out.println("Fitting Tool: Done.");	
-				}
-				else if(state == State.RP){
-					workingTaskList = overwriteRule(workingTaskList, Writeout.modeledRuleSetAtIndex(0), state.ruleName);
-					System.out.println("Fitting Tool: Writing " + state.labelString + " to\n  \'" + writeFile + "\'");
-					handler.writeObjToFile(workingTaskList, writeFile.getAbsolutePath());
-					System.out.println("Fitting Tool: Done.");
+				switch(state) {
+					case RQ : case M: {
+						workingTaskList = overwriteRule(workingTaskList, Writeout.modeledRuleSetAtIndex(0), state.ruleName);
+						System.out.println("Fitting Tool: Writing " + state.labelString + " to\n  \'" + writeFile + "\'");
+						handler.writeObjToFile(workingTaskList, writeFile.getAbsolutePath());
+						System.out.println("Fitting Tool: Done.");
+					}
+					case O: case A: {
+						workingTaskList = overwriteRule(workingTaskList, Writeout.modeledRuleSetAtIndex(0), state.ruleName);
+						int ruleNums = Writeout.bigMaps();
+						for(int i = 1; i < ruleNums; i++)
+							workingTaskList = extendRule(workingTaskList, Writeout.modeledRuleSetAtIndex(i), state.ruleName);
+						System.out.println("Fitting Tool: Writing " + state.labelString + " to\n  \'" + writeFile + "\'");
+						handler.writeObjToFile(workingTaskList, writeFile.getAbsolutePath());
+						System.out.println("Fitting Tool: Done.");
+					}
+					case RP: case S: {
+						workingTaskList = overwriteRule(workingTaskList, Writeout.modeledRuleSetAtIndex(0), state.ruleName);
+						System.out.println("Fitting Tool: Writing " + state.labelString + " to\n  \'" + writeFile + "\'");
+						handler.writeObjToFile(workingTaskList, writeFile.getAbsolutePath());
+						System.out.println("Fitting Tool: Done.");
+					}
 				}
 			}
 		}

@@ -16,7 +16,7 @@
  *    Contributors:
  *     Jonathan A. Saddler - initial API and implementation
  *******************************************************************************/
-package edu.unl.cse.jontools.widget;
+package edu.unl.cse.efs.tools;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -41,6 +41,7 @@ import edu.umd.cs.guitar.model.data.Order;
 import edu.umd.cs.guitar.model.data.OrderGroup;
 import edu.umd.cs.guitar.model.data.Repeat;
 import edu.umd.cs.guitar.model.data.Required;
+import edu.umd.cs.guitar.model.data.Stop;
 import edu.umd.cs.guitar.model.data.TaskList;
 import edu.umd.cs.guitar.model.data.Widget;
 import edu.unl.cse.efs.tools.PathConformance;
@@ -63,32 +64,14 @@ public class TestCaseGeneratorPreparation {
 	private static LinkedList<File> invalidFiles = new LinkedList<File>();
 	public static boolean reqInvalid, ordInvalid, atmInvalid, mexInvalid, repInvalid;
 	public static boolean eliminateAllWindowAmbiguity = true;
-	
-	public static enum RuleName{REQ("REQ"), ORD("ORD"), ATM("ATM"), MEX("MEX"), REP("REP"); 
-		
+
+	public static enum RuleName{REQ("REQ"), ORD("ORD"), ATM("ATM"), MEX("MEX"), REP("REP"), STO("STO");
+
 		public final String folderName;
 		private RuleName(String folderName)
 		{
 			this.folderName = folderName;
 		}
-	}
-	
-	
-	// Run on input : /Users/jsaddle/Desktop/ResearchResults/CogTool-Helper-Java/CogtoolHelperResultsTest
-	public static void main(String[] args)
-	{
-		System.out.print("Enter the top directory > ");
-		try(java.util.Scanner scan = new java.util.Scanner(System.in)) {
-			String fileDirectory = scan.next();
-			System.out.println("\n" + fileDirectory);
-			File theDir = new File(fileDirectory);
-			if(theDir.exists()) {
-				TaskList tl = fact.createTaskList();
-				tl = incorporateAllConstraintsFrom(theDir, tl);
-				System.out.println(tl);
-				System.out.println("Done.");
-			}	
-		} 
 	}
 	
 	public TestCaseGeneratorPreparation(File topDirectory, List<Widget> widgets)
@@ -145,22 +128,26 @@ public class TestCaseGeneratorPreparation {
 		}
 		
 		case REP: {
-//			return baseTaskList;
-			boolean rList = false;
-			if(forNewRule instanceof RepeatList)
-				rList = true;
-			List<Repeat> baseRepeat = baseTaskList.getRepeat();
+		    List<Repeat> baseRepeat = baseTaskList.getRepeat();
 			baseRepeat.clear();
 			for(List<Widget> list: forNewRule.getListsIterable()) {
 				Repeat newRul = fact.createRepeat();
 				for(Widget w : list)
 					if(w != null)
 						newRul.getWidget().add(w);
-				if(rList) {
-					RepeatList rL = (RepeatList)forNewRule;
-					// do something special here. 
-				}
 				baseRepeat.add(newRul);
+			}
+			return baseTaskList;
+		}
+		case STO: {
+			List<Stop> baseStop = baseTaskList.getStop();
+			baseStop.clear();
+			for(List<Widget> list: forNewRule.getListsIterable()) {
+				Stop newRul = fact.createStop();
+				for(Widget w : list)
+					if(w != null)
+						newRul.getWidget().add(w);
+				baseStop.add(newRul);
 			}
 			return baseTaskList;
 		}
@@ -216,55 +203,17 @@ public class TestCaseGeneratorPreparation {
 		}
 		return baseTaskList;
 	}
-	/**
-	 * Try to progress through the parsing of all constraints from the folders in topDirectory.
-	 * if an attempt to read one of the constraints directories fails or succeeds, 
-	 * progress to the next type of constraint so that it can be parsed next.<br><br>
-	 * 
-	 * Return the task list containing the combination of the old constraints in tasklist with the
-	 * new constraints read from this operation.
-	 */
-	public static TaskList incorporateAllConstraintsFrom(File topDirectory, TaskList baseTasklist)
-	{
-		RuleName currentOperand = RuleName.MEX;
-		while(currentOperand != RuleName.REP) {
-			try {
-				// try to progress through the parsing of all constraints from the folders in topDirectory.
-				// if one fails or succeeds, progress to the next type of constraint so that it can be parsed next.
-				switch(currentOperand) {
-				case MEX: baseTasklist.getExclusion().addAll(readExclusionDirectory(topDirectory)); 
-				currentOperand = RuleName.ORD;
-				case ORD: baseTasklist.getOrder().addAll(readOrderDirectory(topDirectory)); 
-				currentOperand = RuleName.ATM;
-				case ATM: baseTasklist.getAtomic().addAll(readAtomicDirectory(topDirectory));
-				currentOperand = RuleName.REQ;
-				case REQ: baseTasklist.getRequired().addAll(readRequiredDirectory(topDirectory)); 
-				currentOperand = RuleName.REP;
-				case REP: baseTasklist.getRepeat().addAll(readRepeatDirectory(topDirectory));  
-				}
-			} catch(Exception e) {
-				switch(currentOperand) {
-				case MEX: mexInvalid = true; currentOperand = RuleName.ORD; break;
-				case ORD: ordInvalid = true; currentOperand = RuleName.ATM; break;
-				case ATM: atmInvalid = true; currentOperand = RuleName.REQ; break;
-				case REQ: reqInvalid = true; currentOperand = RuleName.REP; break;
-				case REP: repInvalid = true;
-				}
-			}
-		}
-		return baseTasklist;
-	}
-	
+
 	/**
 	 * Removes from the provided list of widgets any
 	 * duplicates or widgets with null, empty, or useless eventId values
-	 * and returns the processed list. 
+	 * and returns the processed list.
 	 */
 	private static List<Widget> removeUselessWidgets(List<Widget> widgets)
 	{
 		ArrayList<Widget> toWrite = new ArrayList<Widget>(widgets);
 		HashMap<String, ArrayList<String>> windowMap = new HashMap<String, ArrayList<String>>();
-		
+
 		Iterator<Widget> wIt = toWrite.iterator();
 		Widget nextWriteCandidate;
 		while(wIt.hasNext()) {
@@ -649,6 +598,22 @@ public class TestCaseGeneratorPreparation {
 						forNewRule.addAll(list.getWidget());
 					else
 						forNewRule.addNewList(list.getWidget());
+				}
+				collected.add(forNewRule);
+				return collected;
+			}
+			case STO: {
+				ArrayList<HyperList<Widget>> collected = new ArrayList<HyperList<Widget>>();
+				List<Stop> base = baseTaskList.getStop();
+				HyperList<Widget> forNewRule = new HyperList<Widget>();
+				// for each repeat rule, create a new list within.
+				LinkedList<Widget> addList = new LinkedList<Widget>();
+				for(Stop list : base) {
+					for(Widget w : list.getWidget())
+						addList.add(w);
+					if(forNewRule.isDepthEmpty()) 	forNewRule.addAll(addList);
+					else							forNewRule.addNewList(addList);
+					addList.clear();
 				}
 				collected.add(forNewRule);
 				return collected;

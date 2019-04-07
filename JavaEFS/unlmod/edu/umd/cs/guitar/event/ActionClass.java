@@ -15,7 +15,8 @@ public enum ActionClass {
 	ACTION("edu.umd.cs.guitar.event.JFCActionHandler"),
 	PARSELECT("edu.umd.cs.guitar.event.JFCSelectFromParent"),
 	HOVER("edu.umd.cs.guitar.event.JFCBasicHoverHandler"),
-	SELECTION_HOVER("edu.umd.cs.guitar.event.JFCSelectionHoverHandler");
+	SELECTIVE_HOVER("edu.umd.cs.guitar.event.JFCSelectiveHoverHandler"),
+	WINDOW("edu.umd.cs.guitar.event.JFCWindowHandler");
 	
 	public final String actionName;
 	public final String simpleName;

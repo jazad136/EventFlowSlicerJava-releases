@@ -16,13 +16,30 @@
  *    Contributors:
  *     Jonathan A. Saddler - initial API and implementation
  *******************************************************************************/
-package var;
+package edu.unl.cse.efs.tools;
 
-public class EventFlowSlicerVariables {
-	public static String defaultConstraintsFileString = 
-			"/Users/jsaddle/Desktop/ResearchResults/CogTool-Helper-Java/Testing/RulesJEditFPMD_test";
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.TimeZone;
+
+public class TimeFormats {
+	public static final String MILITARY_TIME_FORMAT = "MMM-dd-yyyy-kkmm";
 	
-	public static class Test{
-		
+	/**
+	 * Taken from CogTool-Helper.
+	 * @return
+	 */
+	public static String nowMilitary() 
+	{
+		Calendar cal = Calendar.getInstance();
+		SimpleDateFormat sdf = new SimpleDateFormat(MILITARY_TIME_FORMAT);
+		return sdf.format(cal.getTime());
 	}
+	public static String ymdhsTimeStamp() {
+        DateFormat df = new SimpleDateFormat("yyyyMMddhhmmss");
+        df.setTimeZone(TimeZone.getTimeZone("GMT"));
+        return df.format(new Date());
+    }
 }

@@ -16,10 +16,9 @@
  *    Contributors:
  *     Jonathan A. Saddler - initial API and implementation
  *******************************************************************************/
-package edu.unl.cse.jontools.widget;
+package edu.unl.cse.efs.tools;
 
 import java.util.LinkedList;
-
 import edu.umd.cs.guitar.model.data.Repeat;
 import edu.umd.cs.guitar.model.data.Widget;
 
