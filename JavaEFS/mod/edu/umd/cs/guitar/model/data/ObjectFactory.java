@@ -365,34 +365,6 @@ public class ObjectFactory {
 
 
     /**
-     * Create an instance of {@link CTW }
-     * Edited by jsaddle
-     */
-    public CTW createCTW() {
-    	CTW newC = new CTW();
-    	newC.setExtent(createCTWExtent());
-    	return newC;
-//        return new CTW();
-    }
-
-    /**
-     * Create an instance of {@link CTWExtent }
-     *
-     */
-    public CTWExtent createCTWExtent() {
-        return new CTWExtent();
-    }
-
-    /**
-     * Create an instance of {@link CogToolWidgetList }
-     *
-     */
-    public CogToolWidgetList createWidgetList() {
-        return new CogToolWidgetList();
-    }
-
-
-    /**
      * Create an instance of {@link LogWidget }
      * 
      */
