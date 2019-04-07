@@ -101,25 +101,6 @@ public class ObjectFactory {
         return new EventsType();
     }
 
-
-    /**
-     * Create an instance of {@link EdgeMappingListType }
-     *
-     */
-    public EdgeMappingListType createEdgeMappingListType() {
-        return new EdgeMappingListType();
-    }
-
-    /**
-     * Create an instance of {@link EdgeMappingType }
-     *
-     */
-    public EdgeMappingType createEdgeMappingType() {
-        return new EdgeMappingType();
-    }
-
-
-
     /**
      * Create an instance of {@link TestCase }
      *
