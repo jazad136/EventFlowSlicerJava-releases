@@ -14,7 +14,7 @@
  *    limitations under the License.
  *    
  *    Contributors:
- *     Amanda Swearngin - modifications
+ *     Amanda Swearngin - initial API and implementation
  *     Jonathan A. Saddler - modifications
  *******************************************************************************/
 package edu.umd.cs.guitar.awb;

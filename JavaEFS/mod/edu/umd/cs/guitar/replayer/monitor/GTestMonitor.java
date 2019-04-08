@@ -1,4 +1,3 @@
-package edu.umd.cs.guitar.replayer.monitor;
 /*	
  *  Copyright (c) 2009-@year@. The GUITAR group at the University of Maryland. Names of owners of this group may
  *  be obtained by sending an e-mail to atif@cs.umd.edu
@@ -18,6 +17,8 @@ package edu.umd.cs.guitar.replayer.monitor;
  *	IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR 
  *	THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
  */
+
+package edu.umd.cs.guitar.replayer.monitor;
 
 
 import edu.umd.cs.guitar.exception.GException;

@@ -1,5 +1,5 @@
 /*******************************************************************************
- *    Copyright (c) 2019 Jonathan A. Saddler
+ *    Copyright (c) 2018 Jonathan A. Saddler
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -14,7 +14,8 @@
  *    limitations under the License.
  *    
  *    Contributors:
- *     Jonathan A. Saddler - initial API and implementation
+ *     Amanda Swearngin - initial API and implementation
+ *     Jonathan A. Saddler - modifications
  *******************************************************************************/
 package edu.umd.cs.guitar.model.data;
 
