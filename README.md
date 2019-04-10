@@ -1,6 +1,6 @@
 # EventFlowSlicer for Java.
 
-Maintainer email: saddler@huskers.unl.edu
+Maintainer email: saddler@huskers.unl.edu. If you like what we're doing here at EventFlowSlicer, **"Star"** my repository! If you want to keep up on the latest, click above to **"Watch"** this repository for more updates. 
 
 EventFlowSlicer, created for Java Swing. EventFlowSlicer helps developers test GUIs by building a graph containing all possible interactions that can be extracted or “scraped” from a running GUI, and using that graph to create replay-able test scenarios. Built in are state-of-the-art techniques that enable EFS to "see and replay interactions" available on a GUI with the help of assisted capture. Using algorithms devised as part of the 2016 thesis, it will link these actions together in ways that resemble workflows a real user would perform.
 
@@ -22,6 +22,8 @@ The steps for installation are simple:
 3. (After Java 8 or above is properly installed) Double-click the eventflowslicer(…).jar file in the folder of the extracted zip file to run. 
 
     You are running EFS. 
+
+Be sure to **Star** this repo if you appreciate the work we're doing! If you want to keep up on the latest, be sure to click **"Watch"** above to see updates. 
 
 ### Usage: 
 EventFlowSlicer is a GUI program, with many command line arguments available. For ease of use, double clicking the .jar file will display a GUI tool. To use it, you can follow along in this 5-min. video we submitted to and utilized at one of our previous conferences. 
@@ -62,6 +64,6 @@ by Jonathan A. Saddler and Myra B. Cohen.
 
 ## For more information
 
-email the maintainer Jonathan A. Saddler @ saddler@huskers.unl.edu
+Email the maintainer, Jonathan A. Saddler, @ saddler@huskers.unl.edu
 
 *[1] Swearngin, A, Cohen, Myra B., John, B. E., and Bellamy, R. K. E. "Human Performance Regression Testing." Software Engineering (ICSE), 2013 35th International Conference on Year: 2013 Pages: 152 - 161, DOI: 10.1109/ICSE.2013.6606561*
