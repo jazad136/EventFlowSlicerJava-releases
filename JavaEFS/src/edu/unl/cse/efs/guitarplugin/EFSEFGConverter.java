@@ -113,8 +113,7 @@ public class EFSEFGConverter implements GraphConverter {
 	 * Convert the GUI Structure to an Event Flow Graph and Return the Event
 	 * Flow Graph Object
 	 *
-	 * @param url
-	 *            GUI Structure to convert
+	 * @param obj GUI Structure to convert
 	 * @return the Event Flow Graph corresponding to the i,put GUI Structure
 	 * @see GraphConverter
 	 */

@@ -34,7 +34,7 @@ import edu.umd.cs.guitar.util.GUITARLog;
 
 
 /**
- * @author <a href="mailto:baonn@cs.umd.edu"> Bao Nguyen </a>
+ * @author Bao Nguyen </a>
  */
 public class PropertyTypeWrapper {
     PropertyType property;
@@ -98,19 +98,6 @@ public class PropertyTypeWrapper {
 	 * object, and return a list of properties which do not match.
 	 *
 	 * For example:
-	 *
-	 * <Name>X</Name>        <Name>X</Name>       <Name>X</Name>
-    * <Value>A</Value> with <Value>A</Value>  => 
-    * <Value>B</Value>      <Value>B</Value>
-    *
-	 * <Name>X</Name>        <Name>X</Name>       <Name>X</Name>
-    * <Value>A</Value> with <Value>C</Value>  => <Value>A:C</Value>
-    * <Value>B</Value>      <Value>B</Value>
-	 *
-	 * <Name>X</Name>        <Name>X</Name>       <Name>X</Name>
-    * <Value>B</Value>      <Value>B</Value>  => <Value>A:C</Value>
-    * <Value>A</Value> with <Value>C</Value> 
-	 *
 	 * Note: Properties being compared MUST have the same name. This implicitly
 	 *       implies that the order of properties must be the same.
 	 *       If a pair of property name does not match, a

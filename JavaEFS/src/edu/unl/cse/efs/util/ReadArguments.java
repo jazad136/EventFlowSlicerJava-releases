@@ -412,7 +412,6 @@ public class ReadArguments
 
 	/**
 	 * Read application arguments from a file, and handle any exceptions properly.
-	 * @return
 	 */
 	public static String[] readAppArguments(String argumentsFile)
 	{
@@ -441,7 +440,6 @@ public class ReadArguments
 	 * Take a space-delimited string of arguments and parses it into a String vector,
 	 * each cell containing one member of the arguments string. If an encoded space is
 	 * found it, the two strings surrounding it remain joined as one member.
-	 * @return
 	 */
 	public static String[] argumentsVector(String spaceDelimArgs)
 	{
@@ -466,7 +464,7 @@ public class ReadArguments
 
 	/**
 	 * Read virtual machine arguments from a file, and handle any exceptions properly.
-	 * @return
+	 * 
 	 */
 	public static String[] readVMArguments(String vmArgumentsFile)
 	{

@@ -34,22 +34,22 @@ import javax.xml.bind.annotation.XmlType;
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="Preferences">
- *   &lt;complexContent>
- *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
- *       &lt;sequence>
- *         &lt;element name="Application" type="{http://www.w3.org/2001/XMLSchema}string"/>
- *         &lt;element name="Results" type="{http://www.w3.org/2001/XMLSchema}string"/>
- *         &lt;element name="GUI" type="{http://www.w3.org/2001/XMLSchema}string"/>
- *         &lt;element name="ImageFormat" type="{http://www.w3.org/2001/XMLSchema}string"/>
- *         &lt;element name="UNO" type="{}UNO"/>
- *         &lt;element name="CogTool" type="{http://www.w3.org/2001/XMLSchema}string"/>
- *         &lt;element name="DoPredictions" type="{http://www.w3.org/2001/XMLSchema}string"/>
- *         &lt;element name="Arguments" type="{http://www.w3.org/2001/XMLSchema}string"/>
- *       &lt;/sequence>
- *     &lt;/restriction>
- *   &lt;/complexContent>
- * &lt;/complexType>
+ * &lt;complexType name="Preferences"&gt;
+ *   &lt;complexContent&gt;
+ *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
+ *       &lt;sequence&gt;
+ *         &lt;element name="Application" type="{http://www.w3.org/2001/XMLSchema}string"/&gt;
+ *         &lt;element name="Results" type="{http://www.w3.org/2001/XMLSchema}string"/&gt;
+ *         &lt;element name="GUI" type="{http://www.w3.org/2001/XMLSchema}string"/&gt;
+ *         &lt;element name="ImageFormat" type="{http://www.w3.org/2001/XMLSchema}string"/&gt;
+ *         &lt;element name="UNO" type="{}UNO"/&gt;
+ *         &lt;element name="CogTool" type="{http://www.w3.org/2001/XMLSchema}string"/&gt;
+ *         &lt;element name="DoPredictions" type="{http://www.w3.org/2001/XMLSchema}string"/&gt;
+ *         &lt;element name="Arguments" type="{http://www.w3.org/2001/XMLSchema}string"/&gt;
+ *       &lt;/sequence&gt;
+ *     &lt;/restriction&gt;
+ *   &lt;/complexContent&gt;
+ * &lt;/complexType&gt;
  * </pre>
  * 
  * 

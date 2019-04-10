@@ -50,7 +50,6 @@ public class StateDump extends File {
 	 * 
 	 * @param guitarProperties
 	 * @param filename
-	 * @throws IOException
 	 */
 	@SafeVarargs
 	public StateDump(String filename, List<PropertyType>... guitarProperties)

@@ -131,7 +131,8 @@ public class JavaRMIListener extends JavaListener
 	}
 	
 	/**
-	 * Register a button with this 
+	 * Register a button with this java listener
+	 * Events from this touchable will be reported to JavaTabChangeListener methods
 	 */
 	public void registerTabList(Component touchable)
 	{
@@ -142,7 +143,10 @@ public class JavaRMIListener extends JavaListener
 			nextPage.addPropertyChangeListener(jts);
 		}
 	}
-	
+	/**
+	 * Unregister a tab list from this java listener
+	 * Events from this touchable will not be reported to JavaTabChangeListener methods
+	 */
 	public void unRegisterTabList(Component touchable)
 	{
 		touchable.removeMouseListener(jts);
@@ -159,7 +163,6 @@ public class JavaRMIListener extends JavaListener
 	/**
 	 * Register a button with this java listener. 
 	 * Events from touchable will be reported to JavaButtonListener's methods.
-	 * @param touchable
 	 */
 	public void registerButton(Component touchable)
 	{
@@ -179,7 +182,6 @@ public class JavaRMIListener extends JavaListener
 	/**
 	 * Register a toggle button element with this java listener. 
 	 * Events from touchable will be reported to JavaToggleButtonListener's methods.
-	 * @param touchable
 	 */
 	public void registerToggleButton(Component touchable)
 	{
@@ -199,7 +201,6 @@ public class JavaRMIListener extends JavaListener
 	/**
 	 * Unregister a text element from this javaListener. Events from touchable, if performed, 
 	 * will not be reported to this javaListener's JavaTextListener's methods.
-	 * @param touchable
 	 */
 	public void registerText(Component typeable)
 	{
@@ -211,7 +212,6 @@ public class JavaRMIListener extends JavaListener
 	/**
 	 * Unregister's touchable from this java listener's text field compatible listeners. 
 	 * Events from touchable will not be reported to this javaListener's JavaTextListener methods. 
-	 * @param touchable
 	 */
 	public void unRegisterText(Component typeable)
 	{
@@ -222,7 +222,6 @@ public class JavaRMIListener extends JavaListener
 	// menu item
 	/**
 	 * Registers touchable using this javaListener's menu item compatible listeners. 
-	 * @param touchable
 	 */
 	public void registerMenuItem(Component touchable)
 	{
@@ -235,7 +234,6 @@ public class JavaRMIListener extends JavaListener
 	
 	/**
 	 * Unregisters touchable from this javaListener's menu item compatible listeners.
-	 * @param touchable
 	 */
 	public void unRegisterMenuItem(Component touchable)
 	{

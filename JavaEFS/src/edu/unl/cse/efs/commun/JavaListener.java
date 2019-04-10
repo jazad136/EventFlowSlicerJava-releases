@@ -126,7 +126,8 @@ public class JavaListener {
 	}
 	
 	/**
-	 * Register a button with this 
+	 * Register a tab list from this java listener
+	 * Events from this touchable will be reported to JavaTabChangeListener methods
 	 */
 	public void registerTabList(Component touchable)
 	{
@@ -138,6 +139,10 @@ public class JavaListener {
 		}
 	}
 	
+	/**
+	 * Unregister a tab list from this java listener
+	 * Events from this touchable will not be reported to JavaTabChangeListener methods
+	 */
 	public void unRegisterTabList(Component touchable)
 	{
 		touchable.removeMouseListener(jts);
@@ -154,7 +159,7 @@ public class JavaListener {
 	/**
 	 * Register a button with this java listener. 
 	 * Events from touchable will be reported to JavaButtonListener's methods.
-	 * @param touchable
+	 * 
 	 */
 	public void registerButton(Component touchable)
 	{
@@ -164,7 +169,7 @@ public class JavaListener {
 	/**
 	 * Unregister a button element from this javaListener. 
 	 * Events from touchable will not be reported to JavaButtonListener's methods.
-	 * @param touchable
+	 * 
 	 */
 	public void unRegisterButton(Component touchable)
 	{
@@ -174,7 +179,7 @@ public class JavaListener {
 	/**
 	 * Register a toggle button element with this java listener. 
 	 * Events from touchable will be reported to JavaToggleButtonListener's methods.
-	 * @param touchable
+	 * 
 	 */
 	public void registerToggleButton(Component touchable)
 	{
@@ -184,7 +189,7 @@ public class JavaListener {
 	/**
 	 * Unregister a toggle button element from this javaListener. 
 	 * Events from touchable will not be reported to JavaToggleButtonListener's methods.
-	 * @param touchable
+	 * 
 	 */
 	public void unRegisterToggleButton(Component touchable)
 	{
@@ -194,7 +199,7 @@ public class JavaListener {
 	/**
 	 * Unregister a text element from this javaListener. Events from touchable, if performed, 
 	 * will not be reported to this javaListener's JavaTextListener's methods.
-	 * @param touchable
+	 * 
 	 */
 	public void registerText(Component typeable)
 	{
@@ -206,7 +211,7 @@ public class JavaListener {
 	/**
 	 * Unregister's touchable from this java listener's text field compatible listeners. 
 	 * Events from touchable will not be reported to this javaListener's JavaTextListener methods. 
-	 * @param touchable
+	 * 
 	 */
 	public void unRegisterText(Component typeable)
 	{
@@ -223,7 +228,7 @@ public class JavaListener {
 	// menu item
 	/**
 	 * Registers touchable using this javaListener's menu item compatible listeners. 
-	 * @param touchable
+	 * 
 	 */
 	public void registerMenuItem(Component touchable)
 	{
@@ -235,7 +240,7 @@ public class JavaListener {
 	
 	/**
 	 * Unregisters touchable from this javaListener's menu item compatible listeners.
-	 * @param touchable
+	 * 
 	 */
 	public void unRegisterMenuItem(Component touchable)
 	{
@@ -250,7 +255,7 @@ public class JavaListener {
 	 * 
 	 * Preconditions: 	touchable must be a component with a list role.
 	 * 					touchable must have a scroll pane parent. 
-	 * @param touchable
+	 * 
 	 */
 	public void registerListSelector(Component touchable)
 	{
@@ -259,7 +264,7 @@ public class JavaListener {
 	
 	/**
 	 * Unregisters touchable from this javaListener's list selector compatible listeners. 
-	 * @param touchable
+	 * 
 	 */
 	public void unRegisterListSelector(Component touchable)
 	{
@@ -269,7 +274,7 @@ public class JavaListener {
 	// combo boxes
 	/**
 	 * Registers touchable with this javaListener's combo box listeners. 
-	 * @param touchable
+	 * 
 	 */
 	public void registerComboBoxComponent(Component touchable)
 	{
@@ -278,7 +283,7 @@ public class JavaListener {
 	/**
 	 * Registers typeable with this javaListener's listeners that handle text boxes within combo boxes. 
 	 * NOTE THAT THIS ADDS A MOUSE LISTENER AND NOT A KEY LISTENER. 
-	 * @param touchable
+	 * 
 	 */
 	public void registerComboBoxText(Component typeable)
 	{
@@ -286,7 +291,7 @@ public class JavaListener {
 	}
 	/**
 	 * Registers touchable with this javaListener's listeners that handle push buttons within combo boxes.
-	 * @param touchable
+	 * 
 	 */
 	public void registerComboBoxButton(Component touchable)
 	{
@@ -295,7 +300,7 @@ public class JavaListener {
 	
 	/**
 	 * Unregisters touchable from this javaListener's listeners that handle actions on the combo box component. 
-	 * @param touchable
+	 * 
 	 */
 	public void unRegisterComboBoxComponent(Component touchable)
 	{
@@ -313,7 +318,7 @@ public class JavaListener {
 	
 	/**
 	 * Unregisters touchable from this javaListener's listeners that handle actions on the push button within the combo box.  
-	 * @param touchable
+	 * 
 	 */
 	public void unRegisterComboBoxButton(Component touchable)
 	{
